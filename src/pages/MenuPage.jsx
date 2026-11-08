@@ -95,29 +95,29 @@ export default function MenuPage() {
           </div>
 
           <div className="card">
-            <table className="data-table">
+            <table className="data-table stack-sm">
               <thead>
                 <tr>
                   <th>Mahsulot</th>
                   <th>Kategoriya</th>
                   <th className="text-right">Narx</th>
                   <th className="text-center">Qoldiq</th>
-                  <th className="text-center">Holat</th>
+                  <th className="text-center hide-sm">Holat</th>
                   <th className="text-right">Amallar</th>
                 </tr>
               </thead>
               <tbody>
                 {filtered.map((p) => (
                   <tr key={p.id} style={!p.active ? { opacity: 0.5 } : {}}>
-                    <td>
+                    <td className="cell-main">
                       <div className="product-row-name">
                         <ProductThumb product={p} className="row-photo" emojiClass="product-row-emoji" />
                         {p.name}
                       </div>
                     </td>
-                    <td className="muted">{p.category_name}</td>
-                    <td className="text-right bold nowrap">{fmtMoney(p.price)}</td>
-                    <td className="text-center">
+                    <td className="muted" data-label="Kategoriya">{p.category_name}</td>
+                    <td className="text-right bold nowrap" data-label="Narx">{fmtMoney(p.price)}</td>
+                    <td className="text-center" data-label="Qoldiq">
                       {p.track_stock ? (
                         <span className={p.stock_qty <= 0 ? 'stock-out' : p.stock_qty <= p.low_stock ? 'stock-low' : 'stock-ok'}>
                           {fmtQty(p.stock_qty)} {p.unit}
@@ -126,10 +126,10 @@ export default function MenuPage() {
                         <span className="muted">—</span>
                       )}
                     </td>
-                    <td className="text-center">
+                    <td className="text-center hide-sm">
                       {p.active ? <span className="badge badge-green">Faol</span> : <span className="badge badge-gray">Nofaol</span>}
                     </td>
-                    <td className="text-right nowrap">
+                    <td className="text-right nowrap cell-actions">
                       <button className="btn btn-ghost btn-sm" onClick={() => setProdForm(p)}><Pencil size={15} /></button>
                       <button className="btn btn-ghost btn-sm" onClick={() => setProdDelete(p)}><Trash2 size={15} /></button>
                     </td>

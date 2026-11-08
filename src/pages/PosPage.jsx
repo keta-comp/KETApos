@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import {
   ShoppingCart, Search, FolderOpen, LayoutGrid, ReceiptText, Trash2, Minus, Plus,
-  Loader2, ChefHat, CreditCard, X, Armchair,
+  Loader2, ChefHat, CreditCard, X, Armchair, ChevronUp, ChevronDown,
 } from 'lucide-react';
 import { useApp } from '../state/AppContext.jsx';
 import { useData } from '../state/useData.js';
@@ -25,6 +25,8 @@ export default function PosPage() {
   const mayPay = can('pay');
 
   const [cart, setCart] = useState([]);
+  // Telefonda savat varaqasi yig'ilgan holda ochiladi: menyu ko'proq ko'rinsin.
+  const [cartOpen, setCartOpen] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [editingNumber, setEditingNumber] = useState(null);
   const [orderType, setOrderType] = useState(pageParams.tableId ? 'dine_in' : 'takeaway');
@@ -67,6 +69,7 @@ export default function PosPage() {
       .then((full) => {
         if (!alive || !full) return;
         setCart((full.items || []).map((it) => ({ product_id: it.product_id, name: it.name, price: it.price, qty: it.qty })));
+        setCartOpen((full.items || []).length > 0);
         setEditingId(full.id);
         setEditingNumber(full.number);
         setOrderType(full.type);
@@ -136,6 +139,7 @@ export default function PosPage() {
 
   function resetCart() {
     setCart([]);
+    setCartOpen(false);
     setEditingId(null);
     setEditingNumber(null);
     setDiscountPercent(0);
@@ -217,6 +221,7 @@ export default function PosPage() {
       setEditingId(full.id);
       setEditingNumber(full.number);
       setCart((full.items || []).map((it) => ({ product_id: it.product_id, name: it.name, price: it.price, qty: it.qty })));
+      setCartOpen(true);
       setOrderType(full.type);
       setTableId(full.table_id);
       setDiscountPercent(Number(full.discount_percent) || 0);
@@ -330,7 +335,7 @@ export default function PosPage() {
             />
           </div>
           <button className="btn btn-outline" onClick={() => setShowOpen(true)}>
-            <FolderOpen size={18} /> Ochiq buyurtmalar
+            <FolderOpen size={18} /> <span className="hide-sm">Ochiq buyurtmalar</span>
             {openOrders.length > 0 && <span className="badge badge-orange">{openOrders.length}</span>}
           </button>
         </div>
@@ -380,11 +385,20 @@ export default function PosPage() {
         </div>
       </div>
 
-      <div className="cart-panel">
+      <div className={`cart-panel ${cartOpen && cart.length ? '' : 'cart-collapsed'}`}>
         <div className="cart-head">
           <div className="cart-title-row">
             <span className="cart-title"><ReceiptText size={18} /> Buyurtma {editingId ? `(tahrir)` : ''}</span>
             <span className="badge badge-gray">{fmtQty(cartCount)} ta</span>
+            {cart.length > 0 && (
+              <button
+                className="cart-sheet-toggle"
+                onClick={() => setCartOpen((v) => !v)}
+                aria-label={cartOpen ? 'Savatni yopish' : "Savatni ochish"}
+              >
+                {cartOpen ? <ChevronDown size={17} /> : <ChevronUp size={17} />}
+              </button>
+            )}
           </div>
           <div className="cart-type-row">
             <div className="seg">
@@ -466,20 +480,20 @@ export default function PosPage() {
         <div className="cart-actions">
           {mayPay ? (
             <>
-              <button className="btn btn-secondary btn-block" disabled={!cart.length || busy} onClick={() => handleSave(true)}>
-                {busy ? <><Loader2 size={18} className="spin" /> Saqlanmoqda...</> : <><ChefHat size={18} /> Oshxonaga yuborish</>}
+              <button className="btn btn-secondary btn-block" disabled={!cart.length || busy} onClick={() => handleSave(true)} title="Oshxonaga yuborish">
+                {busy ? <><Loader2 size={18} className="spin" /> <span className="hide-sm">Saqlanmoqda...</span></> : <><ChefHat size={18} /> <span className="hide-sm">Oshxonaga yuborish</span></>}
               </button>
-              <button className="btn btn-primary btn-lg btn-block" disabled={!cart.length || busy} onClick={handlePay}>
-                <CreditCard size={18} /> To'lov qilish · {fmtMoney(total)}
+              <button className="btn btn-primary btn-lg btn-block" disabled={!cart.length || busy} onClick={handlePay} title="To'lov qilish">
+                <CreditCard size={18} /> <span className="hide-sm">To'lov qilish · </span>{fmtMoney(total)}
               </button>
             </>
           ) : (
             <>
-              <button className="btn btn-secondary btn-block" disabled={!cart.length || busy} onClick={() => handleSave(false)}>
+              <button className="btn btn-secondary btn-block" disabled={!cart.length || busy} onClick={() => handleSave(false)} title="Buyurtmani saqlash">
                 <ReceiptText size={18} /> Saqlash
               </button>
-              <button className="btn btn-primary btn-lg btn-block" disabled={!cart.length || busy} onClick={() => handleSave(true)}>
-                {busy ? <><Loader2 size={18} className="spin" /> Saqlanmoqda...</> : <><ChefHat size={18} /> Oshxonaga yuborish</>}
+              <button className="btn btn-primary btn-lg btn-block" disabled={!cart.length || busy} onClick={() => handleSave(true)} title="Oshxonaga yuborish">
+                {busy ? <><Loader2 size={18} className="spin" /> <span className="hide-sm">Saqlanmoqda...</span></> : <><ChefHat size={18} /> <span className="hide-sm">Oshxonaga yuborish</span></>}
               </button>
             </>
           )}

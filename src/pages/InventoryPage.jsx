@@ -103,7 +103,7 @@ export default function InventoryPage() {
                   <TriangleAlert size={14} /> Faqat kam qoldiq
                 </button>
               </div>
-              <table className="data-table">
+              <table className="data-table stack-sm">
                 <thead>
                   <tr>
                     <th>Mahsulot</th>
@@ -119,21 +119,21 @@ export default function InventoryPage() {
                     const state = p.stock_qty <= 0 ? 'out' : p.stock_qty <= p.low_stock ? 'low' : 'ok';
                     return (
                       <tr key={p.id}>
-                        <td>
+                        <td className="cell-main">
                           <div className="product-row-name">
                             <ProductThumb product={p} className="row-photo" emojiClass="product-row-emoji" />
                             {p.name}
                           </div>
                         </td>
-                        <td className="text-center bold">{fmtQty(p.stock_qty)} {p.unit}</td>
-                        <td className="text-center muted">{fmtQty(p.low_stock)} {p.unit}</td>
-                        <td className="text-center">
+                        <td className="text-center bold" data-label="Qoldiq">{fmtQty(p.stock_qty)} {p.unit}</td>
+                        <td className="text-center muted" data-label="Chegara">{fmtQty(p.low_stock)} {p.unit}</td>
+                        <td className="text-center" data-label="Holat">
                           {state === 'out' && <span className="badge badge-red">Tugagan</span>}
                           {state === 'low' && <span className="badge badge-yellow">Kam</span>}
                           {state === 'ok' && <span className="badge badge-green">Yetarli</span>}
                         </td>
-                        <td className="text-right nowrap">{fmtMoney(p.stock_qty * p.price)}</td>
-                        <td className="text-right nowrap">
+                        <td className="text-right nowrap" data-label="Qiymat">{fmtMoney(p.stock_qty * p.price)}</td>
+                        <td className="text-right nowrap cell-actions">
                           <button className="btn btn-success btn-sm" onClick={() => setStockModal({ product: p, mode: 'in' })}><Plus size={14} /> Kirim</button>{' '}
                           <button className="btn btn-outline btn-sm" onClick={() => setStockModal({ product: p, mode: 'out' })}><Minus size={14} /> Chiqim</button>
                         </td>
@@ -154,7 +154,7 @@ export default function InventoryPage() {
 
             <div className="section-title"><span className="ti"><History size={18} /> So'nggi harakatlar</span></div>
             <div className="card">
-              <table className="data-table">
+              <table className="data-table stack-sm">
                 <thead>
                   <tr>
                     <th>Sana</th>
@@ -167,12 +167,12 @@ export default function InventoryPage() {
                 <tbody>
                   {movements.map((m) => (
                     <tr key={m.id}>
-                      <td className="muted nowrap">{fmtDateTime(m.created_at)}</td>
-                      <td className="bold">{m.product_name}</td>
-                      <td className={`text-center ${m.delta > 0 ? 'delta-plus' : 'delta-minus'}`}>
+                      <td className="muted nowrap" data-label="Sana">{fmtDateTime(m.created_at)}</td>
+                      <td className="bold cell-main">{m.product_name}</td>
+                      <td className={`text-center ${m.delta > 0 ? 'delta-plus' : 'delta-minus'}`} data-label="Miqdor">
                         {m.delta > 0 ? '+' : ''}{fmtQty(m.delta)} {m.unit}
                       </td>
-                      <td className="text-center">
+                      <td className="text-center" data-label="Tur">
                         <span className={`badge ${REASONS[m.reason]?.cls || 'badge-gray'}`}>{REASONS[m.reason]?.label || m.reason}</span>
                       </td>
                       <td className="muted">{m.note}</td>

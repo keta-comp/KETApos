@@ -75,7 +75,7 @@ body {
 }
 
 input, textarea, select { user-select: text; }
-button { font-family: inherit; cursor: pointer; }
+button { font-family: inherit; cursor: pointer; -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
 ::-webkit-scrollbar { width: 10px; height: 10px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: var(--metal-3); border-radius: 8px; border: 2px solid #fff; }
@@ -83,7 +83,7 @@ button { font-family: inherit; cursor: pointer; }
 
 /* ---------- Layout ---------- */
 
-.app { display: flex; height: 100vh; overflow: hidden; background: var(--bg); }
+.app { display: flex; height: 100vh; height: 100dvh; overflow: hidden; background: var(--bg); }
 .main { flex: 1; min-width: 0; display: flex; flex-direction: column; overflow: hidden; }
 
 .sidebar {
@@ -211,7 +211,7 @@ button { font-family: inherit; cursor: pointer; }
 .page-body { flex: 1; overflow-y: auto; padding: 0 26px 26px; }
 
 .boot-screen {
-  height: 100vh; display: flex; flex-direction: column; align-items: center;
+  height: 100vh; height: 100dvh; display: flex; flex-direction: column; align-items: center;
   justify-content: center; gap: 10px; background: var(--bg); padding: 20px;
 }
 .boot-title { font-size: 14px; font-weight: 700; color: var(--muted); }
@@ -419,7 +419,8 @@ button { font-family: inherit; cursor: pointer; }
 .sk-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(154px, 1fr)); gap: 14px; }
 .sk-stat { display: flex; flex-direction: column; gap: 10px; background: var(--face); border-radius: var(--radius-l); padding: 16px 16px 18px; box-shadow: var(--clay-sm); }
 .sk-rows { display: flex; flex-direction: column; }
-.sk-row { display: flex; align-items: center; gap: 16px; padding: 15px 16px; border-bottom: 1px solid var(--border); }
+.sk-row { display: flex; align-items: center; gap: 16px; padding: 15px 16px; border-bottom: 1px solid var(--border); overflow: hidden; }
+.sk-row .sk { min-width: 0; flex-shrink: 1; }
 .sk-row:last-child { border-bottom: none; }
 .sk-list { display: flex; flex-direction: column; gap: 9px; }
 .sk-inset .sk-row { padding: 12px 2px; }
@@ -488,6 +489,11 @@ button { font-family: inherit; cursor: pointer; }
 .cart-head { padding: 18px 20px 14px; border-bottom: 1px solid var(--border); flex-shrink: 0; }
 .cart-title-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 13px; }
 .cart-title { font-size: 17px; font-weight: 800; display: flex; align-items: center; gap: 8px; }
+.cart-sheet-toggle {
+  display: none; align-items: center; justify-content: center; flex-shrink: 0;
+  width: 34px; height: 30px; border: none; border-radius: 11px;
+  background: var(--face-sunk); color: var(--muted); box-shadow: var(--sunk);
+}
 .cart-type-row { display: flex; gap: 8px; }
 .cart-type-row .seg { flex: 1; display: flex; }
 .cart-type-row .seg-item { flex: 1; padding: 9px 6px; font-size: 12.5px; }
@@ -777,7 +783,9 @@ button { font-family: inherit; cursor: pointer; }
 /* ---------- Auth ---------- */
 
 .auth-shell {
-  min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 24px;
+  min-height: 100vh; min-height: 100dvh; display: flex; align-items: center; justify-content: center;
+  padding: 24px; padding: calc(24px + env(safe-area-inset-top)) calc(16px + env(safe-area-inset-right))
+    calc(24px + env(safe-area-inset-bottom)) calc(16px + env(safe-area-inset-left));
   background: radial-gradient(1200px 620px at 50% -8%, #eef1f5 0%, #ffffff 62%);
 }
 .auth-card {
@@ -969,25 +977,109 @@ span.role-chip.role-owner { box-shadow: none; }
 /* ---------- Mobil (ofitsant telefonda PWA sifatida ochadi) ---------- */
 
 @media (max-width: 900px) {
+  /* iOS 16pxdan kichik maydonga fokusda butun sahifani yaqinlashtirib yuboradi. */
+  .input, .select, .textarea { font-size: 16px; }
+  /* Tez bosishda matn tanlanmasligi va "tortib yangilash" ishga tushmasligi kerak. */
+  .product-scroll, .cart-items, .page-body, .cat-bar, .sidebar-nav, .modal-body { overscroll-behavior: contain; }
+  .product-card, .chip, .qty-btn, .nav-item, .seg-item, .table-card, .stat-card, .pay-method {
+    user-select: none; -webkit-user-select: none; -webkit-touch-callout: none;
+  }
+
   .app { flex-direction: column; }
   .sidebar {
-    width: 100%; flex-direction: row; align-items: center; gap: 10px;
-    padding: 10px 12px; border-right: none; border-bottom: 1px solid var(--border);
+    width: 100%; flex-direction: row; align-items: center; gap: 8px;
+    padding: 6px 10px; padding-top: calc(6px + env(safe-area-inset-top));
+    border-right: none; border-bottom: 1px solid var(--border);
     box-shadow: inset 0 -10px 20px rgba(16, 20, 28, 0.04);
   }
-  .sidebar-logo { padding: 0 4px; }
-  .logo-title, .logo-sub, .sidebar-footer, .nav-label { display: none; }
-  .sidebar-nav { flex-direction: row; overflow-x: auto; gap: 6px; }
-  .nav-item { padding: 12px; border-radius: var(--radius-m); }
-  .nav-item .lucide { width: 21px; height: 21px; }
-  .account-chip { width: auto; margin-bottom: 0; }
-  .account-info { display: none; }
+  .sidebar-logo { padding: 0; }
+  .logo-mark { width: 38px; height: 38px; border-radius: 13px; }
+  .logo-mark img, .auth-logo img { width: 24px; height: 24px; }
+  .logo-title, .logo-sub, .hide-sm { display: none; }
+  .sidebar-nav { flex-direction: row; overflow-x: auto; gap: 4px; scrollbar-width: none; scroll-snap-type: x proximity; }
+  .sidebar-nav::-webkit-scrollbar { display: none; }
+  /* Yorliqsiz ikonalar qatori telefon chalkashtiradi, shuning uchun pastda qisqa matn qoladi. */
+  .nav-item {
+    flex-direction: column; align-items: center; justify-content: center; gap: 2px;
+    position: relative;
+    padding: 6px 8px; min-height: 52px; border-radius: var(--radius-m); flex: none;
+  }
+  .nav-item .lucide { width: 20px; height: 20px; }
+  .nav-label { flex: none; font-size: 9.5px; line-height: 1.1; white-space: nowrap; }
+  .nav-badge {
+    position: absolute; top: 1px; right: 1px; min-width: 18px; height: 18px;
+    border-radius: 9px; font-size: 10px; padding: 0 4px;
+  }
+  .nav-item .role-tag { display: none; }
+  /* Yuqori qatorda hisob-chip o'rniga faqat oflayn/navbat xabari ko'rinadi. */
+  .sidebar-footer { display: contents; }
+  .account-chip, .live-bar, .store-sub { display: none; }
+  .net-bar { flex: none; height: 34px; max-width: 145px; padding: 6px 10px; font-size: 12px; }
 
-  .pos-layout { grid-template-columns: 1fr; grid-template-rows: 1fr auto; }
-  .pos-left { padding: 14px 14px 0; }
-  .cart-panel { border-left: none; border-top: 1px solid var(--border); box-shadow: inset 0 12px 24px rgba(16, 20, 28, 0.04); max-height: 46vh; }
-  .page-head { padding: 16px 16px 12px; flex-wrap: wrap; }
-  .page-body { padding: 0 16px 20px; }
+  /* Kassa: yuqorida mahsulotlar, pastda savat varaqasi. */
+  .pos-layout { grid-template-columns: 1fr; grid-template-rows: minmax(0, 1fr) auto; }
+  .pos-left { padding: 12px 12px 0; }
+  .pos-toolbar { gap: 8px; margin-bottom: 12px; }
+  .search-wrap { max-width: none; }
+  .cat-bar { gap: 7px; padding-bottom: 12px; scrollbar-width: none; }
+  .cat-bar::-webkit-scrollbar { display: none; }
+  .chip { padding: 9px 12px; font-size: 13px; min-height: 40px; }
+  .product-scroll { padding-bottom: 14px; }
+  .product-grid { grid-template-columns: repeat(auto-fill, minmax(104px, 1fr)); gap: 9px; }
+  .product-card { min-height: 112px; padding: 12px 8px 10px; gap: 4px; }
+  .product-emoji { font-size: 30px; }
+  .product-name { font-size: 12.5px; }
+  .product-price { font-size: 13.5px; }
+  .product-stock { font-size: 10.5px; }
+  .product-count { min-width: 24px; height: 24px; font-size: 12px; top: -6px; right: -6px; }
+
+  .cart-panel {
+    border-left: none; border-top: 1px solid var(--border);
+    box-shadow: inset 0 12px 24px rgba(16, 20, 28, 0.04);
+  }
+  /* Telefon: varaqa yig'ilganda faqat sarlavha va tugmalar qoladi — menyuga ko'proq joy chiqadi. */
+  .cart-collapsed .cart-items, .cart-collapsed .cart-summary { display: none; }
+  .cart-panel:not(.cart-collapsed) { height: 52vh; height: 52dvh; }
+  .cart-head { padding: 10px 12px 8px; }
+  .cart-title-row { margin-bottom: 7px; gap: 8px; }
+  .cart-sheet-toggle { display: inline-flex; }
+  .cart-title { font-size: 15px; }
+  .cart-type-row .seg { padding: 3px; gap: 3px; }
+  .cart-type-row .seg-item { padding: 6px 4px; font-size: 12px; gap: 4px; min-height: 34px; }
+  .cart-type-row .seg-item .lucide { width: 15px; height: 15px; }
+  .table-select-btn { margin-top: 9px; padding: 10px; min-height: 42px; font-size: 13.5px; }
+  .editing-banner { padding: 8px 14px; font-size: 12.5px; }
+  .cart-items { padding: 4px 10px; }
+  .cart-empty { padding: 6px; line-height: 1.45; }
+  .cart-empty .empty-icon { width: 36px; height: 36px; border-radius: 12px; margin-bottom: 5px; }
+  .cart-item { gap: 6px; padding: 8px 2px; }
+  .cart-item-name { font-size: 13px; }
+  .cart-item-price { font-size: 11.5px; }
+  .cart-item-total { min-width: 0; font-size: 13px; }
+  .qty-btn { width: 34px; height: 34px; }
+  .cart-summary { padding: 6px 12px 4px; }
+  .summary-row { font-size: 12.5px; padding: 1px 0; }
+  .summary-total { font-size: 17px; padding: 3px 0 1px; }
+  .discount-row { padding: 3px 0; }
+  .discount-input { width: 64px; min-height: 32px; padding: 5px 8px; font-size: 13px; }
+  .cart-actions {
+    padding: 0 12px 10px; padding-bottom: calc(10px + env(safe-area-inset-bottom)); gap: 8px;
+    flex-direction: row;
+  }
+  .cart-actions .btn { width: auto; min-width: 0; flex: 1 1 auto; min-height: 44px; padding: 10px 14px; font-size: 14px; }
+  .cart-actions .btn-secondary { flex: 0 0 auto; }
+  .cart-actions .btn-lg { min-height: 52px; font-size: 16px; padding: 12px 16px; }
+
+  .page-head { padding: 14px 16px 10px; flex-wrap: wrap; gap: 10px; }
+  .page-title { font-size: 19px; gap: 8px; }
+  .page-body { padding: 0 14px 20px; padding-bottom: calc(20px + env(safe-area-inset-bottom)); }
+  .head-actions { flex-wrap: wrap; }
+
+  .table-grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 11px; }
+  .table-card { min-height: 120px; padding: 16px 10px; }
+  .open-order-row { flex-wrap: wrap; gap: 8px; padding: 12px; }
+  .open-order-info { flex: 1 1 100%; }
+  .open-order-total { flex: 1; text-align: right; }
   .role-switcher { padding: 8px 12px; gap: 8px; }
   .rs-note { display: none; }
   .rs-options { gap: 3px; padding: 3px; }
@@ -995,18 +1087,49 @@ span.role-chip.role-owner { box-shadow: none; }
   .invite-create { grid-template-columns: 1fr; }
   .staff-row { flex-wrap: wrap; gap: 9px; }
   .staff-meta { flex: 1 1 60%; }
-  .product-grid { grid-template-columns: repeat(auto-fill, minmax(126px, 1fr)); gap: 10px; }
-  .product-card { min-height: 118px; padding: 14px 10px 12px; }
   .kitchen-cols { grid-template-columns: 1fr; gap: 12px; }
   .menu-layout, .settings-grid, .report-grid { grid-template-columns: 1fr; }
   .form-row, .form-row-3 { grid-template-columns: 1fr; }
+  .grid-2 { flex-direction: column; }
   .stat-cards { grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); }
-  .modal { border-radius: var(--radius-l) var(--radius-l) 0 0; align-self: flex-end; max-height: 88vh; }
-  .modal-body, .modal-head, .modal-foot { padding-left: 18px; padding-right: 18px; }
-  .toast-wrap { left: 16px; right: 16px; bottom: 16px; align-items: stretch; }
+  .sk-row { gap: 10px; padding: 12px; }
+
+  /* Ustunli jadvallar telefon kengligiga sig'maydi: har qatorni o'z kartochkasiga yig'amiz. */
+  .data-table.stack-sm { width: 100%; }
+  .data-table.stack-sm thead { display: none; }
+  .data-table.stack-sm tbody { display: block; }
+  .data-table.stack-sm tr {
+    display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px;
+    padding: 9px 12px; border-bottom: 1px solid var(--border);
+  }
+  .data-table.stack-sm tr:last-child { border-bottom: none; }
+  .data-table.stack-sm td { display: block; padding: 0; border-bottom: none; font-size: 13px; text-align: left !important; }
+  .data-table.stack-sm td.hide-sm { display: none; }
+  .data-table.stack-sm td[data-label]::before {
+    content: attr(data-label); display: inline; margin-right: 5px;
+    font-size: 11px; font-weight: 700; color: var(--muted); text-transform: none;
+  }
+  .data-table.stack-sm .cell-main { flex: 1 1 100%; order: -1; font-size: 14.5px; }
+  .data-table.stack-sm .cell-actions { order: 3; display: flex; gap: 8px; justify-content: flex-end; margin-left: auto; }
+
+  .modal-overlay { padding: 0; align-items: flex-end; }
+  .modal { border-radius: var(--radius-xl) var(--radius-xl) 0 0; max-height: 92vh; max-height: 92dvh; }
+  .modal-head { padding: 16px 18px 12px; }
+  .modal-body { padding: 16px 18px; }
+  .modal-foot { padding: 12px 18px; padding-bottom: calc(14px + env(safe-area-inset-bottom)); }
+  .receipt-frame { height: 58vh; height: 58dvh; }
+  .thermal-preview, .printer-preview { max-height: 46vh; max-height: 46dvh; }
+  .pay-methods { gap: 8px; }
+  .pay-method { padding: 12px 6px; font-size: 12.5px; }
+  .cash-quick .btn { padding: 10px 6px; font-size: 13px; }
+
+  .toast-wrap {
+    left: 12px; right: 12px; bottom: 12px; bottom: calc(12px + env(safe-area-inset-bottom));
+    align-items: stretch;
+  }
   .toast { max-width: none; }
 }
 
-@media (max-width: 1250px) {
+@media (min-width: 901px) and (max-width: 1250px) {
   .pos-layout { grid-template-columns: 1fr 350px; }
 }
