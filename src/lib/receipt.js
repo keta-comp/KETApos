@@ -1,4 +1,5 @@
 import { fmtMoney, fmtDateTime, ORDER_TYPES, PAY_METHODS, fmtQty } from './format.js';
+import { isThermalMode, printThermal } from './printer.js';
 
 function esc(s) {
   return String(s ?? '').replace(/[&<>"']/g, (c) => ({
@@ -68,6 +69,8 @@ export function buildReceiptHtml(order, settings) {
 }
 
 export async function printReceipt(order, settings) {
+  // Termal rejimda HTML emas, ESC/POS rastr baytlari yuboriladi.
+  if (isThermalMode(settings)) return printThermal(order, settings);
   const html = buildReceiptHtml(order, settings);
   if (window.api?.printReceipt) {
     return window.api.printReceipt(html);
