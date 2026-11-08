@@ -552,6 +552,19 @@ button { font-family: inherit; cursor: pointer; }
 .change-display.negative { background: var(--red-light); color: var(--red); }
 .receipt-frame { width: 100%; height: 420px; border: 1px solid var(--border); border-radius: var(--radius-m); background: #fff; box-shadow: var(--sunk); }
 
+.thermal-preview {
+  max-height: 420px; overflow: auto; padding: 12px;
+  border: 1px solid var(--border); border-radius: var(--radius-m); background: #fff; box-shadow: var(--sunk);
+}
+.thermal-preview img { display: block; width: 100%; height: auto; image-rendering: pixelated; }
+.thermal-preview-empty { display: flex; align-items: center; gap: 8px; justify-content: center; height: 120px; color: var(--muted); }
+.printer-preview { border: 1px solid var(--border); border-radius: var(--radius-m); background: #fff; padding: 10px; overflow: auto; max-height: 340px; }
+.printer-preview img { display: block; width: 100%; height: auto; image-rendering: pixelated; }
+.printer-note { display: flex; align-items: flex-start; gap: 6px; font-size: 13px; color: var(--red); font-weight: 600; }
+.grid-2 { display: flex; gap: 12px; }
+.grid-2 > .field { flex: 1; min-width: 0; }
+.device-chip { display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; font-weight: 700; padding: 4px 10px; border-radius: 999px; background: var(--face-soft, #eef2f7); color: var(--ink); }
+
 .open-order-row {
   display: flex; align-items: center; gap: 12px; padding: 14px 16px;
   border-radius: var(--radius-m); margin-bottom: 10px; background: var(--face); box-shadow: var(--clay-sm);

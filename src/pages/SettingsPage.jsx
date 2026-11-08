@@ -9,6 +9,7 @@ import { getLegacySummary, runLegacyImport } from '../lib/importLegacy.js';
 import { todayStr } from '../lib/format.js';
 import { APP_VERSION } from '../lib/version.js';
 import { ConfirmModal } from '../components/Modal.jsx';
+import PrinterCard from '../components/PrinterCard.jsx';
 
 export default function SettingsPage() {
   const { settings, toast } = useApp();
@@ -142,6 +143,8 @@ export default function SettingsPage() {
           </div>
 
           <div className="col">
+            <PrinterCard />
+
             <div className="card card-pad">
               <div className="settings-section-title"><Database size={18} /> Ma'lumotlar</div>
               <p className="muted mb-2">
