@@ -8,8 +8,10 @@ import { useData } from '../state/useData.js';
 import { getReport, addExpense, deleteExpense } from '../supabase/queries.js';
 import { fmtMoney, fmtSum, fmtQty, fmtDate, todayStr, addDays, PAY_METHODS } from '../lib/format.js';
 import Modal, { ConfirmModal } from '../components/Modal.jsx';
-import DataState from '../components/DataState.jsx';
 import MapIcon from '../components/MapIcon.jsx';
+import PageSkeleton from '../components/PageSkeleton.jsx';
+import Spinner from '../components/Spinner.jsx';
+import { Sk, SkStats } from '../components/Skeleton.jsx';
 
 const EXPENSE_CATEGORIES = ['Masalliqlar', 'Kommunal', 'Ish haqi', 'Ijara', 'Transport', 'Boshqa'];
 
@@ -49,17 +51,23 @@ export default function ReportsPage() {
 
   if (!reportData) {
     return (
-      <div className="page">
-        <div className="page-head">
-          <div>
-            <h1 className="page-title"><ChartNoAxesCombined size={22} /> Hisobot</h1>
-            <div className="page-sub">Ma'lumot yuklanmoqda</div>
+      <PageSkeleton icon={ChartNoAxesCombined} title="Hisobot" error={error} onRetry={reload}>
+        <SkStats n={5} />
+        <div className="report-grid">
+          <div className="card card-pad">
+            <Sk w={140} h={14} r={7} className="mb-2" />
+            <div className="sk-bars">
+              {Array.from({ length: 9 }, (_, i) => <Sk key={i} w="100%" h={26 + ((i * 37) % 70)} r={7} />)}
+            </div>
+          </div>
+          <div className="card card-pad">
+            <Sk w={150} h={14} r={7} className="mb-2" />
+            <div className="sk-list">
+              {Array.from({ length: 3 }, (_, i) => <Sk key={i} h={44} r={14} />)}
+            </div>
           </div>
         </div>
-        <div className="page-body">
-          <DataState loading={loading} error={error} onRetry={reload} />
-        </div>
-      </div>
+      </PageSkeleton>
     );
   }
 
@@ -71,7 +79,8 @@ export default function ReportsPage() {
           <div className="page-sub">{fmtDate(from)} — {fmtDate(to)}</div>
         </div>
         <div className="head-actions">
-          <button className="btn btn-primary" onClick={() => setExpenseForm(true)}>+ Xarajat qo'shish</button>
+          {loading && <Spinner size={18} label="Yangilanmoqda" />}
+          <button className="btn btn-primary" onClick={() => setExpenseForm(true)}><Plus size={16} /> Xarajat qo'shish</button>
         </div>
       </div>
 

@@ -5,6 +5,7 @@ import { useData } from '../state/useData.js';
 import { getKitchenOrders, setKitchenStatus } from '../supabase/queries.js';
 import DataState from '../components/DataState.jsx';
 import MapIcon from '../components/MapIcon.jsx';
+import { Sk } from '../components/Skeleton.jsx';
 import { fmtQty, fmtTime, minutesSince, ORDER_TYPES, KITCHEN_STATES } from '../lib/format.js';
 
 const COLUMNS = [
@@ -44,9 +45,22 @@ export default function KitchenPage() {
       </div>
 
       <div className="page-body" style={{ overflow: 'hidden' }}>
-        {(loading && !orders) || error
-          ? <DataState loading={loading} error={error} onRetry={reload} />
-          : (
+        {error
+          ? <DataState error={error} onRetry={reload} />
+          : loading && !orders
+            ? (
+              <div className="kitchen-cols">
+                {COLUMNS.map((col) => (
+                  <div key={col.key} className={`kitchen-col ${col.cls}`}>
+                    <div className="kitchen-col-head"><Sk w="54%" h={13} r={6} /><Sk w={22} h={16} r={9} /></div>
+                    <div className="kitchen-col-body">
+                      {Array.from({ length: 2 }, (_, i) => <Sk key={i} h={i === 0 ? 168 : 116} r={18} />)}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )
+            : (
             <div className="kitchen-cols">
               {COLUMNS.map((col) => {
                 const colOrders = list.filter((o) => o.kitchen_status === col.key);

@@ -12,8 +12,9 @@ import {
 import { fmtMoney, fmtQty } from '../lib/format.js';
 import { toProductPhoto } from '../lib/photo.js';
 import Modal, { ConfirmModal } from '../components/Modal.jsx';
-import DataState from '../components/DataState.jsx';
+import PageSkeleton from '../components/PageSkeleton.jsx';
 import ProductThumb from '../components/ProductThumb.jsx';
+import { Sk, SkRows } from '../components/Skeleton.jsx';
 
 const EMOJIS = ['🍔','🍕','🌯','🍗','🍟','🥤','🍰','🍦','🍩','☕','🍵','💧','🥛','🍋','🧀','🌶️','🍄','🧅','🥗','🍜','🥪','🌭','🍿','🧃','🥩','🍳','🥐','🍽️'];
 const COLORS = ['#f97316','#ef4444','#eab308','#84cc16','#22c55e','#06b6d4','#3b82f6','#8b5cf6','#ec4899','#64748b'];
@@ -26,7 +27,7 @@ export default function MenuPage() {
   const [prodForm, setProdForm] = useState(null);
   const [prodDelete, setProdDelete] = useState(null);
 
-  const { data, loading, error, reload } = useData(async () => {
+  const { data, error, reload } = useData(async () => {
     const [categories, products] = await Promise.all([getCategories(), getProducts()]);
     return { categories, products };
   });
@@ -37,17 +38,17 @@ export default function MenuPage() {
 
   if (!data) {
     return (
-      <div className="page">
-        <div className="page-head">
-          <div>
-            <h1 className="page-title"><ClipboardList size={22} /> Menyu</h1>
-            <div className="page-sub">Ma'lumot yuklanmoqda</div>
+      <PageSkeleton icon={ClipboardList} title="Menyu" error={error} onRetry={reload}>
+        <div className="menu-layout">
+          <div className="card card-pad">
+            <div className="sk-list">
+              <Sk w="44%" h={13} r={6} />
+              {Array.from({ length: 6 }, (_, i) => <Sk key={i} h={44} r={14} />)}
+            </div>
           </div>
+          <div className="card"><SkRows n={8} cells={5} /></div>
         </div>
-        <div className="page-body">
-          <DataState loading={loading} error={error} onRetry={reload} />
-        </div>
-      </div>
+      </PageSkeleton>
     );
   }
 

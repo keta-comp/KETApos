@@ -1,19 +1,27 @@
 import { Armchair, Users } from 'lucide-react';
 import Modal from './Modal.jsx';
 import DataState from './DataState.jsx';
+import { Sk, SkCards } from './Skeleton.jsx';
 import { useData } from '../state/useData.js';
 import { getTableStates } from '../supabase/queries.js';
 import { fmtSum, minutesSince } from '../lib/format.js';
 
 export default function TablePickerModal({ onSelect, onClose, currentId = null }) {
-  const { data, loading, error, reload } = useData(getTableStates);
+  const { data, error, reload } = useData(getTableStates);
   const tables = data || [];
   const zones = [...new Set(tables.map((t) => t.zone))];
 
   return (
     <Modal title="Stol tanlang" onClose={onClose} width={640}>
       {!data ? (
-        <DataState loading={loading} error={error} onRetry={reload} />
+        error ? (
+          <DataState error={error} onRetry={reload} />
+        ) : (
+          <div className="zone-section">
+            <div className="zone-title"><Sk w={110} h={13} r={6} /></div>
+            <SkCards n={6} h={148} r={22} className="table-grid" />
+          </div>
+        )
       ) : (
         <>
           {zones.map((zone) => (

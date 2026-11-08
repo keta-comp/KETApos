@@ -1,7 +1,8 @@
 import {
   ShoppingCart, Users, ChefHat, ClipboardList, Package, ChartNoAxesCombined, Settings,
-  Store, CircleCheck, CircleAlert, Info, Loader2, LogOut, RefreshCw, TriangleAlert,
+  Store, CircleCheck, CircleAlert, Info, LogOut, RefreshCw, TriangleAlert,
 } from 'lucide-react';
+import Spinner from './components/Spinner.jsx';
 import { AuthProvider, useAuth } from './state/AuthContext.jsx';
 import { AppProvider, useApp } from './state/AppContext.jsx';
 import { useData } from './state/useData.js';
@@ -97,9 +98,7 @@ function Toasts() {
 function Boot({ label, error, onRetry }) {
   return (
     <div className="boot-screen">
-      <div className={`boot-icon ${error ? '' : 'spin'}`}>
-        {error ? <TriangleAlert size={52} /> : <Loader2 size={52} />}
-      </div>
+      {error ? <TriangleAlert size={22} /> : <Spinner size={22} />}
       <div className="boot-title">{error ? 'Xatolik yuz berdi' : label}</div>
       {error && <div className="boot-note">{error}</div>}
       {error && onRetry && (

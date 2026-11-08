@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Users, Armchair, Pencil, CreditCard, Trash2 } from 'lucide-react';
+import { Users, Armchair, Pencil, CreditCard, Trash2, Plus } from 'lucide-react';
 import { useApp } from '../state/AppContext.jsx';
 import { useData } from '../state/useData.js';
 import {
@@ -9,6 +9,7 @@ import { fmtSum, fmtMoney, fmtQty, fmtTime, minutesSince, ORDER_TYPES, KITCHEN_S
 import Modal, { ConfirmModal } from '../components/Modal.jsx';
 import DataState from '../components/DataState.jsx';
 import MapIcon from '../components/MapIcon.jsx';
+import { Sk, SkCards } from '../components/Skeleton.jsx';
 import PaymentModal from '../components/PaymentModal.jsx';
 import ReceiptModal from '../components/ReceiptModal.jsx';
 
@@ -22,7 +23,7 @@ export default function TablesPage() {
   const [receiptOrder, setReceiptOrder] = useState(null);
   const [cancelTarget, setCancelTarget] = useState(null);
 
-  const { data, loading, error, reload } = useData(async () => {
+  const { data, error, reload } = useData(async () => {
     const [tables, zones] = await Promise.all([getTableStates(), getZones()]);
     return { tables, zones };
   });
@@ -59,14 +60,21 @@ export default function TablesPage() {
             <Pencil size={16} /> {editMode ? 'Tahrirni yakunlash' : 'Tahrirlash'}
           </button>
           <button className="btn btn-primary" onClick={() => setFormTarget({ name: '', zone: zones[0] || 'Asosiy zal', seats: 4 })}>
-            + Stol qo'shish
+            <Plus size={16} /> Stol qo'shish
           </button>
         </div>
       </div>
 
       <div className="page-body">
         {!data ? (
-          <DataState loading={loading} error={error} onRetry={reload} />
+          error ? (
+            <DataState error={error} onRetry={reload} />
+          ) : (
+            <div className="zone-section">
+              <div className="zone-title"><Sk w={120} h={13} r={6} /></div>
+              <SkCards n={8} h={150} r={22} className="table-grid" />
+            </div>
+          )
         ) : (
           <>
             {zones.map((zone) => (
@@ -110,7 +118,7 @@ export default function TablesPage() {
             {tables.length === 0 && (
               <div className="empty-state">
                 <span className="empty-icon"><Armchair size={40} /></span>
-                Stollar yo'q. "+ Stol qo'shish" tugmasi bilan qo'shing.
+                Stollar yo'q. "Stol qo'shish" tugmasi bilan qo'shing.
               </div>
             )}
           </>

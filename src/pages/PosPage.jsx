@@ -17,6 +17,8 @@ import ReceiptModal from '../components/ReceiptModal.jsx';
 import TablePickerModal from '../components/TablePickerModal.jsx';
 import ProductThumb from '../components/ProductThumb.jsx';
 import MapIcon from '../components/MapIcon.jsx';
+import Spinner from '../components/Spinner.jsx';
+import { Sk, SkCards, SkRows } from '../components/Skeleton.jsx';
 
 export default function PosPage() {
   const { pageParams, toast } = useApp();
@@ -38,7 +40,7 @@ export default function PosPage() {
   const [receiptOrder, setReceiptOrder] = useState(null);
   const [cancelTarget, setCancelTarget] = useState(null);
 
-  const { data, loading, error, reload } = useData(async () => {
+  const { data, error, reload } = useData(async () => {
     const [categories, products, openOrders, tables] = await Promise.all([
       getCategories(),
       getProducts({ activeOnly: true }),
@@ -234,16 +236,57 @@ export default function PosPage() {
   }
 
   if (!data) {
-    return (
-      <div className="page">
-        <div className="page-head">
-          <div>
-            <h1 className="page-title"><ShoppingCart size={22} /> Kassa</h1>
-            <div className="page-sub">Menyu yuklanmoqda</div>
+    if (error) {
+      return (
+        <div className="page">
+          <div className="page-head">
+            <div>
+              <h1 className="page-title"><ShoppingCart size={22} /> Kassa</h1>
+              <div className="page-sub">Menyu</div>
+            </div>
+          </div>
+          <div className="page-body">
+            <DataState error={error} onRetry={reload} />
           </div>
         </div>
-        <div className="page-body">
-          <DataState loading={loading} error={error} onRetry={reload} />
+      );
+    }
+    return (
+      <div className="pos-layout">
+        <div className="pos-left">
+          <div className="pos-toolbar">
+            <div className="search-wrap">
+              <span className="search-icon"><Search size={16} /></span>
+              <input className="input" placeholder="Mahsulot qidirish..." value="" readOnly />
+            </div>
+            <Sk w={172} h={46} r={14} />
+          </div>
+          <div className="cat-bar">
+            {Array.from({ length: 6 }, (_, i) => <Sk key={i} w={114} h={44} r={26} />)}
+          </div>
+          <div className="product-scroll">
+            <SkCards n={12} h={128} r={18} className="product-grid" />
+          </div>
+        </div>
+        <div className="cart-panel">
+          <div className="cart-head">
+            <Sk w="52%" h={17} r={8} />
+            <div className="cart-type-row"><Sk w="100%" h={42} r={12} /></div>
+          </div>
+          <div className="cart-items">
+            <SkRows n={3} cells={3} className="sk-inset" />
+          </div>
+          <div className="cart-summary">
+            <div className="sk-list">
+              <Sk h={12} r={6} />
+              <Sk h={12} w="70%" r={6} />
+              <Sk h={18} r={8} />
+            </div>
+          </div>
+          <div className="cart-actions">
+            <Sk h={46} r={14} />
+            <Sk h={56} r={16} />
+          </div>
         </div>
       </div>
     );
@@ -253,7 +296,7 @@ export default function PosPage() {
     return (
       <div className="page">
         <div className="page-body">
-          <DataState loading />
+          <Spinner label="Buyurtma yuklanmoqda..." center />
         </div>
       </div>
     );

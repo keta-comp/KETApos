@@ -7,6 +7,7 @@ import { fmtMoney, fmtQty, fmtDateTime } from '../lib/format.js';
 import Modal from '../components/Modal.jsx';
 import DataState from '../components/DataState.jsx';
 import ProductThumb from '../components/ProductThumb.jsx';
+import { Sk, SkRows, SkStats } from '../components/Skeleton.jsx';
 
 const REASONS = {
   sale: { label: 'Savdo', cls: 'badge-blue' },
@@ -20,7 +21,7 @@ export default function InventoryPage() {
   const [onlyLow, setOnlyLow] = useState(false);
   const [stockModal, setStockModal] = useState(null);
 
-  const { data, loading, error, reload } = useData(async () => {
+  const { data, error, reload } = useData(async () => {
     const [products, movements, lowStock] = await Promise.all([
       getProducts(),
       getMovements({ limit: 60 }),
@@ -57,7 +58,22 @@ export default function InventoryPage() {
 
       <div className="page-body">
         {!data ? (
-          <DataState loading={loading} error={error} onRetry={reload} />
+          error ? (
+            <DataState error={error} onRetry={reload} />
+          ) : (
+            <>
+              <SkStats n={3} />
+              <div className="card">
+                <div className="row-between" style={{ padding: '14px 18px' }}>
+                  <Sk w="42%" h={42} r={14} />
+                  <Sk w={150} h={40} r={22} />
+                </div>
+                <SkRows n={7} cells={5} />
+              </div>
+              <div className="section-title"><Sk w={190} h={15} r={7} /></div>
+              <div className="card"><SkRows n={4} cells={4} /></div>
+            </>
+          )
         ) : (
           <>
             <div className="stat-cards">
