@@ -11,6 +11,7 @@ import DataState from '../components/DataState.jsx';
 import PaymentModal from '../components/PaymentModal.jsx';
 import ReceiptModal from '../components/ReceiptModal.jsx';
 import TablePickerModal from '../components/TablePickerModal.jsx';
+import ProductThumb from '../components/ProductThumb.jsx';
 
 export default function PosPage() {
   const { pageParams, toast } = useApp();
@@ -301,7 +302,7 @@ export default function PosPage() {
                 return (
                   <button key={p.id} className={`product-card ${inCart ? 'in-cart' : ''}`} onClick={() => addToCart(p)}>
                     {inCart && <span className="product-count">{fmtQty(inCart.qty)}</span>}
-                    <span className="product-emoji">{p.emoji}</span>
+                    <ProductThumb product={p} className="product-card-img" emojiClass="product-emoji" />
                     <span className="product-name">{p.name}</span>
                     <span className="product-price">{fmtMoney(p.price)}</span>
                     {p.track_stock ? (

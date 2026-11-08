@@ -546,6 +546,20 @@ button { font-family: inherit; cursor: pointer; }
 .product-row-name { display: flex; align-items: center; gap: 10px; font-weight: 700; }
 .product-row-emoji { font-size: 22px; }
 
+/* ---------- Mahsulot rasmlari ---------- */
+
+.photo-row { display: flex; align-items: center; gap: 14px; }
+.photo-box {
+  width: 84px; height: 84px; border-radius: var(--radius-s); overflow: hidden; flex-shrink: 0;
+  background: var(--face-sunk); box-shadow: var(--sunk); display: flex; align-items: center;
+  justify-content: center; font-size: 26px; color: var(--metal-4);
+}
+.photo-box img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.photo-actions { display: flex; flex-direction: column; gap: 6px; align-items: flex-start; }
+.row-photo { width: 38px; height: 38px; border-radius: 10px; object-fit: cover; box-shadow: var(--clay-sm); flex-shrink: 0; }
+.product-card-img { width: 100%; height: 66px; border-radius: var(--radius-s); object-fit: cover; box-shadow: var(--glow), 0 2px 5px rgba(16, 20, 28, 0.16); }
+.visually-hidden { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; overflow: hidden; }
+
 /* ---------- Statistika kartalari ---------- */
 
 .stat-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(178px, 1fr)); gap: 16px; margin-bottom: 22px; }

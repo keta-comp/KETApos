@@ -38,6 +38,7 @@ const MESSAGES = {
   KATEGORIYADA_MAHSULOT_BOR: "Bu kategoriyada mahsulotlar bor. Avval ularni boshqa kategoriyaga o‘tkazing.",
   KATEGORIYA_TOPILMADI: 'Kategoriya topilmadi.',
   MAHSULOT_TOPILMADI: 'Mahsulot topilmadi.',
+  RASM_PAPKASI_NOTOGRI: 'Rasm papkasi noto‘g‘ri — qaytadan yuklab ko‘ring.',
   NOM_KERTILMADI: 'Nomni kiriting.',
   DOKON_TO_LI: "Bu do'konda allaqachon buyurtmalar bor — import faqat yangi do'kon uchun.",
   'relation does not exist': "Baza tayyor emas — sxemani qo'llash kerak.",
@@ -144,6 +145,34 @@ export async function updateProduct(productId, fields) {
 
 export async function deleteProduct(productId) {
   return write('delete_product', { p_id: productId });
+}
+
+// ---------- Mahsulot rasmi ----------
+// Fayllar "product-images" bucket'ida <venue_id>/<product_id>.jpg yo'lida;
+// bazada faqat shu yo'l saqlanadi.
+
+const PHOTO_BUCKET = 'product-images';
+
+export function photoPublicUrl(path) {
+  if (!path || !supabase) return null;
+  return supabase.storage.from(PHOTO_BUCKET).getPublicUrl(path).data.publicUrl;
+}
+
+export async function uploadProductPhoto({ venueId, productId, blob }) {
+  const path = `${venueId}/${productId}.jpg`;
+  const { error } = await supabase.storage.from(PHOTO_BUCKET).upload(path, blob, {
+    contentType: 'image/jpeg',
+    upsert: true,
+  });
+  if (error) fail(error);
+  await write('set_product_photo', { p_product: productId, p_path: path });
+  return path;
+}
+
+export async function clearProductPhoto({ productId, path }) {
+  await write('set_product_photo', { p_product: productId, p_path: null });
+  // faylni o'chirish muvaffaqiyatsiz bo'lsa ham ish davom etadi (yo'l allaqachon null)
+  supabase.storage.from(PHOTO_BUCKET).remove([path]);
 }
 
 // ---------- Stollar ----------

@@ -1,13 +1,16 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useApp } from '../state/AppContext.jsx';
+import { useAuth } from '../state/AuthContext.jsx';
 import { useData } from '../state/useData.js';
 import {
   getCategories, getProducts, addCategory, updateCategory, deleteCategory,
-  addProduct, updateProduct, deleteProduct,
+  addProduct, updateProduct, deleteProduct, uploadProductPhoto, clearProductPhoto, photoPublicUrl,
 } from '../supabase/queries.js';
 import { fmtMoney, fmtQty } from '../lib/format.js';
+import { toProductPhoto } from '../lib/photo.js';
 import Modal, { ConfirmModal } from '../components/Modal.jsx';
 import DataState from '../components/DataState.jsx';
+import ProductThumb from '../components/ProductThumb.jsx';
 
 const EMOJIS = ['🍔','🍕','🌯','🍗','🍟','🥤','🍰','🍦','🍩','☕','🍵','💧','🥛','🍋','🧀','🌶️','🍄','🧅','🥗','🍜','🥪','🌭','🍿','🧃','🥩','🍳','🥐','🍽️'];
 const COLORS = ['#f97316','#ef4444','#eab308','#84cc16','#22c55e','#06b6d4','#3b82f6','#8b5cf6','#ec4899','#64748b'];
@@ -104,7 +107,7 @@ export default function MenuPage() {
                   <tr key={p.id} style={!p.active ? { opacity: 0.5 } : {}}>
                     <td>
                       <div className="product-row-name">
-                        <span className="product-row-emoji">{p.emoji}</span>
+                        <ProductThumb product={p} className="row-photo" emojiClass="product-row-emoji" />
                         {p.name}
                       </div>
                     </td>
@@ -260,6 +263,7 @@ function CategoryFormModal({ category, onClose, onSaved }) {
 
 function ProductFormModal({ product, categories, onClose, onSaved }) {
   const { toast } = useApp();
+  const { venue } = useAuth();
   const [name, setName] = useState(product.name || '');
   const [categoryId, setCategoryId] = useState(product.category_id || categories[0]?.id);
   const [price, setPrice] = useState(product.price ?? '');
@@ -270,6 +274,42 @@ function ProductFormModal({ product, categories, onClose, onSaved }) {
   const [lowStock, setLowStock] = useState(product.low_stock ?? 5);
   const [unit, setUnit] = useState(product.unit || 'dona');
   const [busy, setBusy] = useState(false);
+  const [photo, setPhoto] = useState(null);
+  const [removePhoto, setRemovePhoto] = useState(false);
+  const fileRef = useRef(null);
+  const urlRef = useRef(null);
+  const createdRef = useRef(null);
+
+  useEffect(() => () => URL.revokeObjectURL(urlRef.current), []);
+
+  const preview = photo?.url || (!removePhoto ? photoPublicUrl(product.photo_path) : null);
+
+  function dropPhoto() {
+    if (urlRef.current) URL.revokeObjectURL(urlRef.current);
+    urlRef.current = null;
+    setPhoto(null);
+  }
+
+  function keepExistingPhoto() {
+    dropPhoto();
+    setRemovePhoto(false);
+  }
+
+  async function onPick(file) {
+    if (!file) return;
+    setBusy(true);
+    try {
+      const blob = await toProductPhoto(file);
+      dropPhoto();
+      urlRef.current = URL.createObjectURL(blob);
+      setPhoto({ blob, url: urlRef.current });
+      setRemovePhoto(false);
+    } catch (e) {
+      toast(e.message, 'error');
+    } finally {
+      setBusy(false);
+    }
+  }
 
   async function save() {
     if (!name.trim()) return toast('Mahsulot nomini kiriting', 'error');
@@ -287,10 +327,17 @@ function ProductFormModal({ product, categories, onClose, onSaved }) {
     };
     setBusy(true);
     try {
-      if (product.id) {
-        await updateProduct(product.id, payload);
+      let productId = product.id || createdRef.current;
+      if (productId) {
+        await updateProduct(productId, payload);
       } else {
-        await addProduct({ ...payload, stock_qty: trackStock ? Number(stockQty) || 0 : 0 });
+        productId = await addProduct({ ...payload, stock_qty: trackStock ? Number(stockQty) || 0 : 0 });
+        createdRef.current = productId;
+      }
+      if (photo) {
+        await uploadProductPhoto({ venueId: venue.id, productId, blob: photo.blob });
+      } else if (removePhoto && product.photo_path) {
+        await clearProductPhoto({ productId, path: product.photo_path });
       }
       onSaved();
     } catch (e) {
@@ -336,6 +383,32 @@ function ProductFormModal({ product, categories, onClose, onSaved }) {
             <button key={e} className={`emoji-opt ${emoji === e ? 'active' : ''}`} onClick={() => setEmoji(e)}>{e}</button>
           ))}
         </div>
+      </div>
+      <div className="field">
+        <label className="label">Rasm (telefon kamerasi yoki galereya)</label>
+        <div className="photo-row">
+          <div className="photo-box">
+            {preview ? <img src={preview} alt="" /> : <span>📷</span>}
+          </div>
+          <div className="photo-actions">
+            <button className="btn btn-outline btn-sm" disabled={busy} onClick={() => fileRef.current.click()}>
+              {preview ? '🔄 Almashtirish' : '📷 Rasm tanlash'}
+            </button>
+            {preview && (photo ? (
+              <button className="btn btn-ghost btn-sm" onClick={keepExistingPhoto}>Bekor qilish</button>
+            ) : (
+              <button className="btn btn-ghost btn-sm" onClick={() => setRemovePhoto(true)}>✕ Ochirish</button>
+            ))}
+          </div>
+          <input
+            ref={fileRef}
+            type="file"
+            accept="image/*"
+            className="visually-hidden"
+            onChange={(e) => { onPick(e.target.files?.[0]); e.target.value = ''; }}
+          />
+        </div>
+        <p className="muted mt-1">Rasm avtomatik kvadrat qilib kesiladi va siqiladi (telefon uchun yengil).</p>
       </div>
       <div className="col">
         <label className="check-row">
