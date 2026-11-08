@@ -2,10 +2,11 @@ import { useState } from 'react';
 import {
   ShoppingCart, Users, ChefHat, ClipboardList, Package, ChartNoAxesCombined, Settings,
   Store, CircleCheck, CircleAlert, Info, LogOut, RefreshCw, TriangleAlert, UserCog, Eye,
-  CircleUser, Save,
+  CircleUser, Save, WifiOff,
 } from 'lucide-react';
 import Spinner from './components/Spinner.jsx';
 import Modal from './components/Modal.jsx';
+import QueueModal from './components/QueueModal.jsx';
 import { AuthProvider, useAuth } from './state/AuthContext.jsx';
 import { AppProvider, useApp } from './state/AppContext.jsx';
 import { useData } from './state/useData.js';
@@ -35,8 +36,8 @@ const NAV = [
   { id: 'settings', label: 'Sozlamalar', icon: Settings },
 ];
 
-function Sidebar({ onProfile }) {
-  const { page, navigate, allowedPages, peers } = useApp();
+function Sidebar({ onProfile, onQueue }) {
+  const { page, navigate, allowedPages, peers, offline, queue } = useApp();
   const { venue, roleLabel, displayName } = useAuth();
 
   const { data: counts } = useData(async () => {
@@ -93,7 +94,19 @@ function Sidebar({ onProfile }) {
           <span className="live-dot" />
           {peers.length > 0 ? `Siz + ${peers.length} kishi onlayn` : 'Hozir faqat siz onlaysiz'}
         </div>
-        <div className="store-sub">v{APP_VERSION} · server rejimi</div>
+        {(offline || queue.waiting > 0 || queue.failed > 0) && (
+          <button
+            className={`net-bar ${offline ? 'off' : ''} ${queue.failed > 0 ? 'bad' : ''}`}
+            onClick={onQueue}
+            title="Oflaynda qilingan amallar — ochib ko‘ring"
+          >
+            {offline ? <WifiOff size={14} /> : <RefreshCw size={14} />}
+            {offline
+              ? `Oflayn · ${queue.waiting} amal navbatda`
+              : `${queue.waiting} amal yuborilmoqda`}
+          </button>
+        )}
+        <div className="store-sub">v{APP_VERSION} · {offline ? 'oflayn rejim' : 'server rejimi'}</div>
       </div>
     </aside>
   );
@@ -225,6 +238,7 @@ function Gate() {
 function Shell() {
   const { page } = useApp();
   const [profileOpen, setProfileOpen] = useState(false);
+  const [queueOpen, setQueueOpen] = useState(false);
 
   const pages = {
     pos: <PosPage />,
@@ -239,12 +253,13 @@ function Shell() {
 
   return (
     <div className="app">
-      <Sidebar onProfile={() => setProfileOpen(true)} />
+      <Sidebar onProfile={() => setProfileOpen(true)} onQueue={() => setQueueOpen(true)} />
       <main className="main">
         <RoleSwitcher />
         {pages[page] || <PosPage />}
       </main>
       {profileOpen && <ProfileModal onClose={() => setProfileOpen(false)} />}
+      {queueOpen && <QueueModal onClose={() => setQueueOpen(false)} />}
       <Toasts />
     </div>
   );

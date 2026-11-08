@@ -3,6 +3,8 @@ import { onChange, getSettings } from '../supabase/queries.js';
 import { startLive } from '../supabase/realtime.js';
 import { useAuth } from './AuthContext.jsx';
 import { can as roleCan, homeFor, pagesFor, roleLabel } from '../lib/roles.js';
+import { isOffline, onStatus, queueStats, setIdentity } from '../lib/offline.js';
+import { drain, onSynced, watchSync } from '../lib/sync.js';
 
 const AppCtx = createContext(null);
 
@@ -18,6 +20,8 @@ export function AppProvider({ children }) {
   const [pageParams, setPageParams] = useState({});
   const [toasts, setToasts] = useState([]);
   const [peers, setPeers] = useState([]);
+  const [offline, setOffline] = useState(isOffline());
+  const [queue, setQueue] = useState({ waiting: 0, failed: 0, orders: 0, total: 0, records: [] });
   // Egasi boshqa rollar ekranini o'z qurilmabida ko'radi (ko'rinish uchun, ruxsat o'zgarmaydi).
   const [previewRole, setPreviewRole] = useState(null);
 
@@ -25,8 +29,46 @@ export function AppProvider({ children }) {
   const viewRole = previewRole || role;
   const allowedPages = useMemo(() => pagesFor(viewRole), [viewRole]);
 
-  // Realtime: do'kon ochilganda kanal yo'lga qo'yiladi, yopilmaganda tozalanadi.
+  // Oflaynda ochilgan buyurtmalarga "kim ochgan" yozilsin.
+  useEffect(() => {
+    setIdentity({ id: userId, name: displayName });
+  }, [userId, displayName]);
+
+  const readQueue = useCallback(() => {
+    queueStats().then(setQueue).catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    if (!connected) return undefined;
+    setOffline(isOffline());
+    readQueue();
+    const unStatus = onStatus((next) => {
+      setOffline(next);
+      readQueue();
+    });
+    const unChange = onChange(readQueue);
+    return () => {
+      unStatus();
+      unChange();
+    };
+  }, [connected, version, readQueue]);
+
+  // Navbat internet tiklanishi bilan o'zi yuboriladi; tugagach xabar beramiz.
   const toastRef = useRef(null);
+  useEffect(() => {
+    if (!connected) return undefined;
+    const unSynced = onSynced(({ synced, failed }) => {
+      if (synced) toastRef.current?.(`Navbat yuborildi: ${synced} amal serverga ketdi`);
+      if (failed) toastRef.current?.(`${failed} amal yuborilmadi — „Navbat“ oynasini oching`, 'error');
+    });
+    const stop = watchSync();
+    return () => {
+      stop();
+      unSynced();
+    };
+  }, [connected]);
+
+  // Realtime: do'kon ochilganda kanal yo'lga qo'yiladi, yopilmaganda tozalanadi.
   useEffect(() => {
     if (!connected || !venueId || !userId) return undefined;
     return startLive({
@@ -98,10 +140,17 @@ export function AppProvider({ children }) {
 
   const onlineIds = useMemo(() => new Set(peers.map((p) => p.id)), [peers]);
 
+  const syncNow = useCallback(async () => {
+    const out = await drain({ force: true });
+    readQueue();
+    return out;
+  }, [readQueue]);
+
   const value = {
     ready, error, retry, version, page, pageParams, navigate, toast, toasts,
     settings: rawSettings, refresh,
     peers, onlineIds,
+    offline, queue, syncNow,
     role, viewRole, isPreview: Boolean(previewRole), previewRole,
     setPreviewRole, viewRoleLabel: roleLabel(viewRole),
     allowedPages,
