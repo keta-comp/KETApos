@@ -1,36 +1,52 @@
-import { createContext, useContext, useEffect, useMemo, useState, useCallback } from 'react';
-import { initDb, onChange } from '../db/index.js';
-import { getSettings } from '../db/store.js';
+import { createContext, useCallback, useContext, useEffect, useState } from 'react';
+import { onChange, getSettings } from '../supabase/queries.js';
+import { useAuth } from './AuthContext.jsx';
 
 const AppCtx = createContext(null);
 
 export function AppProvider({ children }) {
+  const { status } = useAuth();
   const [ready, setReady] = useState(false);
   const [error, setError] = useState(null);
+  const [rawSettings, setRawSettings] = useState({});
   const [version, setVersion] = useState(0);
   const [page, setPage] = useState('pos');
   const [pageParams, setPageParams] = useState({});
   const [toasts, setToasts] = useState([]);
 
+  const connected = status === 'ready';
+
   useEffect(() => {
+    if (!connected) {
+      setReady(false);
+      setError(null);
+      return undefined;
+    }
     let alive = true;
-    let unsub = null;
-    initDb()
-      .then(() => {
+    const unsub = onChange(() => setVersion((v) => v + 1));
+    getSettings()
+      .then((s) => {
         if (!alive) return;
-        unsub = onChange(() => setVersion((v) => v + 1));
+        setRawSettings(s || {});
         setReady(true);
       })
       .catch((e) => {
-        if (alive) setError(String(e?.message || e));
+        if (!alive) return;
+        setError(e?.message || String(e));
+        setReady(true);
       });
     return () => {
       alive = false;
-      unsub?.();
+      unsub();
     };
-  }, []);
+  }, [connected, version]);
 
   const refresh = useCallback(() => setVersion((v) => v + 1), []);
+
+  const retry = useCallback(() => {
+    setError(null);
+    setVersion((v) => v + 1);
+  }, []);
 
   const navigate = useCallback((p, params = {}) => {
     setPage(p);
@@ -43,9 +59,7 @@ export function AppProvider({ children }) {
     setTimeout(() => setToasts((t) => t.filter((x) => x.id !== id)), 3500);
   }, []);
 
-  const settings = useMemo(() => (ready ? getSettings() : {}), [ready, version]);
-
-  const value = { ready, error, version, page, pageParams, navigate, toast, toasts, settings, refresh };
+  const value = { ready, error, retry, version, page, pageParams, navigate, toast, toasts, settings: rawSettings, refresh };
   return <AppCtx.Provider value={value}>{children}</AppCtx.Provider>;
 }
 

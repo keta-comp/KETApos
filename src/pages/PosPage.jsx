@@ -1,29 +1,30 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useApp } from '../state/AppContext.jsx';
+import { useData } from '../state/useData.js';
 import {
   getCategories, getProducts, getOpenOrders, getOrder, getTableStates,
   createOrder, updateOrder, sendToKitchen, cancelOrder,
-} from '../db/store.js';
+} from '../supabase/queries.js';
 import { fmtMoney, fmtSum, fmtQty, fmtTime, ORDER_TYPES } from '../lib/format.js';
 import Modal, { ConfirmModal } from '../components/Modal.jsx';
+import DataState from '../components/DataState.jsx';
 import PaymentModal from '../components/PaymentModal.jsx';
 import ReceiptModal from '../components/ReceiptModal.jsx';
 import TablePickerModal from '../components/TablePickerModal.jsx';
 
 export default function PosPage() {
-  const { version, pageParams, toast } = useApp();
+  const { pageParams, toast } = useApp();
 
-  const initial = pageParams.resumeOrderId ? getOrder(pageParams.resumeOrderId) : null;
-  const [cart, setCart] = useState(() =>
-    initial ? initial.items.map((it) => ({ product_id: it.product_id, name: it.name, price: it.price, qty: it.qty })) : []
-  );
-  const [editingId, setEditingId] = useState(initial?.id || null);
-  const [orderType, setOrderType] = useState(initial?.type || (pageParams.tableId ? 'dine_in' : 'takeaway'));
-  const [tableId, setTableId] = useState(initial?.table_id || pageParams.tableId || null);
-  const [discountPercent, setDiscountPercent] = useState(initial?.discount_percent || 0);
-  const [note, setNote] = useState(initial?.note || '');
+  const [cart, setCart] = useState([]);
+  const [editingId, setEditingId] = useState(null);
+  const [editingNumber, setEditingNumber] = useState(null);
+  const [orderType, setOrderType] = useState(pageParams.tableId ? 'dine_in' : 'takeaway');
+  const [tableId, setTableId] = useState(pageParams.tableId || null);
+  const [discountPercent, setDiscountPercent] = useState(0);
+  const [note, setNote] = useState('');
   const [search, setSearch] = useState('');
   const [activeCat, setActiveCat] = useState(null);
+  const [busy, setBusy] = useState(false);
 
   const [showTables, setShowTables] = useState(false);
   const [showOpen, setShowOpen] = useState(false);
@@ -31,9 +32,44 @@ export default function PosPage() {
   const [receiptOrder, setReceiptOrder] = useState(null);
   const [cancelTarget, setCancelTarget] = useState(null);
 
-  const categories = useMemo(() => getCategories(), [version]);
-  const products = useMemo(() => getProducts({ activeOnly: true }), [version]);
-  const openOrders = useMemo(() => getOpenOrders(), [version]);
+  const { data, loading, error, reload } = useData(async () => {
+    const [categories, products, openOrders, tables] = await Promise.all([
+      getCategories(),
+      getProducts({ activeOnly: true }),
+      getOpenOrders(),
+      getTableStates(),
+    ]);
+    return { categories, products, openOrders, tables };
+  });
+
+  const categories = data?.categories || [];
+  const products = data?.products || [];
+  const openOrders = data?.openOrders || [];
+  const tables = data?.tables || [];
+
+  // Stol listidan ochilganda buyurtmani serverdan tortib olinadi.
+  const [resumeLoading, setResumeLoading] = useState(false);
+  useEffect(() => {
+    const orderId = pageParams.resumeOrderId;
+    if (!orderId) return undefined;
+    let alive = true;
+    setResumeLoading(true);
+    getOrder(orderId)
+      .then((full) => {
+        if (!alive || !full) return;
+        setCart(full.items.map((it) => ({ product_id: it.product_id, name: it.name, price: it.price, qty: it.qty })));
+        setEditingId(full.id);
+        setEditingNumber(full.number);
+        setOrderType(full.type);
+        setTableId(full.table_id);
+        setDiscountPercent(Number(full.discount_percent) || 0);
+        setNote(full.note || '');
+      })
+      .catch((e) => alive && toast(e.message, 'error'))
+      .finally(() => alive && setResumeLoading(false));
+    return () => { alive = false; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pageParams]);
 
   const filtered = useMemo(() => {
     let list = products;
@@ -49,6 +85,7 @@ export default function PosPage() {
   const discount = Math.round((subtotal * (Number(discountPercent) || 0)) / 100);
   const total = subtotal - discount;
   const cartCount = cart.reduce((s, it) => s + it.qty, 0);
+  const selectedTable = tables.find((t) => t.id === tableId) || null;
 
   function addToCart(p) {
     setCart((prev) => {
@@ -91,6 +128,7 @@ export default function PosPage() {
   function resetCart() {
     setCart([]);
     setEditingId(null);
+    setEditingNumber(null);
     setDiscountPercent(0);
     setNote('');
     setTableId(null);
@@ -120,51 +158,99 @@ export default function PosPage() {
     };
   }
 
-  function persistOrder(sendKitchen) {
+  async function persistOrder(sendKitchen) {
     if (editingId) {
-      const o = updateOrder(editingId, buildPayload());
-      return sendKitchen ? sendToKitchen(o.id) : o;
+      const o = await updateOrder(editingId, buildPayload());
+      if (sendKitchen) return await sendToKitchen(o.id);
+      return o;
     }
-    return createOrder({ ...buildPayload(), sendToKitchen: sendKitchen });
+    return createOrder({ ...buildPayload(), sendToKitchen });
   }
 
-  function handleSave(sendKitchen) {
-    if (!validate()) return;
+  async function handleSave(sendKitchen) {
+    if (busy || !validate()) return;
+    setBusy(true);
     try {
-      const o = persistOrder(sendKitchen);
+      const o = await persistOrder(sendKitchen);
       toast(sendKitchen ? `Buyurtma №${o.number} oshxonaga yuborildi` : `Buyurtma №${o.number} saqlandi`);
       resetCart();
     } catch (e) {
       toast(e.message, 'error');
+    } finally {
+      setBusy(false);
     }
   }
 
-  function handlePay() {
-    if (!validate()) return;
+  async function handlePay() {
+    if (busy || !validate()) return;
+    setBusy(true);
     try {
-      const o = persistOrder(false);
+      const o = await persistOrder(false);
       setEditingId(o.id);
+      setEditingNumber(o.number);
       setPayTarget(o);
+    } catch (e) {
+      toast(e.message, 'error');
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function resumeOrder(o) {
+    try {
+      const full = await getOrder(o.id);
+      setEditingId(full.id);
+      setEditingNumber(full.number);
+      setCart(full.items.map((it) => ({ product_id: it.product_id, name: it.name, price: it.price, qty: it.qty })));
+      setOrderType(full.type);
+      setTableId(full.table_id);
+      setDiscountPercent(Number(full.discount_percent) || 0);
+      setNote(full.note || '');
+      setShowOpen(false);
     } catch (e) {
       toast(e.message, 'error');
     }
   }
 
-  function resumeOrder(o) {
-    const full = getOrder(o.id);
-    setEditingId(full.id);
-    setCart(full.items.map((it) => ({ product_id: it.product_id, name: it.name, price: it.price, qty: it.qty })));
-    setOrderType(full.type);
-    setTableId(full.table_id);
-    setDiscountPercent(full.discount_percent);
-    setNote(full.note || '');
-    setShowOpen(false);
+  async function payExisting(o) {
+    try {
+      setPayTarget(await getOrder(o.id));
+      setShowOpen(false);
+    } catch (e) {
+      toast(e.message, 'error');
+    }
   }
 
   function onPaid(paid) {
     setPayTarget(null);
     resetCart();
     setReceiptOrder(paid);
+  }
+
+  if (!data) {
+    return (
+      <div className="page">
+        <div className="page-head">
+          <div>
+            <h1 className="page-title">🛒 Kassa</h1>
+            <div className="page-sub">Menyu yuklanmoqda</div>
+          </div>
+        </div>
+        <div className="page-body">
+          <DataState loading={loading} error={error} onRetry={reload} />
+        </div>
+      </div>
+    );
+  }
+
+  if (resumeLoading) {
+    return (
+      <div className="page">
+        <div className="page-body">
+          <DataState loading />
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -254,13 +340,13 @@ export default function PosPage() {
             </div>
           </div>
           {orderType === 'dine_in' && (
-            <TableButton tableId={tableId} onClick={() => setShowTables(true)} />
+            <TableButton table={selectedTable} onClick={() => setShowTables(true)} />
           )}
         </div>
 
         {editingId && (
           <div className="editing-banner">
-            <span>Buyurtma №{getOrder(editingId)?.number} tahrirlanmoqda</span>
+            <span>Buyurtma №{editingNumber} tahrirlanmoqda</span>
             <button onClick={resetCart}>+ Yangi buyurtma</button>
           </div>
         )}
@@ -315,10 +401,10 @@ export default function PosPage() {
         </div>
 
         <div className="cart-actions">
-          <button className="btn btn-secondary btn-block" disabled={!cart.length} onClick={() => handleSave(true)}>
-            👨‍🍳 Oshxonaga yuborish
+          <button className="btn btn-secondary btn-block" disabled={!cart.length || busy} onClick={() => handleSave(true)}>
+            {busy ? '⏳ Saqlanmoqda...' : '👨‍🍳 Oshxonaga yuborish'}
           </button>
-          <button className="btn btn-primary btn-lg btn-block" disabled={!cart.length} onClick={handlePay}>
+          <button className="btn btn-primary btn-lg btn-block" disabled={!cart.length || busy} onClick={handlePay}>
             💳 To'lov qilish · {fmtMoney(total)}
           </button>
         </div>
@@ -359,9 +445,7 @@ export default function PosPage() {
                 </div>
                 <span className="open-order-total">{fmtSum(o.total)}</span>
                 <button className="btn btn-secondary btn-sm" onClick={() => resumeOrder(o)}>Ochish</button>
-                <button className="btn btn-primary btn-sm" onClick={() => { setShowOpen(false); setPayTarget(getOrder(o.id)); }}>
-                  To'lov
-                </button>
+                <button className="btn btn-primary btn-sm" onClick={() => payExisting(o)}>To'lov</button>
                 <button className="btn btn-ghost btn-sm" onClick={() => setCancelTarget(o)}>✕</button>
               </div>
             ))
@@ -382,9 +466,9 @@ export default function PosPage() {
           confirmLabel="Bekor qilish"
           danger
           onClose={() => setCancelTarget(null)}
-          onConfirm={() => {
+          onConfirm={async () => {
             try {
-              cancelOrder(cancelTarget.id);
+              await cancelOrder(cancelTarget.id);
               if (editingId === cancelTarget.id) resetCart();
               toast('Buyurtma bekor qilindi', 'info');
             } catch (e) {
@@ -397,15 +481,10 @@ export default function PosPage() {
   );
 }
 
-function TableButton({ tableId, onClick }) {
-  const { version } = useApp();
-  const t = useMemo(
-    () => getTableStates().find((x) => x.id === tableId),
-    [tableId, version]
-  );
+function TableButton({ table, onClick }) {
   return (
-    <button className={`table-select-btn ${tableId ? 'selected' : ''}`} onClick={onClick}>
-      {t ? `🪑 ${t.name} (${t.zone})` : '🪑 Stol tanlang...'}
+    <button className={`table-select-btn ${table ? 'selected' : ''}`} onClick={onClick}>
+      {table ? `🪑 ${table.name} (${table.zone})` : '🪑 Stol tanlang...'}
     </button>
   );
 }

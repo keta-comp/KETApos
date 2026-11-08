@@ -1,17 +1,21 @@
-import { useMemo } from 'react';
 import Modal from './Modal.jsx';
-import { useApp } from '../state/AppContext.jsx';
-import { getTableStates } from '../db/store.js';
+import DataState from './DataState.jsx';
+import { useData } from '../state/useData.js';
+import { getTableStates } from '../supabase/queries.js';
 import { fmtSum, minutesSince } from '../lib/format.js';
 
 export default function TablePickerModal({ onSelect, onClose, currentId = null }) {
-  const { version } = useApp();
-  const tables = useMemo(() => getTableStates(), [version]);
+  const { data, loading, error, reload } = useData(getTableStates);
+  const tables = data || [];
   const zones = [...new Set(tables.map((t) => t.zone))];
 
   return (
     <Modal title="Stol tanlang" onClose={onClose} width={640}>
-      {zones.map((zone) => (
+      {!data ? (
+        <DataState loading={loading} error={error} onRetry={reload} />
+      ) : (
+        <>
+          {zones.map((zone) => (
         <div key={zone} className="zone-section">
           <div className="zone-title">{zone}</div>
           <div className="table-grid">
@@ -42,7 +46,9 @@ export default function TablePickerModal({ onSelect, onClose, currentId = null }
             })}
           </div>
         </div>
-      ))}
+          ))}
+        </>
+      )}
     </Modal>
   );
 }

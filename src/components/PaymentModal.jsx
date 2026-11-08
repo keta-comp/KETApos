@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import Modal from './Modal.jsx';
 import { useApp } from '../state/AppContext.jsx';
-import { payOrder } from '../db/store.js';
+import { payOrder } from '../supabase/queries.js';
 import { fmtMoney, fmtSum, PAY_METHODS } from '../lib/format.js';
 import { printReceipt } from '../lib/receipt.js';
 
@@ -9,6 +9,7 @@ export default function PaymentModal({ order, onClose, onPaid }) {
   const { settings, toast } = useApp();
   const [method, setMethod] = useState('cash');
   const [received, setReceived] = useState('');
+  const [busy, setBusy] = useState(false);
 
   const total = order.total;
   const receivedNum = parseInt(received || '0', 10) || 0;
@@ -20,20 +21,23 @@ export default function PaymentModal({ order, onClose, onPaid }) {
     .slice(0, 4);
 
   async function confirm() {
+    if (busy) return;
+    setBusy(true);
     try {
-      const paid = payOrder(order.id, {
+      const paid = await payOrder(order.id, {
         method,
         received: method === 'cash' ? receivedNum : total,
       });
       toast(`Buyurtma №${paid.number} to'landi`);
+      onPaid(paid);
       if (settings.auto_print === '1') {
         try {
           await printReceipt(paid, settings);
         } catch {}
       }
-      onPaid(paid);
     } catch (e) {
       toast(e.message, 'error');
+      setBusy(false);
     }
   }
 
@@ -45,8 +49,8 @@ export default function PaymentModal({ order, onClose, onPaid }) {
       footer={
         <>
           <button className="btn btn-secondary" onClick={onClose}>Bekor qilish</button>
-          <button className="btn btn-success btn-lg" disabled={!canPay} onClick={confirm}>
-            ✓ To'lovni tasdiqlash
+          <button className="btn btn-success btn-lg" disabled={!canPay || busy} onClick={confirm}>
+            {busy ? '⏳ To\'lanmoqda...' : '✓ To\'lovni tasdiqlash'}
           </button>
         </>
       }

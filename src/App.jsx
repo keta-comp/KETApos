@@ -1,8 +1,8 @@
-import { useMemo } from 'react';
 import { AuthProvider, useAuth } from './state/AuthContext.jsx';
 import { AppProvider, useApp } from './state/AppContext.jsx';
+import { useData } from './state/useData.js';
 import AuthScreen from './auth/AuthScreen.jsx';
-import { getOpenOrders, getKitchenOrders, getLowStock } from './db/store.js';
+import { getOpenOrders, getKitchenOrders, getLowStock } from './supabase/queries.js';
 import PosPage from './pages/PosPage.jsx';
 import TablesPage from './pages/TablesPage.jsx';
 import KitchenPage from './pages/KitchenPage.jsx';
@@ -26,18 +26,18 @@ const NAV = [
 ];
 
 function Sidebar() {
-  const { page, navigate, version } = useApp();
+  const { page, navigate } = useApp();
   const { venue, roleLabel, handleSignOut } = useAuth();
 
-  const badges = useMemo(() => {
-    void version;
-    const kitchenNew = getKitchenOrders().filter((o) => o.kitchen_status === 'new').length;
+  const { data: counts } = useData(async () => {
+    const [open, kitchen, low] = await Promise.all([getOpenOrders(), getKitchenOrders(), getLowStock()]);
     return {
-      pos: getOpenOrders().length,
-      kitchen: kitchenNew,
-      inventory: getLowStock().length,
+      pos: open.length,
+      kitchen: kitchen.filter((o) => o.kitchen_status === 'new').length,
+      inventory: low.length,
     };
-  }, [version]);
+  }, []);
+  const badges = counts || { pos: 0, kitchen: 0, inventory: 0 };
 
   return (
     <aside className="sidebar">
@@ -89,24 +89,27 @@ function Toasts() {
   );
 }
 
-function Boot({ label, error }) {
+function Boot({ label, error, onRetry }) {
   return (
     <div className="boot-screen">
       <div className={`boot-emoji ${error ? '' : 'spin'}`}>{error ? '⚠️' : '🍔'}</div>
       <div className="boot-title">{error ? 'Xatolik yuz berdi' : label}</div>
       {error && <div className="boot-note">{error}</div>}
+      {error && onRetry && (
+        <button className="btn btn-primary mt-3" onClick={onRetry}>🔄 Qayta urinish</button>
+      )}
     </div>
   );
 }
 
 function Gate() {
   const { status, error: authError } = useAuth();
-  const { ready, error } = useApp();
+  const { ready, error, retry } = useApp();
 
   if (status === 'booting') return <Boot label="Akkaunt tekshirilmoqda..." />;
   if (status !== 'ready') return <AuthScreen />;
   if (authError) return <Boot error={authError} />;
-  if (error) return <Boot error={error} />;
+  if (error) return <Boot error={error} onRetry={retry} />;
   if (!ready) return <Boot label="POS yuklanmoqda..." />;
   return <Shell />;
 }

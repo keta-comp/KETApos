@@ -12,7 +12,9 @@
     "dist": "npm run build && electron-builder --win",
     "icons": "node scripts/make-icons.mjs",
     "db:apply": "node scripts/apply-sql.mjs",
-    "smoke:auth": "node scripts/smoke-auth.mjs"
+    "smoke:auth": "node scripts/smoke-auth.mjs",
+    "smoke:pos": "node scripts/smoke-pos.mjs",
+    "smoke:import": "node scripts/smoke-import.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.119.0",

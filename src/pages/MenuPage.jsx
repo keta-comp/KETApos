@@ -1,26 +1,49 @@
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import { useApp } from '../state/AppContext.jsx';
+import { useData } from '../state/useData.js';
 import {
   getCategories, getProducts, addCategory, updateCategory, deleteCategory,
   addProduct, updateProduct, deleteProduct,
-} from '../db/store.js';
+} from '../supabase/queries.js';
 import { fmtMoney, fmtQty } from '../lib/format.js';
 import Modal, { ConfirmModal } from '../components/Modal.jsx';
+import DataState from '../components/DataState.jsx';
 
 const EMOJIS = ['🍔','🍕','🌯','🍗','🍟','🥤','🍰','🍦','🍩','☕','🍵','💧','🥛','🍋','🧀','🌶️','🍄','🧅','🥗','🍜','🥪','🌭','🍿','🧃','🥩','🍳','🥐','🍽️'];
 const COLORS = ['#f97316','#ef4444','#eab308','#84cc16','#22c55e','#06b6d4','#3b82f6','#8b5cf6','#ec4899','#64748b'];
 
 export default function MenuPage() {
-  const { version, toast } = useApp();
+  const { toast } = useApp();
   const [activeCat, setActiveCat] = useState(null);
   const [catForm, setCatForm] = useState(null);
   const [catDelete, setCatDelete] = useState(null);
   const [prodForm, setProdForm] = useState(null);
   const [prodDelete, setProdDelete] = useState(null);
 
-  const categories = useMemo(() => getCategories(), [version]);
-  const products = useMemo(() => getProducts(), [version]);
+  const { data, loading, error, reload } = useData(async () => {
+    const [categories, products] = await Promise.all([getCategories(), getProducts()]);
+    return { categories, products };
+  });
+
+  const categories = data?.categories || [];
+  const products = data?.products || [];
   const filtered = activeCat ? products.filter((p) => p.category_id === activeCat) : products;
+
+  if (!data) {
+    return (
+      <div className="page">
+        <div className="page-head">
+          <div>
+            <h1 className="page-title">📋 Menyu</h1>
+            <div className="page-sub">Ma'lumot yuklanmoqda</div>
+          </div>
+        </div>
+        <div className="page-body">
+          <DataState loading={loading} error={error} onRetry={reload} />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="page">
@@ -132,9 +155,9 @@ export default function MenuPage() {
           confirmLabel="O'chirish"
           danger
           onClose={() => setCatDelete(null)}
-          onConfirm={() => {
+          onConfirm={async () => {
             try {
-              deleteCategory(catDelete.id);
+              await deleteCategory(catDelete.id);
               if (activeCat === catDelete.id) setActiveCat(null);
               toast("Kategoriya o'chirildi", 'info');
             } catch (e) {
@@ -160,10 +183,10 @@ export default function MenuPage() {
           confirmLabel="O'chirish"
           danger
           onClose={() => setProdDelete(null)}
-          onConfirm={() => {
+          onConfirm={async () => {
             try {
-              deleteProduct(prodDelete.id);
-              toast("Mahsulot o'chirildi", 'info');
+              const res = await deleteProduct(prodDelete.id);
+              toast(res === 'archived' ? 'Sotuv tarixi bo\'lgani uchun nofaol qilindi' : 'Mahsulot o\'chirildi', 'info');
             } catch (e) {
               toast(e.message, 'error');
             }
@@ -179,18 +202,21 @@ function CategoryFormModal({ category, onClose, onSaved }) {
   const [name, setName] = useState(category.name || '');
   const [emoji, setEmoji] = useState(category.emoji || '🍽️');
   const [color, setColor] = useState(category.color || COLORS[0]);
+  const [busy, setBusy] = useState(false);
 
-  function save() {
+  async function save() {
     if (!name.trim()) {
       toast('Kategoriya nomini kiriting', 'error');
       return;
     }
+    setBusy(true);
     try {
-      if (category.id) updateCategory(category.id, { name: name.trim(), emoji, color });
-      else addCategory({ name: name.trim(), emoji, color });
+      if (category.id) await updateCategory(category.id, { name: name.trim(), emoji, color });
+      else await addCategory({ name: name.trim(), emoji, color });
       onSaved();
     } catch (e) {
       toast(e.message, 'error');
+      setBusy(false);
     }
   }
 
@@ -202,7 +228,9 @@ function CategoryFormModal({ category, onClose, onSaved }) {
       footer={
         <>
           <button className="btn btn-secondary" onClick={onClose}>Bekor qilish</button>
-          <button className="btn btn-primary" onClick={save}>Saqlash</button>
+          <button className="btn btn-primary" disabled={busy} onClick={save}>
+            {busy ? 'Saqlanmoqda...' : 'Saqlash'}
+          </button>
         </>
       }
     >
@@ -241,13 +269,14 @@ function ProductFormModal({ product, categories, onClose, onSaved }) {
   const [stockQty, setStockQty] = useState(product.stock_qty ?? 0);
   const [lowStock, setLowStock] = useState(product.low_stock ?? 5);
   const [unit, setUnit] = useState(product.unit || 'dona');
+  const [busy, setBusy] = useState(false);
 
-  function save() {
+  async function save() {
     if (!name.trim()) return toast('Mahsulot nomini kiriting', 'error');
     if (!(Number(price) > 0)) return toast("Narx 0 dan katta bo'lishi kerak", 'error');
     if (!categoryId) return toast('Kategoriya tanlang', 'error');
     const payload = {
-      category_id: Number(categoryId),
+      category_id: String(categoryId),
       name: name.trim(),
       price: Math.round(Number(price)),
       emoji,
@@ -256,15 +285,17 @@ function ProductFormModal({ product, categories, onClose, onSaved }) {
       low_stock: Number(lowStock) || 0,
       unit: unit || 'dona',
     };
+    setBusy(true);
     try {
       if (product.id) {
-        updateProduct(product.id, payload);
+        await updateProduct(product.id, payload);
       } else {
-        addProduct({ ...payload, stock_qty: trackStock ? Number(stockQty) || 0 : 0 });
+        await addProduct({ ...payload, stock_qty: trackStock ? Number(stockQty) || 0 : 0 });
       }
       onSaved();
     } catch (e) {
       toast(e.message, 'error');
+      setBusy(false);
     }
   }
 
@@ -276,7 +307,9 @@ function ProductFormModal({ product, categories, onClose, onSaved }) {
       footer={
         <>
           <button className="btn btn-secondary" onClick={onClose}>Bekor qilish</button>
-          <button className="btn btn-primary" onClick={save}>Saqlash</button>
+          <button className="btn btn-primary" disabled={busy} onClick={save}>
+            {busy ? 'Saqlanmoqda...' : 'Saqlash'}
+          </button>
         </>
       }
     >

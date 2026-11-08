@@ -1,12 +1,15 @@
 import { useState } from 'react';
 import { useApp } from '../state/AppContext.jsx';
-import { saveSettings, resetDb, getCategories, getProducts, getTables, getOrders, getMovements, getExpenses } from '../db/store.js';
-import { query } from '../db/index.js';
+import { useData } from '../state/useData.js';
+import {
+  saveSettings, getCategories, getProducts, getTables, getOrders, getMovements, getExpenses,
+} from '../supabase/queries.js';
+import { getLegacySummary, runLegacyImport } from '../lib/importLegacy.js';
 import { todayStr } from '../lib/format.js';
 import { ConfirmModal } from '../components/Modal.jsx';
 
 export default function SettingsPage() {
-  const { settings, toast, navigate } = useApp();
+  const { settings, toast } = useApp();
   const [form, setForm] = useState({
     store_name: settings.store_name || '',
     store_address: settings.store_address || '',
@@ -14,50 +17,88 @@ export default function SettingsPage() {
     receipt_footer: settings.receipt_footer || '',
     auto_print: settings.auto_print === '1',
   });
-  const [confirmReset, setConfirmReset] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [confirmImport, setConfirmImport] = useState(false);
+
+  const { data: legacy } = useData(getLegacySummary, []);
+  const { data: firstOrder } = useData(async () => (await getOrders({ limit: 1 }))[0] || null, []);
 
   function set(key, value) {
     setForm((f) => ({ ...f, [key]: value }));
   }
 
-  function save() {
+  async function save() {
+    if (busy) return;
     if (!form.store_name.trim()) {
       toast('Do\'kon nomini kiriting', 'error');
       return;
     }
-    saveSettings({
-      store_name: form.store_name.trim(),
-      store_address: form.store_address.trim(),
-      store_phone: form.store_phone.trim(),
-      receipt_footer: form.receipt_footer.trim(),
-      auto_print: form.auto_print ? '1' : '0',
-    });
-    toast('Sozlamalar saqlandi');
+    setBusy(true);
+    try {
+      await saveSettings({
+        store_name: form.store_name.trim(),
+        store_address: form.store_address.trim(),
+        store_phone: form.store_phone.trim(),
+        receipt_footer: form.receipt_footer.trim(),
+        auto_print: form.auto_print ? '1' : '0',
+      });
+      toast('Sozlamalar saqlandi');
+    } catch (e) {
+      toast(e.message, 'error');
+    } finally {
+      setBusy(false);
+    }
   }
 
-  function exportJson() {
-    const orders = getOrders({ limit: 100000 }).map((o) => ({
-      ...o,
-      items: query('SELECT * FROM order_items WHERE order_id=?', [o.id]),
-    }));
-    const data = {
-      exported_at: new Date().toISOString(),
-      settings,
-      categories: getCategories(),
-      products: getProducts(),
-      tables: getTables(),
-      orders,
-      stock_movements: getMovements({ limit: 100000 }),
-      expenses: getExpenses('2000-01-01', todayStr()),
-    };
-    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `pos-backup-${todayStr()}.json`;
-    a.click();
-    URL.revokeObjectURL(url);
-    toast('Zaxira nusxa yuklandi');
+  async function exportJson() {
+    if (busy) return;
+    setBusy(true);
+    try {
+      const [categories, products, tables, orders, movements, expenses] = await Promise.all([
+        getCategories(),
+        getProducts(),
+        getTables(),
+        getOrders({ limit: 500 }),
+        getMovements({ limit: 500 }),
+        getExpenses('2000-01-01', todayStr()),
+      ]);
+      const data = {
+        exported_at: new Date().toISOString(),
+        settings,
+        categories,
+        products,
+        tables,
+        orders,
+        stock_movements: movements,
+        expenses,
+      };
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `pos-backup-${todayStr()}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+      toast('Zaxira nusxa yuklandi');
+    } catch (e) {
+      toast(e.message, 'error');
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function doImport() {
+    if (busy) return;
+    setBusy(true);
+    setConfirmImport(false);
+    try {
+      const res = await runLegacyImport();
+      toast(`Import tugadi: ${res.products} mahsulot, ${res.orders} buyurtma`);
+    } catch (e) {
+      toast(e.message, 'error');
+    } finally {
+      setBusy(false);
+    }
   }
 
   return (
@@ -93,54 +134,62 @@ export default function SettingsPage() {
               <input type="checkbox" checked={form.auto_print} onChange={(e) => set('auto_print', e.target.checked)} />
               To'lovdan so'ng chekni avtomatik chop etish
             </label>
-            <button className="btn btn-primary" onClick={save}>💾 Saqlash</button>
+            <button className="btn btn-primary" disabled={busy} onClick={save}>
+              {busy ? '⏳ Saqlanmoqda...' : '💾 Saqlash'}
+            </button>
           </div>
 
           <div className="col">
             <div className="card card-pad">
               <div className="settings-section-title">🗄️ Ma'lumotlar</div>
               <p className="muted mb-2">
-                Barcha ma'lumotlar shu kompyuterda saqlanadi (SQLite). Internet talab qilinmaydi.
+                Ma'lumotlar serverda (Supabase) saqlanadi: bir do'konga kassa, telefon va boshqa
+                qurilmalardan bir vaqtda kirish mumkin. Internet bo'lmasa sahifalar yangilanmaydi.
               </p>
               <div className="row">
-                <button className="btn btn-outline" onClick={exportJson}>📤 Zaxira nusxa (JSON)</button>
+                <button className="btn btn-outline" disabled={busy} onClick={exportJson}>📤 Zaxira nusxa (JSON)</button>
               </div>
+              <p className="muted mt-1">Zaxiraga oxirgi 500 buyurtma va 500 ombor harakati kiradi.</p>
             </div>
 
-            <div className="card card-pad danger-zone">
-              <div className="settings-section-title">⚠️ Xavfli zona</div>
-              <p className="muted mb-2">
-                Demo ma'lumotlarni tiklash barcha buyurtmalar, savdo tarixi va o'zgarishlarni o'chirib,
-                boshlang'ich holatga qaytaradi.
-              </p>
-              <button className="btn btn-danger" onClick={() => setConfirmReset(true)}>
-                🔄 Demo ma'lumotlarni tiklash
-              </button>
-            </div>
+            {legacy && !firstOrder && (
+              <div className="card card-pad">
+                <div className="settings-section-title">📥 Eski ma'lumotni ichga olish</div>
+                <p className="muted mb-2">
+                  Kompyuterda saqlangan eski (lokal) bazada {legacy.categories} kategoriya,{' '}
+                  {legacy.products} mahsulot, {legacy.tables} stol va {legacy.orders} buyurtma topildi.
+                  Import ularni shu do'konga o'tkazadi va tayyor menyu bilan almashtiradi.
+                </p>
+                <div className="row">
+                  <button className="btn btn-outline" disabled={busy} onClick={() => setConfirmImport(true)}>
+                    📥 Eski ma'lumotni import qilish
+                  </button>
+                </div>
+                <p className="muted mt-1">
+                  Import bir marta ishlaydi: do'konda buyurtma paydo bo'lgach u yopiladi.
+                </p>
+              </div>
+            )}
 
             <div className="card card-pad">
               <div className="settings-section-title">ℹ️ Tizim haqida</div>
               <div className="about-row"><span className="muted">Versiya</span><b>1.0.0</b></div>
-              <div className="about-row"><span className="muted">Platforma</span><b>{window.api ? 'Electron (desktop)' : 'Brauzer (sinov)'}</b></div>
-              <div className="about-row"><span className="muted">Ma'lumotlar bazasi</span><b>SQLite (lokal)</b></div>
+              <div className="about-row"><span className="muted">Platforma</span><b>{window.api ? 'Electron (desktop)' : 'Brauzer (Chrome/PWA)'}</b></div>
+              <div className="about-row"><span className="muted">Ma'lumotlar bazasi</span><b>Supabase (server)</b></div>
               <div className="about-row"><span className="muted">Valyuta</span><b>So'm (UZS)</b></div>
             </div>
           </div>
         </div>
       </div>
 
-      {confirmReset && (
+      {confirmImport && (
         <ConfirmModal
-          title="Demo ma'lumotlarni tiklash"
-          message="DIQQAT: Barcha buyurtmalar, savdo tarixi, xarajatlar va ombor o'zgarishlari o'chiriladi. Davom etilsinmi?"
-          confirmLabel="Ha, tozalansin"
+          title="Eski ma'lumotni import qilish"
+          message="DIQQAT: do'konning hozirgi menyusi va stollari o'chirilib, eski (lokal) ma'lumot yoziladi. Davom etilsinmi?"
+          confirmLabel="Import qilish"
           danger
-          onClose={() => setConfirmReset(false)}
-          onConfirm={() => {
-            resetDb();
-            toast('Baza boshlang\'ich holatga qaytarildi', 'info');
-            navigate('pos');
-          }}
+          onClose={() => setConfirmImport(false)}
+          onConfirm={doImport}
         />
       )}
     </div>

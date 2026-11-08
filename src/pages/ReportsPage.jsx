@@ -1,10 +1,17 @@
 import { useMemo, useState } from 'react';
 import { useApp } from '../state/AppContext.jsx';
-import { getReport, addExpense, deleteExpense } from '../db/store.js';
+import { useData } from '../state/useData.js';
+import { getReport, addExpense, deleteExpense } from '../supabase/queries.js';
 import { fmtMoney, fmtSum, fmtQty, fmtDate, todayStr, addDays, PAY_METHODS } from '../lib/format.js';
 import Modal, { ConfirmModal } from '../components/Modal.jsx';
+import DataState from '../components/DataState.jsx';
 
 const EXPENSE_CATEGORIES = ['Masalliqlar', 'Kommunal', 'Ish haqi', 'Ijara', 'Transport', 'Boshqa'];
+
+const EMPTY_REPORT = {
+  order_count: 0, revenue: 0, discount_total: 0, avg_check: 0,
+  byDay: [], byMethod: [], topProducts: [], expenses: [], expenseTotal: 0, profit: 0,
+};
 
 function compact(n) {
   if (n >= 1000000) return (n / 1000000).toFixed(1).replace('.0', '') + 'M';
@@ -13,7 +20,7 @@ function compact(n) {
 }
 
 export default function ReportsPage() {
-  const { version, toast } = useApp();
+  const { toast } = useApp();
   const [period, setPeriod] = useState('today');
   const [customFrom, setCustomFrom] = useState(addDays(todayStr(), -7));
   const [customTo, setCustomTo] = useState(todayStr());
@@ -31,8 +38,25 @@ export default function ReportsPage() {
     }
   }, [period, customFrom, customTo]);
 
-  const report = useMemo(() => getReport(from, to), [from, to, version]);
+  const { data: reportData, loading, error, reload } = useData(() => getReport(from, to), [from, to]);
+  const report = reportData || EMPTY_REPORT;
   const maxDay = Math.max(1, ...report.byDay.map((d) => d.revenue));
+
+  if (!reportData) {
+    return (
+      <div className="page">
+        <div className="page-head">
+          <div>
+            <h1 className="page-title">📊 Hisobot</h1>
+            <div className="page-sub">Ma'lumot yuklanmoqda</div>
+          </div>
+        </div>
+        <div className="page-body">
+          <DataState loading={loading} error={error} onRetry={reload} />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="page">
@@ -199,9 +223,13 @@ export default function ReportsPage() {
           confirmLabel="O'chirish"
           danger
           onClose={() => setExpenseDelete(null)}
-          onConfirm={() => {
-            deleteExpense(expenseDelete.id);
-            toast("Xarajat o'chirildi", 'info');
+          onConfirm={async () => {
+            try {
+              await deleteExpense(expenseDelete.id);
+              toast("Xarajat o'chirildi", 'info');
+            } catch (e) {
+              toast(e.message, 'error');
+            }
           }}
         />
       )}
@@ -215,11 +243,11 @@ function ExpenseModal({ onClose, onSaved }) {
   const [amount, setAmount] = useState('');
   const [category, setCategory] = useState(EXPENSE_CATEGORIES[0]);
 
-  function save() {
+  async function save() {
     if (!title.trim()) return toast('Xarajat nomini kiriting', 'error');
     if (!(Number(amount) > 0)) return toast("Summa 0 dan katta bo'lishi kerak", 'error');
     try {
-      addExpense({ title: title.trim(), amount: Math.round(Number(amount)), category });
+      await addExpense({ title: title.trim(), amount: Math.round(Number(amount)), category });
       onSaved();
     } catch (e) {
       toast(e.message, 'error');
