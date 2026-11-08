@@ -144,7 +144,7 @@ export default function InventoryPage() {
               </table>
               {filtered.length === 0 && (
                 <div className="empty-state">
-                  <span className="empty-icon"><Package size={40} /></span>
+                  <span className="empty-icon"><Package size={22} /></span>
                   {tracked.length === 0
                     ? "Ombor hisobi yoqilgan mahsulotlar yo'q. Menyu bo'limida mahsulotga \"Ombor hisobini yuritish\" belgisini qo'ying."
                     : 'Mahsulot topilmadi'}
@@ -182,7 +182,7 @@ export default function InventoryPage() {
               </table>
               {movements.length === 0 && (
                 <div className="empty-state">
-                  <span className="empty-icon"><History size={40} /></span>
+                  <span className="empty-icon"><History size={22} /></span>
                   Harakatlar tarixi bo'sh
                 </div>
               )}

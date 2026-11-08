@@ -142,7 +142,7 @@ export default function ReportsPage() {
             <div className="bold mb-2 ti"><ChartNoAxesCombined size={16} /> Kunlik savdo</div>
             {report.byDay.length === 0 ? (
               <div className="empty-state">
-                <span className="empty-icon"><CalendarDays size={40} /></span>
+                <span className="empty-icon"><CalendarDays size={22} /></span>
                 Bu davrda savdo yo'q
               </div>
             ) : (
@@ -162,7 +162,7 @@ export default function ReportsPage() {
             <div className="bold mb-2 ti"><CreditCard size={16} /> To'lov turlari</div>
             {report.byMethod.length === 0 ? (
               <div className="empty-state">
-                <span className="empty-icon"><CreditCard size={40} /></span>
+                <span className="empty-icon"><CreditCard size={22} /></span>
                 Ma'lumot yo'q
               </div>
             ) : (
@@ -185,7 +185,7 @@ export default function ReportsPage() {
             <div className="bold mb-2 ti"><Trophy size={16} /> Top mahsulotlar</div>
             {report.topProducts.length === 0 ? (
               <div className="empty-state">
-                <span className="empty-icon"><Trophy size={40} /></span>
+                <span className="empty-icon"><Trophy size={22} /></span>
                 Ma'lumot yo'q
               </div>
             ) : (
@@ -209,7 +209,7 @@ export default function ReportsPage() {
             </div>
             {report.expenses.length === 0 ? (
               <div className="empty-state">
-                <span className="empty-icon"><CreditCard size={40} /></span>
+                <span className="empty-icon"><CreditCard size={22} /></span>
                 Xarajatlar yo'q
               </div>
             ) : (

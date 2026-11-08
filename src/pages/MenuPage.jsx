@@ -139,7 +139,7 @@ export default function MenuPage() {
             </table>
             {filtered.length === 0 && (
               <div className="empty-state">
-                <span className="empty-icon"><ClipboardList size={40} /></span>
+                <span className="empty-icon"><ClipboardList size={22} /></span>
                 Mahsulotlar yo'q
               </div>
             )}

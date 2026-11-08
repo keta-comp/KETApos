@@ -43,7 +43,7 @@ export default function StaffPage() {
         </div>
         <div className="page-body">
           <div className="empty-state">
-            <span className="empty-icon"><BadgeCheck size={40} /></span>
+            <span className="empty-icon"><BadgeCheck size={22} /></span>
             Xodim qo‘shish uchun egasidan taklif kod so‘rang.
           </div>
         </div>

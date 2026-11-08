@@ -340,7 +340,7 @@ export default function PosPage() {
         <div className="product-scroll">
           {filtered.length === 0 ? (
             <div className="empty-state">
-              <span className="empty-icon"><Search size={40} /></span>
+              <span className="empty-icon"><Search size={22} /></span>
               Mahsulot topilmadi
             </div>
           ) : (
@@ -404,7 +404,7 @@ export default function PosPage() {
         <div className="cart-items">
           {cart.length === 0 ? (
             <div className="cart-empty">
-              <span className="empty-icon"><ShoppingCart size={40} /></span>
+              <span className="empty-icon"><ShoppingCart size={20} /></span>
               Savat bo'sh.<br />Mahsulot tanlang.
             </div>
           ) : (
@@ -488,7 +488,7 @@ export default function PosPage() {
         <Modal title={`Ochiq buyurtmalar (${openOrders.length})`} onClose={() => setShowOpen(false)} width={620}>
           {openOrders.length === 0 ? (
             <div className="empty-state">
-              <span className="empty-icon"><FolderOpen size={40} /></span>
+              <span className="empty-icon"><FolderOpen size={22} /></span>
               Ochiq buyurtmalar yo'q
             </div>
           ) : (

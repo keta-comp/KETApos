@@ -126,7 +126,7 @@ export default function TablesPage() {
             ))}
             {tables.length === 0 && (
               <div className="empty-state">
-                <span className="empty-icon"><Armchair size={40} /></span>
+                <span className="empty-icon"><Armchair size={22} /></span>
                 {mayEdit ? 'Stollar yo\'q. "Stol qo\'shish" tugmasi bilan qo\'shing.' : 'Hali stol qo\'shilmagan — egasidan so\'rang.'}
               </div>
             )}

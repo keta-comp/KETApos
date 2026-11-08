@@ -74,8 +74,8 @@ export default function KitchenPage() {
                     </div>
                     <div className="kitchen-col-body">
                       {colOrders.length === 0 && (
-                        <div className="empty-state" style={{ padding: '30px 10px' }}>
-                          <span className="empty-icon"><UtensilsCrossed size={40} /></span>
+                        <div className="empty-state" style={{ padding: '18px 8px' }}>
+                          <span className="empty-icon"><UtensilsCrossed size={22} /></span>
                           Buyurtmalar yo'q
                         </div>
                       )}
