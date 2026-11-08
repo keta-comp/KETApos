@@ -66,7 +66,7 @@ export default function PosPage() {
     getOrder(orderId)
       .then((full) => {
         if (!alive || !full) return;
-        setCart(full.items.map((it) => ({ product_id: it.product_id, name: it.name, price: it.price, qty: it.qty })));
+        setCart((full.items || []).map((it) => ({ product_id: it.product_id, name: it.name, price: it.price, qty: it.qty })));
         setEditingId(full.id);
         setEditingNumber(full.number);
         setOrderType(full.type);
@@ -208,9 +208,15 @@ export default function PosPage() {
   async function resumeOrder(o) {
     try {
       const full = await getOrder(o.id);
+      if (!full) {
+        toast(`№${o.number} buyurtma allaqachon yopilgan`, 'error');
+        setShowOpen(false);
+        reload();
+        return;
+      }
       setEditingId(full.id);
       setEditingNumber(full.number);
-      setCart(full.items.map((it) => ({ product_id: it.product_id, name: it.name, price: it.price, qty: it.qty })));
+      setCart((full.items || []).map((it) => ({ product_id: it.product_id, name: it.name, price: it.price, qty: it.qty })));
       setOrderType(full.type);
       setTableId(full.table_id);
       setDiscountPercent(Number(full.discount_percent) || 0);
@@ -223,7 +229,14 @@ export default function PosPage() {
 
   async function payExisting(o) {
     try {
-      setPayTarget(await getOrder(o.id));
+      const full = await getOrder(o.id);
+      if (!full) {
+        toast(`№${o.number} buyurtma allaqachon yopilgan`, 'error');
+        setShowOpen(false);
+        reload();
+        return;
+      }
+      setPayTarget(full);
       setShowOpen(false);
     } catch (e) {
       toast(e.message, 'error');

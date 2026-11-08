@@ -81,6 +81,7 @@ export default function KitchenPage() {
                       )}
                       {colOrders.map((o) => {
                         const mins = minutesSince(o.created_at);
+                        const items = o.items || [];
                         return (
                           <div key={o.id} className="kitchen-card">
                             <div className="kitchen-card-head">
@@ -96,16 +97,16 @@ export default function KitchenPage() {
                               </span>
                             </div>
                             <div className="kitchen-items">
-                              {o.items.map((it) => (
+                              {items.map((it) => (
                                 <div key={it.id} className="kitchen-item">
                                   <span className="ki-qty">{fmtQty(it.qty)}×</span>
                                   <span className="ki-name">{it.name}</span>
                                 </div>
                               ))}
                             </div>
-                            {o.items.some((it) => it.note) && (
+                            {items.some((it) => it.note) && (
                               <div className="kitchen-note">
-                                <Info size={13} /> {o.items.filter((it) => it.note).map((it) => it.note).join('; ')}
+                                <Info size={13} /> {items.filter((it) => it.note).map((it) => it.note).join('; ')}
                               </div>
                             )}
                             {o.note && <div className="kitchen-note"><Info size={13} /> {o.note}</div>}

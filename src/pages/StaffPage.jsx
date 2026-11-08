@@ -156,7 +156,7 @@ export default function StaffPage() {
                         {s.orders_today > 0 && ` · bugun ${s.orders_today} buyurtma · ${fmtSum(s.total_today)} so‘m`}
                       </div>
                     </div>
-                    <span className={`role-chip role-${s.role}`}>{ROLE_META[s.role].label}</span>
+                    <span className={`role-chip role-${s.role}`}>{ROLE_META[s.role]?.label || s.role}</span>
                     {s.role !== 'owner' && (
                       <div className="row gap-sm">
                         <button className="btn btn-ghost btn-sm" onClick={() => setEdit(s)} title="Ism yoki rol"><Pencil size={15} /></button>
@@ -207,7 +207,7 @@ export default function StaffPage() {
                     <div key={i.id} className="staff-row">
                       <span className="staff-code">{i.code}</span>
                       <div className="staff-meta">
-                        <div className="staff-title">{ROLE_META[i.role].label}</div>
+                        <div className="staff-title">{ROLE_META[i.role]?.label || i.role}</div>
                         <div className="staff-sub">{i.created_at} · hali ishlatilmagan</div>
                       </div>
                       <div className="row gap-sm">
@@ -244,7 +244,7 @@ export default function StaffPage() {
                     <div key={i.id} className="staff-row used">
                       <span className="staff-code dim">{i.code}</span>
                       <div className="staff-meta">
-                        <div className="staff-title">{ROLE_META[i.role].label}</div>
+                        <div className="staff-title">{ROLE_META[i.role]?.label || i.role}</div>
                         <div className="staff-sub">
                           <Mail size={12} /> {i.used_by} · {i.used_at}
                         </div>

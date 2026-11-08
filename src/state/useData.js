@@ -13,6 +13,17 @@ export function useData(loader, deps = []) {
   const [loading, setLoading] = useState(true);
   const [nonce, setNonce] = useState(0);
 
+  // deps o'zgarsa eski ma'lumot endi boshqa narsaga tegishli: uni saqlab
+  // qolish "hozirgi tanlov" deb o'qiladigan xatolarga olib keladi.
+  const depsKey = JSON.stringify(deps);
+  const lastDeps = useRef(depsKey);
+  if (lastDeps.current !== depsKey) {
+    lastDeps.current = depsKey;
+    setData(null);
+    setError(null);
+    setLoading(true);
+  }
+
   useEffect(() => {
     if (!ready) return undefined;
     let alive = true;
@@ -33,7 +44,7 @@ export function useData(loader, deps = []) {
       alive = false;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [ready, version, nonce, ...deps]);
+  }, [ready, version, nonce, depsKey]);
 
   return { data, loading, error, reload: () => setNonce((n) => n + 1) };
 }

@@ -37,10 +37,21 @@ export default function TablesPage() {
     if (!mayEdit) setEditMode(false);
   }, [mayEdit]);
 
-  const { data: currentOrder } = useData(
+  const { data: orderData, loading: orderLoading } = useData(
     () => (orderTarget?.order_id ? getOrder(orderTarget.order_id) : Promise.resolve(null)),
     [orderTarget?.order_id]
   );
+  // Oyna faqat tanlangan stolning buyurtmasi qo'lga kirganda ochiladi —
+  // aks holda stol tanlovi o'chgan payt eski ma'lumot bilan qiyalik bo'ladi.
+  const currentOrder = orderTarget && orderData?.id === orderTarget.order_id ? orderData : null;
+
+  // Orada buyurtma to'lanib yoki bekor qilinib ketgan bo'lsa, tanlovni
+  // shimilib qolishidan oldin yopamiz va xabar qilamiz.
+  useEffect(() => {
+    if (!orderTarget || orderLoading || currentOrder) return;
+    setOrderTarget(null);
+    toast('Bu stolning buyurtmasi allaqachon yopilgan', 'error');
+  }, [orderTarget, orderLoading, currentOrder, toast]);
 
   function onTableClick(t) {
     if (editMode) return;
@@ -200,7 +211,7 @@ export default function TablesPage() {
           </div>
           <table className="data-table">
             <tbody>
-              {currentOrder.items.map((it) => (
+              {(currentOrder.items || []).map((it) => (
                 <tr key={it.id}>
                   <td>{it.name}</td>
                   <td className="text-center muted">{fmtQty(it.qty)}</td>

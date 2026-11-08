@@ -10,7 +10,7 @@ function esc(s) {
 export function buildReceiptHtml(order, settings) {
   const type = ORDER_TYPES[order.type]?.label || order.type;
   const method = PAY_METHODS[order.payment_method]?.label || '';
-  const items = order.items
+  const items = (order.items || [])
     .map(
       (it) => `
       <div class="item">

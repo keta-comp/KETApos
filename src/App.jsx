@@ -7,6 +7,7 @@ import {
 import Spinner from './components/Spinner.jsx';
 import Modal from './components/Modal.jsx';
 import QueueModal from './components/QueueModal.jsx';
+import ErrorBoundary from './components/ErrorBoundary.jsx';
 import { AuthProvider, useAuth } from './state/AuthContext.jsx';
 import { AppProvider, useApp } from './state/AppContext.jsx';
 import { useData } from './state/useData.js';
@@ -256,7 +257,7 @@ function Shell() {
       <Sidebar onProfile={() => setProfileOpen(true)} onQueue={() => setQueueOpen(true)} />
       <main className="main">
         <RoleSwitcher />
-        {pages[page] || <PosPage />}
+        <ErrorBoundary key={page}>{pages[page] || <PosPage />}</ErrorBoundary>
       </main>
       {profileOpen && <ProfileModal onClose={() => setProfileOpen(false)} />}
       {queueOpen && <QueueModal onClose={() => setQueueOpen(false)} />}
@@ -267,10 +268,12 @@ function Shell() {
 
 export default function App() {
   return (
-    <AuthProvider>
-      <AppProvider>
-        <Gate />
-      </AppProvider>
-    </AuthProvider>
+    <ErrorBoundary>
+      <AuthProvider>
+        <AppProvider>
+          <Gate />
+        </AppProvider>
+      </AuthProvider>
+    </ErrorBoundary>
   );
 }
