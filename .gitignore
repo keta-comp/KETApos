@@ -6,3 +6,4 @@ release2/
 .env.local
 *.log
 .DS_Store
+.tmp/

@@ -1,6 +1,6 @@
 {
   "name": "pos-fastfood",
-  "version": "1.0.0",
+  "version": "1.2.0",
   "description": "Fastfood va kichik kafelar uchun POS tizimi",
   "main": "electron/main.js",
   "author": "POS",
@@ -15,7 +15,8 @@
     "smoke:auth": "node scripts/smoke-auth.mjs",
     "smoke:pos": "node scripts/smoke-pos.mjs",
     "smoke:import": "node scripts/smoke-import.mjs",
-    "smoke:photos": "node scripts/smoke-photos.mjs"
+    "smoke:photos": "node scripts/smoke-photos.mjs",
+    "smoke:team": "node scripts/smoke-team.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.119.0",
