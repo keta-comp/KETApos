@@ -1,0 +1,55 @@
+{
+  "name": "pos-fastfood",
+  "version": "1.0.0",
+  "description": "Fastfood va kichik kafelar uchun POS tizimi",
+  "main": "electron/main.js",
+  "author": "POS",
+  "scripts": {
+    "dev": "node scripts/dev.mjs",
+    "dev:web": "vite",
+    "build": "vite build",
+    "start": "electron .",
+    "dist": "npm run build && electron-builder --win",
+    "icons": "node scripts/make-icons.mjs",
+    "db:apply": "node scripts/apply-sql.mjs",
+    "smoke:auth": "node scripts/smoke-auth.mjs"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.119.0",
+    "sql.js": "^1.15.2"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^5.2.0",
+    "electron": "^45.2.3",
+    "electron-builder": "^26.18.0",
+    "pg": "^8.23.1",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
+    "sharp": "^0.35.5",
+    "vite": "^7.3.7"
+  },
+  "build": {
+    "appId": "uz.pos.fastfood",
+    "productName": "POS Kassa",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "dist/**/*",
+      "electron/**/*",
+      "node_modules/sql.js/**/*",
+      "package.json"
+    ],
+    "win": {
+      "target": [
+        "nsis"
+      ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "shortcutName": "POS Kassa"
+    }
+  }
+}
