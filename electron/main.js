@@ -1,6 +1,7 @@
-const { app, BrowserWindow, ipcMain, Menu } = require('electron');
+const { app, BrowserWindow, ipcMain, Menu, dialog } = require('electron');
 const path = require('node:path');
 const fs = require('node:fs');
+const { registerDeviceSelection, registerFileIpc, registerSerialIpc } = require('./printer.js');
 
 const DEV_URL = process.env.VITE_DEV_SERVER_URL;
 let mainWindow = null;
@@ -98,6 +99,10 @@ if (!gotLock) {
     });
 
     ipcMain.handle('app:version', () => app.getVersion());
+
+    registerSerialIpc(ipcMain);
+    registerFileIpc(ipcMain, dialog);
+    registerDeviceSelection(app);
 
     createWindow();
 
