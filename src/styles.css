@@ -768,9 +768,10 @@ button { font-family: inherit; cursor: pointer; }
   box-shadow: 0 24px 56px rgba(11, 12, 14, 0.16), var(--glow), var(--lip);
   padding: 30px 28px; display: flex; flex-direction: column; gap: 18px;
 }
-.auth-brand { display: flex; align-items: center; gap: 14px; }
+.auth-brand { display: flex; align-items: center; gap: 11px; }
 .auth-logo {
-  width: 62px; height: 62px; border-radius: 22px; display: flex; align-items: center; justify-content: center;
+  width: 46px; height: 46px; border-radius: 15px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
   background: var(--face-metal); box-shadow: var(--clay-sm);
 }
 .auth-brand-title { font-size: 21px; font-weight: 800; letter-spacing: -0.3px; }

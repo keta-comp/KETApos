@@ -22,7 +22,7 @@ export default function AuthScreen() {
     <div className="auth-shell">
       <div className="auth-card">
         <div className="auth-brand">
-          <span className="auth-logo"><Store size={30} /></span>
+          <span className="auth-logo"><Store size={22} /></span>
           <div>
             <div className="auth-brand-title">POS Kassa</div>
             <div className="auth-brand-sub">Fastfood va kichik kafelar uchun</div>
@@ -311,7 +311,7 @@ function SetupNotice() {
     <div className="auth-shell">
       <div className="auth-card">
         <div className="auth-brand">
-          <span className="auth-logo"><Store size={30} /></span>
+          <span className="auth-logo"><Store size={22} /></span>
           <div>
             <div className="auth-brand-title">POS Kassa</div>
             <div className="auth-brand-sub">Serverga ulanish kerak</div>
