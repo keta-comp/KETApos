@@ -15,6 +15,19 @@ function bump() {
   for (const cb of listeners) cb();
 }
 
+// Realtime orqali kelgan tashqi o'zgarish: sahifalarni qayta yuklaymiz, lekin
+// lokal yozuv deb hisoblamaymiz (write() signal beradi, bu yerda faqat xabar).
+// Bir necha event ketma-ket kelsa — bitta qayta yuklash.
+let externalTimer = null;
+
+export function bumpExternal() {
+  if (externalTimer) return;
+  externalTimer = setTimeout(() => {
+    externalTimer = null;
+    bump();
+  }, 350);
+}
+
 const MESSAGES = {
   AVVAL_KIRING: 'Sessiya uzilgan — qaytadan kiring.',
   BUYURTMA_BOSH: "Savat bo'sh, kamida bitta mahsulot tanlang.",
@@ -41,6 +54,10 @@ const MESSAGES = {
   RASM_PAPKASI_NOTOGRI: 'Rasm papkasi noto‘g‘ri — qaytadan yuklab ko‘ring.',
   NOM_KERTILMADI: 'Nomni kiriting.',
   DOKON_TO_LI: "Bu do'konda allaqachon buyurtmalar bor — import faqat yangi do'kon uchun.",
+  RUXSAT_YOQ: 'Bu amalni sizning rolingiz bajara olmaydi — do‘kon egasiga ayting.',
+  FAQAT_EGA: 'Buni faqat do‘kon egasi qilishi mumkin.',
+  EGA_NOTOGRIDAN: 'Egani roli o‘zgarmaydi va u o‘chirilmaydi.',
+  XODIM_TOPILMADI: 'Xodim topilmadi yoki sizning do‘koningizga tegishli emas.',
   'relation does not exist': "Baza tayyor emas — sxemani qo'llash kerak.",
 };
 
@@ -324,3 +341,46 @@ export async function getReport(from, to) {
 export async function importLegacyDump(dump) {
   return write('import_legacy', { p: dump });
 }
+
+// ---------- Jamoa: xodimlar va taklif kodlari ----------
+
+export async function getStaff() {
+  const [staff, activity] = await Promise.all([
+    read('pos_staff'),
+    read('pos_staff_activity').catch(() => ({})),
+  ]);
+  return (staff || []).map((s) => ({
+    ...s,
+    orders_today: Number(activity?.[s.user_id]?.orders ?? 0),
+    total_today: Number(activity?.[s.user_id]?.total ?? 0),
+  }));
+}
+
+export async function getInvites() {
+  return (await read('pos_invites')) || [];
+}
+
+export async function issueInvite(role) {
+  const code = await write('issue_invite', { p_role: role });
+  return code;
+}
+
+export async function revokeInvite(inviteId) {
+  await write('revoke_invite', { p_id: inviteId });
+}
+
+export async function updateStaff(staffId, fields) {
+  const p = {};
+  if (fields.role !== undefined) p.role = fields.role;
+  if (fields.display_name !== undefined) p.display_name = fields.display_name;
+  await write('update_staff', { p_id: staffId, p });
+}
+
+export async function removeStaff(staffId) {
+  await write('remove_staff', { p_id: staffId });
+}
+
+export async function setMyName(name) {
+  await write('set_my_name', { p_name: name });
+}
+

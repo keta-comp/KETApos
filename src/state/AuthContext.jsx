@@ -1,17 +1,11 @@
 import { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react';
 import { isSupabaseConfigured } from '../supabase/client.js';
 import {
-  fetchMembership, getSessionUser, onAuthChange, registerVenue, redeemInvite, signIn, signOut, signUp,
+  fetchMembership, onAuthChange, registerVenue, redeemInvite, signIn, signOut, signUp,
 } from '../supabase/auth.js';
+import { roleLabel } from '../lib/roles.js';
 
 const AuthCtx = createContext(null);
-
-export const ROLE_LABELS = {
-  owner: 'Egasi',
-  waiter: 'Ofitsant',
-  cashier: 'Kassir',
-  kitchen: 'Oshxona',
-};
 
 export function AuthProvider({ children }) {
   const [state, setState] = useState({
@@ -20,6 +14,8 @@ export function AuthProvider({ children }) {
     membership: null,
     error: null,
   });
+  // Akkaunt bosqichida yozilgan ism — do'kon ochilganda yoki kod ishlatilganda saqlanadi.
+  const [profileName, setProfileName] = useState('');
   const requestRef = useRef(0);
 
   const loadMembership = useCallback(async (user) => {
@@ -60,40 +56,42 @@ export function AuthProvider({ children }) {
 
   const api = {
     ...state,
-    roleLabel: state.membership ? ROLE_LABELS[state.membership.role] : '',
+    role: state.membership?.role || null,
+    roleLabel: state.membership ? roleLabel(state.membership.role) : '',
+    displayName: state.membership?.displayName || '',
     venue: state.membership?.venue || null,
+    profileName,
     retry: () => loadMembership(state.user),
 
     handleSignIn: (email, password) => run(async () => {
       await signIn(email, password);
     }),
 
-    handleCreateVenue: ({ email, password, name, kind, phone, address }) => run(async () => {
-      let user = state.user;
-      if (!user) {
-        await signUp(email, password);
-        user = await getSessionUser();
-        if (!user) return { needsConfirmation: true };
-      }
-      await registerVenue({ name, kind, phone, address });
-      await loadMembership(user);
+    // 1-bosqich: faqat akkaunt (email + parol). Do'kon hali ochilmaydi.
+    handleSignUp: ({ name, email, password }) => run(async () => {
+      const { needsConfirmation } = await signUp(email, password);
+      if (needsConfirmation) return { needsConfirmation: true };
+      setProfileName(name || '');
       return { ok: true };
     }),
 
-    handleJoin: ({ email, password, code }) => run(async () => {
-      let user = state.user;
-      if (!user) {
-        await signUp(email, password);
-        user = await getSessionUser();
-        if (!user) return { needsConfirmation: true };
-      }
-      await redeemInvite(code);
-      await loadMembership(user);
+    // 2-bosqich: egasi o'z do'konini ochadi.
+    handleCreateVenue: ({ name, kind, phone, address }) => run(async () => {
+      await registerVenue({ name, kind, phone, address, ownerName: profileName });
+      await loadMembership(state.user);
       return { ok: true };
+    }),
+
+    // 2-bosqich (xodim uchun): egasi bergan taklif kodini ishlatish.
+    handleJoin: ({ code, name }) => run(async () => {
+      const role = await redeemInvite(code, name || profileName);
+      await loadMembership(state.user);
+      return { ok: true, role };
     }),
 
     handleSignOut: async () => {
       ++requestRef.current;
+      setProfileName('');
       await signOut().catch(() => {});
       setState({ status: 'unauthenticated', user: null, membership: null, error: null });
     },

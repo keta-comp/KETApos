@@ -1,26 +1,22 @@
 import { useState } from 'react';
-import { Sandwich, Coffee, Store, TriangleAlert, ArrowRight, Loader2 } from 'lucide-react';
+import {
+  Sandwich, Coffee, Store, TriangleAlert, ArrowRight, UserPlus, LogIn, LogOut, KeyRound,
+  CircleCheck, Mail, User,
+} from 'lucide-react';
 import { useAuth } from '../state/AuthContext.jsx';
+import Spinner from '../components/Spinner.jsx';
 
 const KINDS = [
   { id: 'fastfood', icon: Sandwich, label: 'Fastfood', hint: 'Lavash · burger · pizza — tez xizmat' },
   { id: 'cafe', icon: Coffee, label: 'Kafe', hint: 'Stollar bilan o‘tirish · keng menyu' },
 ];
 
-const TABS = {
-  login: 'Kirish',
-  venue: 'Do‘kon ochish',
-  join: 'Kod bilan qo‘shilish',
-};
-
 export default function AuthScreen() {
   const auth = useAuth();
-  const signedIn = Boolean(auth.user);
-  const tabs = signedIn ? ['venue', 'join'] : ['login', 'venue', 'join'];
-  const [tab, setTab] = useState(tabs[0]);
-  const activeTab = tabs.includes(tab) ? tab : tabs[0];
-
   if (auth.status === 'unconfigured') return <SetupNotice />;
+
+  const signedIn = Boolean(auth.user);
+  const email = auth.user?.email || '';
 
   return (
     <div className="auth-shell">
@@ -33,17 +29,7 @@ export default function AuthScreen() {
           </div>
         </div>
 
-        <div className="auth-tabs">
-          {tabs.map((key) => (
-            <button
-              key={key}
-              className={`auth-tab ${activeTab === key ? 'active' : ''}`}
-              onClick={() => setTab(key)}
-            >
-              {TABS[key]}
-            </button>
-          ))}
-        </div>
+        <Steps signedIn={signedIn} />
 
         {auth.error && (
           <div className="auth-error">
@@ -55,17 +41,122 @@ export default function AuthScreen() {
           </div>
         )}
 
-        {activeTab === 'login' && <LoginForm />}
-        {activeTab === 'venue' && <VenueForm signedIn={signedIn} />}
-        {activeTab === 'join' && <JoinForm signedIn={signedIn} />}
+        {signedIn ? <MembershipStep email={email} /> : <AccountStep />}
 
         {signedIn && (
           <button className="auth-switch" onClick={auth.handleSignOut}>
-            Bu akkauntdan chiqish
+            <LogOut size={14} /> {email ? `Boshqa akkauntga o‘tish (${email})` : 'Boshqa akkauntga o‘tish'}
           </button>
         )}
       </div>
     </div>
+  );
+}
+
+function Steps({ signedIn }) {
+  return (
+    <div className="wizard-steps">
+      <div className={`wizard-step ${signedIn ? 'done' : 'active'}`}>
+        <span className="wizard-dot">{signedIn ? <CircleCheck size={14} /> : '1'}</span>
+        Akkaunt
+      </div>
+      <div className={`wizard-step ${signedIn ? 'active' : ''}`}>
+        <span className="wizard-dot">2</span>
+        Do‘kon yoki kod
+      </div>
+    </div>
+  );
+}
+
+// 1-bosqich: login/parol bilan akkaunt. Do'kon keyin ochiladi.
+function AccountStep() {
+  const [tab, setTab] = useState('signup');
+
+  return (
+    <>
+      <div className="auth-tabs">
+        <button className={`auth-tab ${tab === 'signup' ? 'active' : ''}`} onClick={() => setTab('signup')}>
+          <UserPlus size={15} /> Yangi akkaunt
+        </button>
+        <button className={`auth-tab ${tab === 'login' ? 'active' : ''}`} onClick={() => setTab('login')}>
+          <LogIn size={15} /> Kirish
+        </button>
+      </div>
+      {tab === 'signup' ? <SignUpForm /> : <LoginForm />}
+    </>
+  );
+}
+
+// 2-bosqich: akkaunt bor — endi do'kon ochiladi yoki taklif kodiga qo'shilinadi.
+function MembershipStep({ email }) {
+  const [tab, setTab] = useState('venue');
+
+  return (
+    <>
+      <div className="auth-account-chip">
+        <span className="account-avatar">{(email || '?').slice(0, 1).toUpperCase()}</span>
+        <div>
+          <div className="auth-account-mail">{email}</div>
+          <div className="auth-account-hint">Akkaunt tayyor — 2-bosqichni tanlang</div>
+        </div>
+      </div>
+      <div className="auth-tabs">
+        <button className={`auth-tab ${tab === 'venue' ? 'active' : ''}`} onClick={() => setTab('venue')}>
+          <Store size={15} /> Do‘kon ochish
+        </button>
+        <button className={`auth-tab ${tab === 'join' ? 'active' : ''}`} onClick={() => setTab('join')}>
+          <KeyRound size={15} /> Kod bilan qo‘shilish
+        </button>
+      </div>
+      {tab === 'venue' ? <VenueForm /> : <JoinForm />}
+    </>
+  );
+}
+
+function SignUpForm() {
+  const auth = useAuth();
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [note, setNote] = useState('');
+
+  async function submit(e) {
+    e.preventDefault();
+    setBusy(true);
+    setNote('');
+    const result = await auth.handleSignUp({ name: name.trim(), email, password });
+    if (result?.needsConfirmation) {
+      setNote('Pochtangizga tasdiqlash havolasi yuborildi. Havolani ochgach, „Kirish“ bo‘limidan kiring.');
+    }
+    setBusy(false);
+  }
+
+  return (
+    <form onSubmit={submit}>
+      <p className="auth-sub mb-2">
+        Avval akkaunt ochasiz — email va parol. Keyingi qadamda do‘kon ochasiz yoki egasi bergan kodni kiritasiz.
+      </p>
+      <div className="field">
+        <label className="label">Ism</label>
+        <div className="input-icon">
+          <span className="input-icon-mark"><User size={16} /></span>
+          <input className="input" value={name} onChange={(e) => setName(e.target.value)} placeholder="Masalan: Dilnoza" />
+        </div>
+      </div>
+      <div className="field">
+        <label className="label">Email</label>
+        <div className="input-icon">
+          <span className="input-icon-mark"><Mail size={16} /></span>
+          <input className="input" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="ish@doikon.uz" autoComplete="email" />
+        </div>
+      </div>
+      <PasswordField value={password} onChange={setPassword} />
+      {note && <div className="auth-note mb-2">{note}</div>}
+      <button className="btn btn-primary btn-lg btn-block" disabled={busy || !name.trim() || !email || password.length < 6}>
+        {busy ? <Spinner size={18} label="Akkaunt ochilmoqda..." /> : <><ArrowRight size={18} /> Akkaunt ochish</>}
+      </button>
+    </form>
   );
 }
 
@@ -85,40 +176,42 @@ function LoginForm() {
   return (
     <form onSubmit={submit}>
       <p className="auth-sub mb-2">Email va parol bilan kiring. Tizim rolingizni o‘zidan aniqlaydi.</p>
-      <EmailField value={email} onChange={setEmail} />
+      <div className="field">
+        <label className="label">Email</label>
+        <div className="input-icon">
+          <span className="input-icon-mark"><Mail size={16} /></span>
+          <input className="input" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="ish@doikon.uz" autoComplete="email" />
+        </div>
+      </div>
       <PasswordField value={password} onChange={setPassword} />
       <button className="btn btn-primary btn-lg btn-block" disabled={busy || !email || !password}>
-        {busy ? <><Loader2 size={18} className="spin" /> Kirilmoqda...</> : <><ArrowRight size={18} /> Kassaga kirish</>}
+        {busy ? <Spinner size={18} label="Kirilmoqda..." /> : <><ArrowRight size={18} /> Kassaga kirish</>}
       </button>
     </form>
   );
 }
 
-function VenueForm({ signedIn }) {
+function VenueForm() {
   const auth = useAuth();
   const [kind, setKind] = useState(null);
   const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
   const [phone, setPhone] = useState('');
   const [address, setAddress] = useState('');
   const [busy, setBusy] = useState(false);
-  const [note, setNote] = useState('');
 
   async function submit(e) {
     e.preventDefault();
     setBusy(true);
-    setNote('');
-    const result = await auth.handleCreateVenue({ email, password, name, kind, phone, address });
-    if (result?.needsConfirmation) {
-      setNote('Emailni tasdiqlash so‘ralmoqda. Pochtangizdagi havolani ochib, qayta kiring.');
-    }
+    await auth.handleCreateVenue({ name: name.trim(), kind, phone, address });
     setBusy(false);
   }
 
   return (
     <form onSubmit={submit}>
-      <p className="auth-sub mb-2">Do‘kon turini tanlang — interfeys va hisobotlar shunga mos sozlanadi.</p>
+      <p className="auth-sub mb-2">
+        Do‘kon turini tanlang — interfeys, menyu va hisobotlar shunga mos sozlanadi.
+        {auth.profileName ? ` Siz „${auth.profileName}“ sifatida egasi bo‘lasiz.` : ''}
+      </p>
       <div className="kind-grid mb-2">
         {KINDS.map((k) => (
           <button
@@ -139,13 +232,6 @@ function VenueForm({ signedIn }) {
         <input className="input" value={name} onChange={(e) => setName(e.target.value)} placeholder="Masalan: KetaFood" />
       </div>
 
-      {!signedIn && (
-        <>
-          <EmailField value={email} onChange={setEmail} />
-          <PasswordField value={password} onChange={setPassword} label="Parol (kamida 6 belgi)" />
-        </>
-      )}
-
       <div className="form-row">
         <div className="field">
           <label className="label">Telefon</label>
@@ -157,30 +243,23 @@ function VenueForm({ signedIn }) {
         </div>
       </div>
 
-      {note && <div className="auth-note mb-2">{note}</div>}
-      <button className="btn btn-primary btn-lg btn-block" disabled={busy || !kind || !name.trim() || (!signedIn && (!email || password.length < 6))}>
-        {busy ? 'Yaratilmoqda...' : 'Do‘konni ochish'}
+      <button className="btn btn-primary btn-lg btn-block" disabled={busy || !kind || !name.trim()}>
+        {busy ? <Spinner size={18} label="Do‘kon ochilmoqda..." /> : <><Store size={18} /> Do‘konni ochish</>}
       </button>
     </form>
   );
 }
 
-function JoinForm({ signedIn }) {
+function JoinForm() {
   const auth = useAuth();
   const [code, setCode] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [name, setName] = useState(auth.profileName || '');
   const [busy, setBusy] = useState(false);
-  const [note, setNote] = useState('');
 
   async function submit(e) {
     e.preventDefault();
     setBusy(true);
-    setNote('');
-    const result = await auth.handleJoin({ email, password, code: code.trim().toUpperCase() });
-    if (result?.needsConfirmation) {
-      setNote('Emailni tasdiqlash so‘ralmoqda. Pochtangizdagi havolani ochib, qayta kiring.');
-    }
+    await auth.handleJoin({ code: code.trim().toUpperCase(), name: name.trim() });
     setBusy(false);
   }
 
@@ -200,42 +279,21 @@ function JoinForm({ signedIn }) {
           autoComplete="off"
         />
       </div>
-
-      {!signedIn && (
-        <>
-          <EmailField value={email} onChange={setEmail} />
-          <PasswordField value={password} onChange={setPassword} label="Parol (kamida 6 belgi)" />
-        </>
-      )}
-
-      {note && <div className="auth-note mb-2">{note}</div>}
-      <button className="btn btn-primary btn-lg btn-block" disabled={busy || code.trim().length !== 6 || (!signedIn && (!email || password.length < 6))}>
-        {busy ? 'Tekshirilmoqda...' : 'Do‘konga qo‘shilish'}
+      <div className="field">
+        <label className="label">Ism (stolda shu nom chiqadi)</label>
+        <input className="input" value={name} onChange={(e) => setName(e.target.value)} placeholder="Masalan: Sardor" />
+      </div>
+      <button className="btn btn-primary btn-lg btn-block" disabled={busy || code.trim().length !== 6}>
+        {busy ? <Spinner size={18} label="Tekshirilmoqda..." /> : <><KeyRound size={18} /> Do‘konga qo‘shilish</>}
       </button>
     </form>
   );
 }
 
-function EmailField({ value, onChange }) {
+function PasswordField({ value, onChange }) {
   return (
     <div className="field">
-      <label className="label">Email</label>
-      <input
-        className="input"
-        type="email"
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        placeholder="ish@doikon.uz"
-        autoComplete="email"
-      />
-    </div>
-  );
-}
-
-function PasswordField({ value, onChange, label = 'Parol' }) {
-  return (
-    <div className="field">
-      <label className="label">{label}</label>
+      <label className="label">Parol (kamida 6 belgi)</label>
       <input
         className="input"
         type="password"

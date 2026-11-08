@@ -24,9 +24,12 @@ export async function signIn(email, password) {
   if (error) fail(error);
 }
 
+// Akkaunt yaratish. Email tasdiqlash yoqilgan bo'lsa sessiya qaytmaydi —
+// chaqiruvchi tomon "pochta tekshiring" degan xabarni ko'rsatadi.
 export async function signUp(email, password) {
-  const { error } = await supabase.auth.signUp({ email: email.trim(), password });
+  const { data, error } = await supabase.auth.signUp({ email: email.trim(), password });
   if (error) fail(error);
+  return { needsConfirmation: !data.session };
 }
 
 export async function signOut() {
@@ -34,24 +37,19 @@ export async function signOut() {
   if (error) fail(error);
 }
 
-export async function registerVenue({ name, kind, phone, address }) {
+export async function registerVenue({ name, kind, phone, address, ownerName }) {
   const { error } = await supabase.rpc('register_venue', {
     p_name: name,
     p_kind: kind,
     p_phone: phone || null,
     p_address: address || null,
+    p_owner_name: ownerName || null,
   });
   if (error) fail(error);
 }
 
-export async function redeemInvite(code) {
-  const { data, error } = await supabase.rpc('redeem_invite', { p_code: code });
-  if (error) fail(error);
-  return data;
-}
-
-export async function issueInvite(role) {
-  const { data, error } = await supabase.rpc('issue_invite', { p_role: role });
+export async function redeemInvite(code, name) {
+  const { data, error } = await supabase.rpc('redeem_invite', { p_code: code, p_name: name || null });
   if (error) fail(error);
   return data;
 }
@@ -59,19 +57,18 @@ export async function issueInvite(role) {
 export async function fetchMembership(userId) {
   const { data, error } = await supabase
     .from('staff')
-    .select('role, venue_id, venues(id, name, kind, phone, address)')
+    .select('role, display_name, venue_id, venues(id, name, kind, phone, address)')
     .eq('user_id', userId)
     .maybeSingle();
   if (error) fail(error);
   return data
-    ? { role: data.role, venueId: data.venue_id, venue: data.venues }
+    ? {
+      role: data.role,
+      venueId: data.venue_id,
+      displayName: data.display_name || '',
+      venue: data.venues,
+    }
     : null;
-}
-
-export async function getSessionUser() {
-  const { data, error } = await supabase.auth.getSession();
-  if (error) throw error;
-  return data.session?.user ?? null;
 }
 
 export function onAuthChange(callback) {
