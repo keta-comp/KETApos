@@ -1,4 +1,4 @@
--- POS Kassa · 5-bosqich: jamoa — rollar bo'yicha ruxsat, xodimlar boshqaruvi va Realtime.
+-- KetaPOS · 5-bosqich: jamoa — rollar bo'yicha ruxsat, xodimlar boshqaruvi va Realtime.
 -- Ishlatish: node scripts/apply-sql.mjs supabase/schema_05_team.sql  (DATABASE_URL bilan)
 --
 -- Bu fayl eski migratsiyalarni buzmaydi: yozish funksiyalarini "ichiga o'ramaydi",

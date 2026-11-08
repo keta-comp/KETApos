@@ -1,7 +1,7 @@
 {
   "name": "pos-fastfood",
-  "version": "1.4.0",
-  "description": "Fastfood va kichik kafelar uchun POS tizimi",
+  "version": "1.5.0",
+  "description": "KetaPOS — fastfood va kichik kafelar uchun kassa tizimi",
   "main": "electron/main.js",
   "author": "POS",
   "scripts": {
@@ -10,7 +10,7 @@
     "build": "vite build",
     "start": "electron .",
     "dist": "npm run build && electron-builder --win",
-    "icons": "node scripts/make-icons.mjs",
+    "brand": "node scripts/make-brand.mjs",
     "db:apply": "node scripts/apply-sql.mjs",
     "smoke:auth": "node scripts/smoke-auth.mjs",
     "smoke:pos": "node scripts/smoke-pos.mjs",
@@ -36,7 +36,7 @@
   },
   "build": {
     "appId": "uz.pos.fastfood",
-    "productName": "POS Kassa",
+    "productName": "KetaPOS",
     "directories": {
       "output": "release"
     },
@@ -49,13 +49,14 @@
     "win": {
       "target": [
         "nsis"
-      ]
+      ],
+      "icon": "build/icon.png"
     },
     "nsis": {
       "oneClick": false,
       "allowToChangeInstallationDirectory": true,
       "createDesktopShortcut": true,
-      "shortcutName": "POS Kassa"
+      "shortcutName": "KetaPOS"
     }
   }
 }

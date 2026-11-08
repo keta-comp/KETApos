@@ -145,7 +145,7 @@ export function drawReceipt(order, settings, { mm = 80 } = {}) {
   // --- Sarlavha ---
   painter.y = 4;
   reserve(painter, SIZE.title + 12);
-  drawCenter(painter, settings.store_name || 'POS Kassa', { size: SIZE.title, bold: true, upper: true });
+  drawCenter(painter, settings.store_name || 'KetaPOS', { size: SIZE.title, bold: true, upper: true });
   if (settings.store_address) drawCenter(painter, settings.store_address, { size: SIZE.small });
   if (settings.store_phone) drawCenter(painter, `Tel: ${settings.store_phone}`, { size: SIZE.small });
   space(painter, 1);

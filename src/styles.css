@@ -1,5 +1,5 @@
 /* ============================================================
-   POS Kassa · dizayn tizimi (claymorphism)
+   KetaPOS · dizayn tizimi (claymorphism)
    Palitra: oq fon · qora matn · metal (kumush/xrom) aksentlar
    ============================================================ */
 
@@ -99,6 +99,7 @@ button { font-family: inherit; cursor: pointer; }
   display: flex; align-items: center; justify-content: center;
   background: var(--face-metal); box-shadow: var(--clay-sm);
 }
+.logo-mark img, .auth-logo img { width: 28px; height: 28px; object-fit: contain; display: block; }
 .logo-title { font-size: 18px; font-weight: 800; letter-spacing: -0.2px; }
 .logo-sub { font-size: 11px; color: var(--muted); font-weight: 600; }
 .sidebar-nav { display: flex; flex-direction: column; gap: 8px; flex: 1; }

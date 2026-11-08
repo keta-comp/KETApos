@@ -7,13 +7,17 @@
 //     to'g'ridan-to'g'ri tarmoqqa ketadi. Ma'lumot oflayn bo'lsa qurilma
 //     o'z IndexedDB keshidan ishlaydi (src/lib/offline.js).
 
-const SHELL = 'pos-shell-v1';
-const RUN = 'pos-run-v1';
+const SHELL = 'pos-shell-v2';
+const RUN = 'pos-run-v2';
 const CORE = [
   '/',
   '/index.html',
   '/manifest.webmanifest',
-  '/app-icon.svg',
+  '/app-icon.png',
+  '/favicon-16.png',
+  '/favicon-32.png',
+  '/favicon-48.png',
+  '/brand/ketapos-mark.png',
   '/icons/icon-192.png',
   '/icons/icon-512.png',
   '/icons/maskable-512.png',

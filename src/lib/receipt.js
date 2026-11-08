@@ -46,7 +46,7 @@ export function buildReceiptHtml(order, settings) {
   .footer { margin-top: 8px; text-align: center; font-size: 11px; }
 </style></head>
 <body>
-  <div class="center store">${esc(settings.store_name || 'POS Kassa')}</div>
+  <div class="center store">${esc(settings.store_name || 'KetaPOS')}</div>
   ${settings.store_address ? `<div class="center small">${esc(settings.store_address)}</div>` : ''}
   ${settings.store_phone ? `<div class="center small">Tel: ${esc(settings.store_phone)}</div>` : ''}
   <div class="divider"></div>

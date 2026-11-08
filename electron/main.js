@@ -11,12 +11,14 @@ function dbPath() {
 }
 
 function createWindow() {
+  const icon = path.join(__dirname, '..', 'dist', 'app-icon.png');
   mainWindow = new BrowserWindow({
     width: 1440,
     height: 900,
     minWidth: 1100,
     minHeight: 700,
-    title: 'POS Kassa',
+    title: 'KetaPOS',
+    icon: fs.existsSync(icon) ? icon : undefined,
     backgroundColor: '#f1f5f9',
     autoHideMenuBar: true,
     webPreferences: {

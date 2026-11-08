@@ -1,4 +1,4 @@
--- POS Kassa · 2-bosqich sxemasi: do'kon ichidagi ish ma'lumotlari (menyu, buyurtma, ombor, xarajat, hisobot)
+-- KetaPOS · 2-bosqich sxemasi: do'kon ichidagi ish ma'lumotlari (menyu, buyurtma, ombor, xarajat, hisobot)
 -- 1-bosqich (venues / staff / invite_codes) ustiga qo'shiladi.
 -- Ishlatish: npm run db:apply supabase/schema_02_pos.sql
 --

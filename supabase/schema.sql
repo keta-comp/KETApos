@@ -1,4 +1,4 @@
--- POS Kassa · 1-bosqich sxemasi: do'kon (venue), xodimlar (staff), taklif kodlari (invite_codes)
+-- KetaPOS · 1-bosqich sxemasi: do'kon (venue), xodimlar (staff), taklif kodlari (invite_codes)
 -- Ishlatish: Supabase dashboard → SQL Editor → yangi query → butun faylni joylab → Run.
 --
 -- Auth sozlamasi (bitta marta): Dashboard → Authentication → Providers → Email

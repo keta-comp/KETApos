@@ -1,7 +1,7 @@
 {
-  "name": "POS Kassa — kassa va ofitsant",
-  "short_name": "POS Kassa",
-  "description": "Fastfood va kichik kafelar uchun POS tizimi",
+  "name": "KetaPOS — kassa va ofitsant",
+  "short_name": "KetaPOS",
+  "description": "KetaPOS: fastfood va kichik kafelar uchun POS tizimi",
   "id": "/",
   "start_url": "/",
   "scope": "/",
