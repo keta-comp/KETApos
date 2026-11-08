@@ -1,4 +1,5 @@
 import { supabase } from './client.js';
+import { cacheKey, cacheRead, cacheWrite, isNetworkError, isOffline, reportNetworkFailure } from '../lib/offline.js';
 
 const MESSAGES = {
   AVVAL_KIRING: 'Avval akkauntga kiring.',
@@ -18,6 +19,8 @@ function fail(error) {
   const raw = error?.message || 'Noma’lum xatolik';
   throw new Error(MESSAGES[raw] || raw);
 }
+
+const OFFLINE_ACCOUNT = "Internet yo‘q va akkaunt ma’lumoti saqlanmagan — onlayn bo‘lgach qayta urinib ko‘ring.";
 
 export async function signIn(email, password) {
   const { error } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
@@ -54,14 +57,29 @@ export async function redeemInvite(code, name) {
   return data;
 }
 
+// Internetsiz ochilganda ham kassaga kirib bo'lsin deb a'zollik yozib qo'yiladi.
+const membershipKey = (userId) => cacheKey('membership', { user: userId });
+
 export async function fetchMembership(userId) {
+  const key = membershipKey(userId);
+  if (isOffline()) {
+    const hit = await cacheRead(key);
+    if (!hit) throw new Error(OFFLINE_ACCOUNT);
+    return hit.data;
+  }
   const { data, error } = await supabase
     .from('staff')
     .select('role, display_name, venue_id, venues(id, name, kind, phone, address)')
     .eq('user_id', userId)
     .maybeSingle();
-  if (error) fail(error);
-  return data
+  if (error) {
+    if (!isNetworkError(error)) fail(error);
+    reportNetworkFailure();
+    const hit = await cacheRead(key);
+    if (!hit) throw new Error(OFFLINE_ACCOUNT);
+    return hit.data;
+  }
+  const membership = data
     ? {
       role: data.role,
       venueId: data.venue_id,
@@ -69,6 +87,8 @@ export async function fetchMembership(userId) {
       venue: data.venues,
     }
     : null;
+  cacheWrite(key, membership);
+  return membership;
 }
 
 export function onAuthChange(callback) {

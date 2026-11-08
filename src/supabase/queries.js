@@ -1,8 +1,20 @@
 import { supabase } from './client.js';
+import {
+  cacheKey, cacheRead, cacheWrite, findCachedOrder, isNetworkError, isOffline, localOrder,
+  mergePendingOrders, mergePendingTables, newClientId, pendingOrder, pendingOrders,
+  pendingQtyByProduct, queueAdd,
+  rememberId, reportNetworkFailure, shadowOrder, shotSet, stamp,
+} from '../lib/offline.js';
 
 // Ma'lumot qatlami: eski src/db/store.js funksiyalari bilan bir xil nom va bir xil qator
 // shakli, lekin ma'lumot Supabase Postgres'da (har do'konga alohida venue_id).
 // O'qish va yozish async; yozishdan keyin barcha sahifalar qayta yuklanishi uchun signal beriladi.
+//
+// Oflayn: o'qishda oxirgi muvaffaqiyatli natija IndexedDB'dan olinadi, buyurtma
+// amallari esa navbatga qo'yiladi (see src/lib/offline.js va src/lib/sync.js).
+
+const OFFLINE_NONE = 'Internet yo‘q va saqlangan ma’lumot topilmadi — onlayn bo‘lgach qayta urinib ko‘ring.';
+const OFFLINE_OP = 'Bu amalni oflayn bajarsa bo‘lmaydi — internet kerak.';
 
 const listeners = new Set();
 
@@ -73,15 +85,80 @@ function fail(error) {
   throw new Error(translate(error.message), { cause: error });
 }
 
-async function read(fn, args = {}) {
-  const { data, error } = await supabase.rpc(fn, args);
-  if (error) fail(error);
+// supabase-js tarmoq uzilganda xatoni "otadi", biznes xatosini esa qaytaradi.
+async function tryRpc(fn, args) {
+  try {
+    const { data, error } = await supabase.rpc(fn, args);
+    return { data, error };
+  } catch (err) {
+    return { data: null, error: err };
+  }
+}
+
+// Oflaynda qolgan buyurtmalar ro'yxatlarga qo'shiladi, serverdagi qatorlar esa
+// ularning lokal holatiga almashtiriladi.
+async function decorate(fn, args, data) {
+  if (fn === 'pos_open_orders') return mergePendingOrders(data || []);
+  if (fn === 'pos_kitchen_orders') return mergePendingOrders(data || [], { kitchen: true });
+  if (fn === 'pos_table_states') return mergePendingTables(data || []);
+  if (fn === 'pos_products') return deductStock(data || []);
+  if (fn === 'pos_orders') return mergeHistory(args, data || []);
   return data;
 }
 
+async function deductStock(products) {
+  const rows = await pendingQtyByProduct();
+  if (!Object.keys(rows).length) return products;
+  return products.map((p) => (p.track_stock && rows[p.id] ? { ...p, stock_qty: Number(p.stock_qty) - rows[p.id] } : p));
+}
+
+// Hisobdagi "oxirgi amallar" oflayn buyurtmalar bilan to'ldiriladi.
+async function mergeHistory(args, list) {
+  const wanted = args.p_status || null;
+  const merged = await mergePendingOrders(list, {});
+  const from = args.p_from;
+  const to = args.p_to;
+  const inRange = (o) => {
+    const day = String(o.created_at || '').slice(0, 10);
+    if (!day) return false;
+    if (from && day < from) return false;
+    if (to && day > to) return false;
+    return true;
+  };
+  const mine = (await pendingOrders()).filter((o) => (wanted ? o.status === wanted : o.status !== 'cancelled') && inRange(o));
+  if (!mine.length) return merged;
+  const seen = new Set(merged.map((o) => String(o.id)));
+  const out = [...merged, ...mine.filter((o) => !seen.has(String(o.id)))];
+  out.sort((a, b) => String(b.created_at || '').localeCompare(String(a.created_at || '')));
+  return out;
+}
+
+async function read(fn, args = {}) {
+  const key = cacheKey(fn, args);
+  if (!isOffline()) {
+    const { data, error } = await tryRpc(fn, args);
+    if (!error) {
+      cacheWrite(key, data);
+      return decorate(fn, args, data);
+    }
+    if (!isNetworkError(error)) fail(error);
+    reportNetworkFailure();
+  }
+  const hit = await cacheRead(key);
+  if (!hit) throw new Error(OFFLINE_NONE);
+  return decorate(fn, args, hit.data);
+}
+
 async function write(fn, args = {}) {
-  const { data, error } = await supabase.rpc(fn, args);
-  if (error) fail(error);
+  if (isOffline()) throw new Error(OFFLINE_OP);
+  const { data, error } = await tryRpc(fn, args);
+  if (error) {
+    if (isNetworkError(error)) {
+      reportNetworkFailure();
+      throw new Error(OFFLINE_OP);
+    }
+    fail(error);
+  }
   bump();
   return data;
 }
@@ -240,36 +317,114 @@ function orderPayload({ type, table_id, items, discount_percent, note, sendToKit
   return p;
 }
 
+// Buyurtma amallari — oflayn bo'lsa navbatga yoziladi, bo'lmasa serverga ketadi.
+// Shardov: buyurtma lokal holati (shot) mavjud bo'lsa, keyingi amal ham shu
+// holat ustiga yoziladi — aks holda ro'yxatlar eskirib qoladi.
+
+async function tableTitle(tableId) {
+  if (!tableId) return null;
+  const hit = await cacheRead(cacheKey('pos_table_states', {}));
+  const found = (hit?.data || []).find((t) => String(t.id) === String(tableId));
+  return found?.name || null;
+}
+
+async function cachedOrder(orderId) {
+  const hit = await cacheRead(cacheKey('pos_order', { p_id: orderId }));
+  return hit?.data || (await findCachedOrder(orderId));
+}
+
+function applyState(o, kind, args) {
+  if (kind === 'pay') {
+    const received = args.received != null ? Math.round(Number(args.received)) : null;
+    return {
+      ...o,
+      status: 'paid',
+      payment_method: args.method,
+      received,
+      change_amount: received != null ? Math.max(0, received - o.total) : null,
+      paid_at: stamp(),
+    };
+  }
+  if (kind === 'cancel') return { ...o, status: 'cancelled', kitchen_status: 'none' };
+  if (kind === 'kitchen') return { ...o, kitchen_status: o.kitchen_status === 'none' ? 'new' : o.kitchen_status };
+  if (kind === 'kstatus') return { ...o, kitchen_status: args.status };
+  return o;
+}
+
+async function queueOrderOp(kind, orderId, args) {
+  const base = (await pendingOrder(orderId)) || (await cachedOrder(orderId));
+  if (!base) throw new Error(OFFLINE_NONE);
+  const next = kind === 'update' ? shadowOrder(base, args.p) : applyState(base, kind, args);
+  const local = Boolean(next.client_id);
+  await shotSet(next, !local);
+  await queueAdd({ kind, local: local ? next.id : null, order_id: next.id, args, at: Date.now() });
+  bump();
+  return next;
+}
+
+// Oflaynda yoziladigan buyurtma — serverga ochilgandan keyin keladi.
+async function queueCreate(clientId, p) {
+  const order = localOrder({ clientId, p, tableName: await tableTitle(p.table_id) });
+  await shotSet(order, false);
+  await queueAdd({ kind: 'create', local: clientId, order_id: clientId, args: { p: { ...p, created_at: order.created_at } }, at: Date.now() });
+  bump();
+  return order;
+}
+
+// Bajarilishi shu buyurtmaning sync'iga bog'liqmi? (lokal yoki navbatda turgan)
+async function queued(orderId) {
+  return Boolean(await pendingOrder(orderId));
+}
+
 export async function createOrder(payload) {
-  return write('create_order', { p: orderPayload(payload) });
+  const p = orderPayload(payload);
+  const clientId = newClientId();
+  if (isOffline()) return queueCreate(clientId, p);
+
+  const { data, error } = await tryRpc('create_order', { p: { ...p, client_id: clientId } });
+  if (error) {
+    if (!isNetworkError(error)) fail(error);
+    // So'rov serverga yetib borgan bo'lishi ham mumkin — client_id tufayli
+    // navbatdagi qayta yuborish takror buyurtma tug'maydi.
+    reportNetworkFailure();
+    return queueCreate(clientId, p);
+  }
+  await rememberId(clientId, data?.id);
+  bump();
+  return data;
 }
 
 export async function updateOrder(orderId, payload) {
-  return write('update_order', { p_id: orderId, p: orderPayload(payload) });
+  const p = orderPayload(payload);
+  if (isOffline() || (await queued(orderId))) return queueOrderOp('update', orderId, { p });
+  return write('update_order', { p_id: orderId, p });
 }
 
 export async function sendToKitchen(orderId) {
+  if (isOffline() || (await queued(orderId))) return queueOrderOp('kitchen', orderId, {});
   return write('send_to_kitchen', { p_id: orderId });
 }
 
 export async function payOrder(orderId, { method, received = null }) {
-  return write('pay_order', {
-    p_id: orderId,
-    p_method: method,
-    p_received: method === 'cash' && received !== null ? Math.round(Number(received)) : null,
-  });
+  const args = { method, received: method === 'cash' && received !== null ? Math.round(Number(received)) : null };
+  if (isOffline() || (await queued(orderId))) return queueOrderOp('pay', orderId, args);
+  return write('pay_order', { p_id: orderId, p_method: args.method, p_received: args.received });
 }
 
 export async function cancelOrder(orderId) {
+  if (isOffline() || (await queued(orderId))) return queueOrderOp('cancel', orderId, {});
   await write('cancel_order', { p_id: orderId });
 }
 
 export async function setKitchenStatus(orderId, status) {
+  if (isOffline() || (await queued(orderId))) return queueOrderOp('kstatus', orderId, { status });
   await write('set_kitchen_status', { p_id: orderId, p_status: status });
 }
 
 export async function getOrder(orderId) {
   if (!orderId) return null;
+  const shot = await pendingOrder(orderId);
+  if (shot) return shot;
   return (await read('pos_order', { p_id: orderId })) || null;
 }
 
