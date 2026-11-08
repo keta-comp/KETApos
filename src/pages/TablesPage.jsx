@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Users, Armchair, Pencil, CreditCard, Trash2, Plus } from 'lucide-react';
 import { useApp } from '../state/AppContext.jsx';
 import { useData } from '../state/useData.js';
@@ -14,7 +14,8 @@ import PaymentModal from '../components/PaymentModal.jsx';
 import ReceiptModal from '../components/ReceiptModal.jsx';
 
 export default function TablesPage() {
-  const { navigate, toast } = useApp();
+  const { navigate, toast, can } = useApp();
+  const mayEdit = can('tables');
   const [editMode, setEditMode] = useState(false);
   const [formTarget, setFormTarget] = useState(null);
   const [deleteTarget, setDeleteTarget] = useState(null);
@@ -31,6 +32,10 @@ export default function TablesPage() {
   const tables = data?.tables || [];
   const zones = data?.zones || [];
   const busyCount = tables.filter((t) => t.order_id).length;
+
+  useEffect(() => {
+    if (!mayEdit) setEditMode(false);
+  }, [mayEdit]);
 
   const { data: currentOrder } = useData(
     () => (orderTarget?.order_id ? getOrder(orderTarget.order_id) : Promise.resolve(null)),
@@ -56,12 +61,16 @@ export default function TablesPage() {
           </div>
         </div>
         <div className="head-actions">
-          <button className={`btn ${editMode ? 'btn-primary' : 'btn-outline'}`} onClick={() => setEditMode(!editMode)}>
-            <Pencil size={16} /> {editMode ? 'Tahrirni yakunlash' : 'Tahrirlash'}
-          </button>
-          <button className="btn btn-primary" onClick={() => setFormTarget({ name: '', zone: zones[0] || 'Asosiy zal', seats: 4 })}>
-            <Plus size={16} /> Stol qo'shish
-          </button>
+          {mayEdit && (
+            <>
+              <button className={`btn ${editMode ? 'btn-primary' : 'btn-outline'}`} onClick={() => setEditMode(!editMode)}>
+                <Pencil size={16} /> {editMode ? 'Tahrirni yakunlash' : 'Tahrirlash'}
+              </button>
+              <button className="btn btn-primary" onClick={() => setFormTarget({ name: '', zone: zones[0] || 'Asosiy zal', seats: 4 })}>
+                <Plus size={16} /> Stol qo'shish
+              </button>
+            </>
+          )}
         </div>
       </div>
 
@@ -118,7 +127,7 @@ export default function TablesPage() {
             {tables.length === 0 && (
               <div className="empty-state">
                 <span className="empty-icon"><Armchair size={40} /></span>
-                Stollar yo'q. "Stol qo'shish" tugmasi bilan qo'shing.
+                {mayEdit ? 'Stollar yo\'q. "Stol qo\'shish" tugmasi bilan qo\'shing.' : 'Hali stol qo\'shilmagan — egasidan so\'rang.'}
               </div>
             )}
           </>
@@ -162,13 +171,19 @@ export default function TablesPage() {
           width={520}
           footer={
             <>
-              <button className="btn btn-danger" onClick={() => setCancelTarget(currentOrder)}>Bekor qilish</button>
-              <button className="btn btn-secondary" onClick={() => navigate('pos', { resumeOrderId: currentOrder.id })}>
-                <Pencil size={16} /> Kassada ochish
-              </button>
-              <button className="btn btn-success" onClick={() => { setPayTarget(currentOrder); setOrderTarget(null); }}>
-                <CreditCard size={16} /> To'lov · {fmtSum(currentOrder.total)}
-              </button>
+              {can('cancel') && (
+                <button className="btn btn-danger" onClick={() => setCancelTarget(currentOrder)}>Bekor qilish</button>
+              )}
+              {can('orderCreate') && (
+                <button className="btn btn-secondary" onClick={() => navigate('pos', { resumeOrderId: currentOrder.id })}>
+                  <Pencil size={16} /> Kassada ochish
+                </button>
+              )}
+              {can('pay') && (
+                <button className="btn btn-success" onClick={() => { setPayTarget(currentOrder); setOrderTarget(null); }}>
+                  <CreditCard size={16} /> To'lov · {fmtSum(currentOrder.total)}
+                </button>
+              )}
             </>
           }
         >

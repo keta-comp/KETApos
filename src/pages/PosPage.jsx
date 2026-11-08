@@ -21,7 +21,8 @@ import Spinner from '../components/Spinner.jsx';
 import { Sk, SkCards, SkRows } from '../components/Skeleton.jsx';
 
 export default function PosPage() {
-  const { pageParams, toast } = useApp();
+  const { pageParams, toast, can } = useApp();
+  const mayPay = can('pay');
 
   const [cart, setCart] = useState([]);
   const [editingId, setEditingId] = useState(null);
@@ -450,12 +451,25 @@ export default function PosPage() {
         </div>
 
         <div className="cart-actions">
-          <button className="btn btn-secondary btn-block" disabled={!cart.length || busy} onClick={() => handleSave(true)}>
-            {busy ? <><Loader2 size={18} className="spin" /> Saqlanmoqda...</> : <><ChefHat size={18} /> Oshxonaga yuborish</>}
-          </button>
-          <button className="btn btn-primary btn-lg btn-block" disabled={!cart.length || busy} onClick={handlePay}>
-            <CreditCard size={18} /> To'lov qilish · {fmtMoney(total)}
-          </button>
+          {mayPay ? (
+            <>
+              <button className="btn btn-secondary btn-block" disabled={!cart.length || busy} onClick={() => handleSave(true)}>
+                {busy ? <><Loader2 size={18} className="spin" /> Saqlanmoqda...</> : <><ChefHat size={18} /> Oshxonaga yuborish</>}
+              </button>
+              <button className="btn btn-primary btn-lg btn-block" disabled={!cart.length || busy} onClick={handlePay}>
+                <CreditCard size={18} /> To'lov qilish · {fmtMoney(total)}
+              </button>
+            </>
+          ) : (
+            <>
+              <button className="btn btn-secondary btn-block" disabled={!cart.length || busy} onClick={() => handleSave(false)}>
+                <ReceiptText size={18} /> Saqlash
+              </button>
+              <button className="btn btn-primary btn-lg btn-block" disabled={!cart.length || busy} onClick={() => handleSave(true)}>
+                {busy ? <><Loader2 size={18} className="spin" /> Saqlanmoqda...</> : <><ChefHat size={18} /> Oshxonaga yuborish</>}
+              </button>
+            </>
+          )}
         </div>
       </div>
 
@@ -493,13 +507,19 @@ export default function PosPage() {
                     )}
                   </div>
                   <div className="open-order-meta">
-                    {fmtTime(o.created_at)} · {fmtQty(o.item_count)} mahsulot
+                    {fmtTime(o.created_at)} · {fmtQty(o.item_count)} mahsulot{o.staff_name ? ` · ${o.staff_name}` : ''}
                   </div>
                 </div>
                 <span className="open-order-total">{fmtSum(o.total)}</span>
-                <button className="btn btn-secondary btn-sm" onClick={() => resumeOrder(o)}>Ochish</button>
-                <button className="btn btn-primary btn-sm" onClick={() => payExisting(o)}>To'lov</button>
-                <button className="btn btn-ghost btn-sm" onClick={() => setCancelTarget(o)} aria-label="Bekor qilish"><X size={14} /></button>
+                {can('orderCreate') && (
+                  <button className="btn btn-secondary btn-sm" onClick={() => resumeOrder(o)}>Ochish</button>
+                )}
+                {mayPay && (
+                  <button className="btn btn-primary btn-sm" onClick={() => payExisting(o)}>To'lov</button>
+                )}
+                {can('cancel') && (
+                  <button className="btn btn-ghost btn-sm" onClick={() => setCancelTarget(o)} aria-label="Bekor qilish"><X size={14} /></button>
+                )}
               </div>
             ))
           )}

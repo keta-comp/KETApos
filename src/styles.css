@@ -124,6 +124,13 @@ button { font-family: inherit; cursor: pointer; }
 .sidebar-footer { padding: 12px 8px 4px; }
 .store-name { font-size: 13.5px; font-weight: 700; }
 .store-sub { font-size: 11px; color: var(--muted); margin-top: 3px; }
+.live-bar {
+  display: flex; align-items: center; gap: 7px; padding: 2px 6px 7px;
+  font-size: 11.5px; font-weight: 700; color: var(--muted);
+}
+.live-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green); box-shadow: 0 0 0 3px var(--green-light); flex-shrink: 0; }
+.online-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--green); box-shadow: 0 0 0 3px var(--green-light); flex-shrink: 0; }
+.online-dot.off { background: var(--metal-3); box-shadow: 0 0 0 3px var(--metal-1); }
 
 .account-chip {
   display: flex; align-items: center; gap: 10px; padding: 11px 12px; margin-bottom: 10px;
@@ -139,6 +146,14 @@ button { font-family: inherit; cursor: pointer; }
 .account-info { flex: 1; min-width: 0; }
 .account-name { font-size: 13px; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .account-role { font-size: 11px; color: var(--muted); font-weight: 600; }
+.nav-item .role-tag { flex: none; font-size: 11px; color: var(--muted); }
+
+/* Profil oynasi: har xodim o'z akkaunti va ismini shu yerdan boshqaradi */
+.profile-head { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
+.profile-head > div { flex: 1; min-width: 0; }
+.account-avatar.big { width: 44px; height: 44px; border-radius: 22px; font-size: 17px; }
+.profile-name { font-size: 15px; font-weight: 800; }
+.profile-mail { font-size: 12px; color: var(--muted); font-weight: 600; word-break: break-all; margin-top: 2px; }
 
 .page { display: flex; flex-direction: column; height: 100%; overflow: hidden; }
 .page-head {
@@ -560,6 +575,7 @@ button { font-family: inherit; cursor: pointer; }
 }
 .order-num { font-size: 17px; font-weight: 800; }
 .order-type-badge { font-size: 12px; font-weight: 700; color: var(--muted); display: inline-flex; align-items: center; gap: 5px; }
+.order-staff { font-size: 11.5px; font-weight: 700; color: var(--ink-2); display: inline-flex; align-items: center; gap: 5px; margin-top: 3px; }
 .elapsed { font-size: 12.5px; font-weight: 800; color: var(--muted); background: var(--metal-1); padding: 4px 10px; border-radius: 11px; box-shadow: var(--sunk); display: inline-flex; align-items: center; gap: 5px; }
 .elapsed.warn { color: var(--yellow); background: var(--yellow-light); }
 .elapsed.late { color: var(--red); background: var(--red-light); }
@@ -744,6 +760,37 @@ button { font-family: inherit; cursor: pointer; }
   padding: 13px 16px; font-size: 13.5px; font-weight: 700; box-shadow: var(--sunk);
 }
 
+/* Sayr (wizard): 1-qaadam akkaunt → 2-qaadam do'kon yoki kod */
+.wizard-steps { display: flex; align-items: center; gap: 10px; }
+.wizard-step {
+  flex: 1; display: flex; align-items: center; gap: 8px; font-size: 12.5px; font-weight: 700;
+  color: var(--metal-3); background: var(--face-sunk); border-radius: var(--radius-m);
+  padding: 9px 12px; box-shadow: var(--sunk);
+}
+.wizard-step.active { color: var(--ink); }
+.wizard-step.done { color: var(--green); }
+.wizard-dot {
+  width: 20px; height: 20px; border-radius: 50%; flex-shrink: 0; display: flex; align-items: center;
+  justify-content: center; font-size: 11px; font-weight: 800; background: var(--face);
+  box-shadow: var(--clay-sm); color: var(--muted);
+}
+.wizard-step.active .wizard-dot { background: var(--primary); color: #fff; }
+.wizard-step.done .wizard-dot { background: var(--green-light); color: var(--green); box-shadow: none; }
+
+.auth-account-chip {
+  display: flex; align-items: center; gap: 11px; background: var(--face-sunk);
+  border-radius: var(--radius-m); padding: 11px 13px; box-shadow: var(--sunk);
+}
+.auth-account-mail { font-size: 13.5px; font-weight: 800; word-break: break-all; }
+.auth-account-hint { font-size: 11.5px; color: var(--muted); font-weight: 600; margin-top: 1px; }
+
+.input-icon { position: relative; }
+.input-icon .input { padding-left: 40px; }
+.input-icon-mark {
+  position: absolute; left: 13px; top: 50%; transform: translateY(-50%);
+  color: var(--metal-3); display: flex; pointer-events: none;
+}
+
 /* ---------- Xodimlar (taklif kodlari) ---------- */
 
 .staff-row {
@@ -755,8 +802,84 @@ button { font-family: inherit; cursor: pointer; }
   letter-spacing: 3px; background: var(--primary); color: #fff; padding: 7px 13px; border-radius: var(--radius-s);
 }
 .staff-meta { flex: 1; min-width: 0; }
-.staff-title { font-size: 14px; font-weight: 700; }
+.staff-title { font-size: 14px; font-weight: 700; display: flex; align-items: center; gap: 8px; }
 .staff-sub { font-size: 12px; color: var(--muted); font-weight: 600; margin-top: 2px; }
+.staff-list { padding: 14px; }
+.staff-list .staff-row:last-child { margin-bottom: 0; }
+
+.me-chip {
+  font-size: 10.5px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px;
+  background: var(--metal-2); color: var(--ink-2); border-radius: 9px; padding: 2px 7px;
+}
+
+/* Rolga mos ranglar: owner=qora, ofitsant=ko'k, kassir=yashil, oshxona=to'q sariq */
+.role-avatar {
+  width: 36px; height: 36px; border-radius: 13px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--face-metal); color: var(--ink-2); box-shadow: var(--clay-sm);
+}
+.role-chip {
+  font-size: 11.5px; font-weight: 800; padding: 5px 11px; border-radius: 20px; white-space: nowrap;
+  background: var(--metal-1); color: var(--muted);
+}
+.role-owner { background: var(--primary); color: #fff; box-shadow: 0 4px 10px rgba(11, 12, 14, 0.26), inset 0 2px 3px rgba(255, 255, 255, 0.22); }
+.role-waiter { background: var(--blue-light); color: var(--blue); }
+.role-cashier { background: var(--green-light); color: var(--green); }
+.role-kitchen { background: var(--yellow-light); color: var(--yellow); }
+span.role-avatar.role-owner { box-shadow: 0 5px 12px rgba(11, 12, 14, 0.3), inset 0 2px 3px rgba(255, 255, 255, 0.22); }
+span.role-chip.role-owner { box-shadow: none; }
+
+.role-picker { display: flex; gap: 8px; flex-wrap: wrap; }
+.role-chip-btn {
+  border: none; background: var(--face-sunk); color: var(--muted); border-radius: var(--radius-s);
+  padding: 10px 16px; min-height: 42px; font-size: 13.5px; font-weight: 700; box-shadow: var(--sunk);
+}
+.role-chip-btn.active { background: var(--primary); color: #fff; box-shadow: 0 5px 12px rgba(11, 12, 14, 0.28), inset 0 2px 3px rgba(255, 255, 255, 0.2); }
+
+.btn-danger-ghost { color: var(--red); }
+.btn-danger-ghost:not(:disabled):hover { background: var(--red-light); color: var(--red); }
+
+.invite-create { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; padding: 16px; }
+
+.how-card {
+  margin-top: 16px; background: var(--face-sunk); border-radius: var(--radius-l);
+  padding: 18px 20px; box-shadow: var(--sunk);
+}
+.how-head { display: flex; align-items: center; gap: 9px; font-size: 14px; font-weight: 800; margin-bottom: 12px; }
+.how-list { list-style: none; counter-reset: step; display: flex; flex-direction: column; gap: 9px; }
+.how-list li {
+  counter-increment: step; position: relative; padding-left: 30px;
+  font-size: 13.5px; line-height: 1.55; color: var(--ink-2); font-weight: 500;
+}
+.how-list li::before {
+  content: counter(step); position: absolute; left: 0; top: 1px;
+  width: 21px; height: 21px; border-radius: 50%; background: var(--face); color: var(--ink);
+  font-size: 12px; font-weight: 800; display: flex; align-items: center; justify-content: center;
+  box-shadow: var(--clay-sm);
+}
+.how-note { margin-top: 12px; font-size: 12.5px; color: var(--muted); font-weight: 600; line-height: 1.5; }
+
+.staff-code.dim { background: var(--metal-2); color: var(--muted); letter-spacing: 2px; }
+.staff-row.used { opacity: 0.75; }
+
+/* Egasi uchun rejim almashtirgich: bir qurilmada boshqa rol ekranini ko'rish */
+.role-switcher {
+  display: flex; align-items: center; gap: 12px; flex-wrap: wrap; flex-shrink: 0;
+  padding: 11px 26px; background: var(--face-sunk); border-bottom: 1px solid var(--border);
+}
+.role-switcher.previewing { background: var(--yellow-light); border-bottom-color: rgba(138, 106, 18, 0.25); }
+.rs-label {
+  display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 800;
+  text-transform: uppercase; letter-spacing: 0.4px; color: var(--muted);
+}
+.role-switcher.previewing .rs-label { color: var(--yellow); }
+.rs-options { display: inline-flex; gap: 5px; background: var(--face); border-radius: var(--radius-m); padding: 4px; box-shadow: var(--clay-sm); }
+.rs-chip {
+  border: none; background: transparent; border-radius: var(--radius-s); padding: 7px 14px; min-height: 34px;
+  font-size: 13px; font-weight: 700; color: var(--muted);
+}
+.rs-chip.active { background: var(--primary); color: #fff; box-shadow: 0 4px 10px rgba(11, 12, 14, 0.26), inset 0 2px 3px rgba(255, 255, 255, 0.2); }
+.rs-note { font-size: 12px; font-weight: 700; color: var(--yellow); margin-left: auto; }
 
 /* ---------- Utilities ---------- */
 
@@ -790,6 +913,13 @@ button { font-family: inherit; cursor: pointer; }
   .cart-panel { border-left: none; border-top: 1px solid var(--border); box-shadow: inset 0 12px 24px rgba(16, 20, 28, 0.04); max-height: 46vh; }
   .page-head { padding: 16px 16px 12px; flex-wrap: wrap; }
   .page-body { padding: 0 16px 20px; }
+  .role-switcher { padding: 8px 12px; gap: 8px; }
+  .rs-note { display: none; }
+  .rs-options { gap: 3px; padding: 3px; }
+  .rs-chip { padding: 6px 11px; min-height: 31px; font-size: 12.5px; }
+  .invite-create { grid-template-columns: 1fr; }
+  .staff-row { flex-wrap: wrap; gap: 9px; }
+  .staff-meta { flex: 1 1 60%; }
   .product-grid { grid-template-columns: repeat(auto-fill, minmax(126px, 1fr)); gap: 10px; }
   .product-card { min-height: 118px; padding: 14px 10px 12px; }
   .kitchen-cols { grid-template-columns: 1fr; gap: 12px; }

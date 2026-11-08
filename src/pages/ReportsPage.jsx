@@ -27,7 +27,8 @@ function compact(n) {
 }
 
 export default function ReportsPage() {
-  const { toast } = useApp();
+  const { toast, can } = useApp();
+  const mayExpense = can('expenses');
   const [period, setPeriod] = useState('today');
   const [customFrom, setCustomFrom] = useState(addDays(todayStr(), -7));
   const [customTo, setCustomTo] = useState(todayStr());
@@ -80,7 +81,9 @@ export default function ReportsPage() {
         </div>
         <div className="head-actions">
           {loading && <Spinner size={18} label="Yangilanmoqda" />}
-          <button className="btn btn-primary" onClick={() => setExpenseForm(true)}><Plus size={16} /> Xarajat qo'shish</button>
+          {mayExpense && (
+            <button className="btn btn-primary" onClick={() => setExpenseForm(true)}><Plus size={16} /> Xarajat qo'shish</button>
+          )}
         </div>
       </div>
 
@@ -200,7 +203,9 @@ export default function ReportsPage() {
           <div className="card card-pad">
             <div className="row-between mb-2">
               <span className="bold ti"><CreditCard size={16} /> Xarajatlar</span>
-              <button className="btn btn-secondary btn-sm" onClick={() => setExpenseForm(true)}><Plus size={14} /> Qo'shish</button>
+              {mayExpense && (
+                <button className="btn btn-secondary btn-sm" onClick={() => setExpenseForm(true)}><Plus size={14} /> Qo'shish</button>
+              )}
             </div>
             {report.expenses.length === 0 ? (
               <div className="empty-state">
@@ -215,7 +220,9 @@ export default function ReportsPage() {
                     <div className="method-count">{fmtDate(e.created_at)} · {e.category}</div>
                   </div>
                   <span className="method-sum" style={{ color: 'var(--red)' }}>{fmtMoney(e.amount)}</span>
-                  <button className="btn btn-ghost btn-sm" onClick={() => setExpenseDelete(e)}><Trash2 size={15} /></button>
+                  {mayExpense && (
+                    <button className="btn btn-ghost btn-sm" onClick={() => setExpenseDelete(e)}><Trash2 size={15} /></button>
+                  )}
                 </div>
               ))
             )}

@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { ChefHat, CircleCheck, PackageCheck, Play, Info, Timer, UtensilsCrossed } from 'lucide-react';
+import { ChefHat, CircleCheck, PackageCheck, Play, Info, Timer, UtensilsCrossed, User } from 'lucide-react';
 import { useApp } from '../state/AppContext.jsx';
 import { useData } from '../state/useData.js';
 import { getKitchenOrders, setKitchenStatus } from '../supabase/queries.js';
@@ -15,11 +15,13 @@ const COLUMNS = [
 ];
 
 export default function KitchenPage() {
-  const { refresh, toast } = useApp();
+  const { refresh, toast, can } = useApp();
+  const mayAdvance = can('kitchenStatus');
   const { data: orders, loading, error, reload } = useData(getKitchenOrders);
 
+  // Asosiy yo'l — realtime; tarmoq uzilsa 30 soniyada bir marta tekshiriladi.
   useEffect(() => {
-    const timer = setInterval(refresh, 5000);
+    const timer = setInterval(refresh, 30000);
     return () => clearInterval(timer);
   }, [refresh]);
 
@@ -39,7 +41,7 @@ export default function KitchenPage() {
         <div>
           <h1 className="page-title"><ChefHat size={22} /> Oshxona ekrani</h1>
           <div className="page-sub">
-            {list.length} ta faol buyurtma · har 5 soniyada yangilanadi
+            {list.length} ta faol buyurtma · boshqa qurilmalardan jonli yangilanadi
           </div>
         </div>
       </div>
@@ -87,6 +89,7 @@ export default function KitchenPage() {
                                 <div className="order-type-badge">
                                   <MapIcon map={ORDER_TYPES} name={o.type} size={14} /> {o.table_name || ORDER_TYPES[o.type]?.label} · {fmtTime(o.created_at)}
                                 </div>
+                                <div className="order-staff"><User size={13} /> {o.staff_name}</div>
                               </div>
                               <span className={`elapsed ${mins >= 20 ? 'late' : mins >= 10 ? 'warn' : ''}`}>
                                 <Timer size={14} /> {mins} daq
@@ -111,11 +114,13 @@ export default function KitchenPage() {
                                 ? <span className="badge badge-green">To'langan</span>
                                 : <span className="badge badge-yellow">To'lanmagan</span>}
                             </div>
-                            <div className="kitchen-actions">
-                              <button className={`btn ${col.actionCls} btn-block`} onClick={() => advance(o, col.next)}>
-                                <col.actionIcon size={16} /> {col.action}
-                              </button>
-                            </div>
+                            {mayAdvance && (
+                              <div className="kitchen-actions">
+                                <button className={`btn ${col.actionCls} btn-block`} onClick={() => advance(o, col.next)}>
+                                  <col.actionIcon size={16} /> {col.action}
+                                </button>
+                              </div>
+                            )}
                           </div>
                         );
                       })}

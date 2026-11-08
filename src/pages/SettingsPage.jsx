@@ -7,6 +7,7 @@ import {
 } from '../supabase/queries.js';
 import { getLegacySummary, runLegacyImport } from '../lib/importLegacy.js';
 import { todayStr } from '../lib/format.js';
+import { APP_VERSION } from '../lib/version.js';
 import { ConfirmModal } from '../components/Modal.jsx';
 
 export default function SettingsPage() {
@@ -174,7 +175,7 @@ export default function SettingsPage() {
 
             <div className="card card-pad">
               <div className="settings-section-title"><Info size={18} /> Tizim haqida</div>
-              <div className="about-row"><span className="muted">Versiya</span><b>1.0.0</b></div>
+              <div className="about-row"><span className="muted">Versiya</span><b>{APP_VERSION}</b></div>
               <div className="about-row"><span className="muted">Platforma</span><b>{window.api ? 'Electron (desktop)' : 'Brauzer (Chrome/PWA)'}</b></div>
               <div className="about-row"><span className="muted">Ma'lumotlar bazasi</span><b>Supabase (server)</b></div>
               <div className="about-row"><span className="muted">Valyuta</span><b>So'm (UZS)</b></div>
