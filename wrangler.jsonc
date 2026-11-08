@@ -1,0 +1,22 @@
+{
+  // KetaPOS — Cloudflare Workers uchun statik sayt (SPA) sifatida.
+  // Ilova mijozda ishlaydi: ma'lumot Supabase RPC orqali, oflayn qatlam
+  // IndexedDB'da. Shuning uchun Worker skripti kerak emas — faqat dist/
+  // papkasidagi fayllarni beramiz.
+  "name": "ketapos",
+  "compatibility_date": "2026-11-08",
+
+  // npm run build chiqaradi: index.html + assets (nomlarda hash bor).
+  "assets": {
+    "directory": "./dist",
+    // Manzil ichiga kirib borilsa ham index.html qaytadi (ilova bir sahifa).
+    "not_found_handling": "single-page-application"
+  },
+
+  // wrangler deploy / dev o'zi oldin Vite build'ini qiladi — shunda CI'nda
+  // alohida build buyruqi yo'q bo'lsa ham dist/ tayyor bo'ladi.
+  "build": {
+    "command": "npm run build",
+    "watch_dir": ["src", "public", "index.html", "vite.config.mjs"]
+  }
+}

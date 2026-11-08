@@ -3,6 +3,9 @@
   "version": "1.5.1",
   "description": "KetaPOS — fastfood va kichik kafelar uchun kassa tizimi",
   "main": "electron/main.js",
+  "engines": {
+    "node": ">=22.12.0"
+  },
   "author": "POS",
   "scripts": {
     "dev": "node scripts/dev.mjs",
@@ -10,6 +13,8 @@
     "build": "vite build",
     "start": "electron .",
     "dist": "npm run build && electron-builder --win",
+    "deploy": "wrangler deploy",
+    "preview": "wrangler dev",
     "brand": "node scripts/make-brand.mjs",
     "db:apply": "node scripts/apply-sql.mjs",
     "smoke:auth": "node scripts/smoke-auth.mjs",
@@ -32,7 +37,8 @@
     "react": "^19.3.1",
     "react-dom": "^19.3.1",
     "sharp": "^0.35.5",
-    "vite": "^7.3.7"
+    "vite": "^7.3.7",
+    "wrangler": "^4.158.0"
   },
   "build": {
     "appId": "uz.pos.fastfood",
