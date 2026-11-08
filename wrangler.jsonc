@@ -5,6 +5,8 @@
   // papkasidagi fayllarni beramiz.
   "name": "ketapos",
   "compatibility_date": "2026-11-08",
+  // Doimiy manzil: https://ketapos.<hisob>.workers.dev
+  "workers_dev": true,
 
   // npm run build chiqaradi: index.html + assets (nomlarda hash bor).
   "assets": {
