@@ -1,14 +1,16 @@
 import { useEffect } from 'react';
+import { ChefHat, CircleCheck, PackageCheck, Play, Info, Timer, UtensilsCrossed } from 'lucide-react';
 import { useApp } from '../state/AppContext.jsx';
 import { useData } from '../state/useData.js';
 import { getKitchenOrders, setKitchenStatus } from '../supabase/queries.js';
 import DataState from '../components/DataState.jsx';
-import { fmtQty, fmtTime, minutesSince, ORDER_TYPES } from '../lib/format.js';
+import MapIcon from '../components/MapIcon.jsx';
+import { fmtQty, fmtTime, minutesSince, ORDER_TYPES, KITCHEN_STATES } from '../lib/format.js';
 
 const COLUMNS = [
-  { key: 'new', title: '🆕 Yangi', cls: 'col-new', action: '👨‍🍳 Boshlash', next: 'cooking', actionCls: 'btn-primary' },
-  { key: 'cooking', title: '👨‍🍳 Tayyorlanmoqda', cls: 'col-cooking', action: '✅ Tayyor', next: 'ready', actionCls: 'btn-success' },
-  { key: 'ready', title: '✅ Tayyor', cls: 'col-ready', action: '📦 Berildi', next: 'served', actionCls: 'btn-secondary' },
+  { key: 'new', cls: 'col-new', action: 'Boshlash', actionIcon: Play, next: 'cooking', actionCls: 'btn-primary' },
+  { key: 'cooking', cls: 'col-cooking', action: 'Tayyor', actionIcon: CircleCheck, next: 'ready', actionCls: 'btn-success' },
+  { key: 'ready', cls: 'col-ready', action: 'Berildi', actionIcon: PackageCheck, next: 'served', actionCls: 'btn-secondary' },
 ];
 
 export default function KitchenPage() {
@@ -34,7 +36,7 @@ export default function KitchenPage() {
     <div className="page">
       <div className="page-head">
         <div>
-          <h1 className="page-title">👨‍🍳 Oshxona ekrani</h1>
+          <h1 className="page-title"><ChefHat size={22} /> Oshxona ekrani</h1>
           <div className="page-sub">
             {list.length} ta faol buyurtma · har 5 soniyada yangilanadi
           </div>
@@ -51,13 +53,13 @@ export default function KitchenPage() {
                 return (
                   <div key={col.key} className={`kitchen-col ${col.cls}`}>
                     <div className="kitchen-col-head">
-                      <span>{col.title}</span>
+                      <span className="ti"><MapIcon map={KITCHEN_STATES} name={col.key} size={17} /> {KITCHEN_STATES[col.key].label}</span>
                       <span className="count">{colOrders.length}</span>
                     </div>
                     <div className="kitchen-col-body">
                       {colOrders.length === 0 && (
                         <div className="empty-state" style={{ padding: '30px 10px' }}>
-                          <span className="empty-emoji" style={{ fontSize: 32, opacity: 0.4 }}>🍽️</span>
+                          <span className="empty-icon"><UtensilsCrossed size={40} /></span>
                           Buyurtmalar yo'q
                         </div>
                       )}
@@ -69,11 +71,11 @@ export default function KitchenPage() {
                               <div>
                                 <div className="order-num">№{o.number}</div>
                                 <div className="order-type-badge">
-                                  {ORDER_TYPES[o.type]?.emoji} {o.table_name || ORDER_TYPES[o.type]?.label} · {fmtTime(o.created_at)}
+                                  <MapIcon map={ORDER_TYPES} name={o.type} size={14} /> {o.table_name || ORDER_TYPES[o.type]?.label} · {fmtTime(o.created_at)}
                                 </div>
                               </div>
                               <span className={`elapsed ${mins >= 20 ? 'late' : mins >= 10 ? 'warn' : ''}`}>
-                                ⏱ {mins} daq
+                                <Timer size={14} /> {mins} daq
                               </span>
                             </div>
                             <div className="kitchen-items">
@@ -86,10 +88,10 @@ export default function KitchenPage() {
                             </div>
                             {o.items.some((it) => it.note) && (
                               <div className="kitchen-note">
-                                📝 {o.items.filter((it) => it.note).map((it) => it.note).join('; ')}
+                                <Info size={13} /> {o.items.filter((it) => it.note).map((it) => it.note).join('; ')}
                               </div>
                             )}
-                            {o.note && <div className="kitchen-note">📝 {o.note}</div>}
+                            {o.note && <div className="kitchen-note"><Info size={13} /> {o.note}</div>}
                             <div className="kitchen-paid">
                               {o.status === 'paid'
                                 ? <span className="badge badge-green">To'langan</span>
@@ -97,7 +99,7 @@ export default function KitchenPage() {
                             </div>
                             <div className="kitchen-actions">
                               <button className={`btn ${col.actionCls} btn-block`} onClick={() => advance(o, col.next)}>
-                                {col.action}
+                                <col.actionIcon size={16} /> {col.action}
                               </button>
                             </div>
                           </div>

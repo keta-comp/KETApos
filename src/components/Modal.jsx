@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { X } from 'lucide-react';
 
 export default function Modal({ title, onClose, children, footer, width = 520 }) {
   useEffect(() => {
@@ -14,7 +15,7 @@ export default function Modal({ title, onClose, children, footer, width = 520 })
       <div className="modal" style={{ maxWidth: width }} role="dialog" aria-modal="true">
         <div className="modal-head">
           <h3>{title}</h3>
-          <button className="modal-close" onClick={onClose} aria-label="Yopish">✕</button>
+          <button className="modal-close" onClick={onClose} aria-label="Yopish"><X size={16} /></button>
         </div>
         <div className="modal-body">{children}</div>
         {footer && <div className="modal-foot">{footer}</div>}

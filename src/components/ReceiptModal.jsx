@@ -1,4 +1,5 @@
 import { useMemo } from 'react';
+import { Printer } from 'lucide-react';
 import Modal from './Modal.jsx';
 import { useApp } from '../state/AppContext.jsx';
 import { buildReceiptHtml, printReceipt } from '../lib/receipt.js';
@@ -24,7 +25,7 @@ export default function ReceiptModal({ order, onClose }) {
       footer={
         <>
           <button className="btn btn-secondary" onClick={onClose}>Yopish</button>
-          <button className="btn btn-primary" onClick={doPrint}>🖨️ Chop etish</button>
+          <button className="btn btn-primary" onClick={doPrint}><Printer size={18} /> Chop etish</button>
         </>
       }
     >

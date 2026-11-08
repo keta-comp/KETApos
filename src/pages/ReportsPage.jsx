@@ -1,10 +1,15 @@
 import { useMemo, useState } from 'react';
+import {
+  ChartNoAxesCombined, Wallet, ReceiptText, ChartColumnIncreasing, CreditCard, TrendingUp,
+  CalendarDays, Trophy, Trash2, Plus,
+} from 'lucide-react';
 import { useApp } from '../state/AppContext.jsx';
 import { useData } from '../state/useData.js';
 import { getReport, addExpense, deleteExpense } from '../supabase/queries.js';
 import { fmtMoney, fmtSum, fmtQty, fmtDate, todayStr, addDays, PAY_METHODS } from '../lib/format.js';
 import Modal, { ConfirmModal } from '../components/Modal.jsx';
 import DataState from '../components/DataState.jsx';
+import MapIcon from '../components/MapIcon.jsx';
 
 const EXPENSE_CATEGORIES = ['Masalliqlar', 'Kommunal', 'Ish haqi', 'Ijara', 'Transport', 'Boshqa'];
 
@@ -47,7 +52,7 @@ export default function ReportsPage() {
       <div className="page">
         <div className="page-head">
           <div>
-            <h1 className="page-title">📊 Hisobot</h1>
+            <h1 className="page-title"><ChartNoAxesCombined size={22} /> Hisobot</h1>
             <div className="page-sub">Ma'lumot yuklanmoqda</div>
           </div>
         </div>
@@ -62,7 +67,7 @@ export default function ReportsPage() {
     <div className="page">
       <div className="page-head">
         <div>
-          <h1 className="page-title">📊 Hisobot</h1>
+          <h1 className="page-title"><ChartNoAxesCombined size={22} /> Hisobot</h1>
           <div className="page-sub">{fmtDate(from)} — {fmtDate(to)}</div>
         </div>
         <div className="head-actions">
@@ -94,27 +99,27 @@ export default function ReportsPage() {
 
         <div className="stat-cards">
           <div className="stat-card">
-            <div className="stat-label">💰 Tushum</div>
+            <div className="stat-label"><Wallet size={14} /> Tushum</div>
             <div className="stat-value green">{fmtMoney(report.revenue)}</div>
             <div className="stat-sub">so'm</div>
           </div>
           <div className="stat-card">
-            <div className="stat-label">🧾 Buyurtmalar</div>
+            <div className="stat-label"><ReceiptText size={14} /> Buyurtmalar</div>
             <div className="stat-value">{report.order_count}</div>
             <div className="stat-sub">to'langan</div>
           </div>
           <div className="stat-card">
-            <div className="stat-label">📈 O'rtacha chek</div>
+            <div className="stat-label"><ChartColumnIncreasing size={14} /> O'rtacha chek</div>
             <div className="stat-value blue">{fmtMoney(report.avg_check)}</div>
             <div className="stat-sub">so'm</div>
           </div>
           <div className="stat-card">
-            <div className="stat-label">💸 Xarajatlar</div>
+            <div className="stat-label"><CreditCard size={14} /> Xarajatlar</div>
             <div className="stat-value red">{fmtMoney(report.expenseTotal)}</div>
             <div className="stat-sub">so'm</div>
           </div>
           <div className="stat-card">
-            <div className="stat-label">🏆 Sof foyda</div>
+            <div className="stat-label"><TrendingUp size={14} /> Sof foyda</div>
             <div className={`stat-value ${report.profit >= 0 ? 'green' : 'red'}`}>{fmtMoney(report.profit)}</div>
             <div className="stat-sub">tushum − xarajat</div>
           </div>
@@ -122,10 +127,10 @@ export default function ReportsPage() {
 
         <div className="report-grid">
           <div className="card card-pad">
-            <div className="bold mb-2">📅 Kunlik savdo</div>
+            <div className="bold mb-2 ti"><ChartNoAxesCombined size={16} /> Kunlik savdo</div>
             {report.byDay.length === 0 ? (
               <div className="empty-state">
-                <span className="empty-emoji">📅</span>
+                <span className="empty-icon"><CalendarDays size={40} /></span>
                 Bu davrda savdo yo'q
               </div>
             ) : (
@@ -142,16 +147,16 @@ export default function ReportsPage() {
           </div>
 
           <div className="card card-pad">
-            <div className="bold mb-2">💳 To'lov turlari</div>
+            <div className="bold mb-2 ti"><CreditCard size={16} /> To'lov turlari</div>
             {report.byMethod.length === 0 ? (
               <div className="empty-state">
-                <span className="empty-emoji">💳</span>
+                <span className="empty-icon"><CreditCard size={40} /></span>
                 Ma'lumot yo'q
               </div>
             ) : (
               report.byMethod.map((m) => (
                 <div key={m.payment_method} className="method-row">
-                  <span className="method-emoji">{PAY_METHODS[m.payment_method]?.emoji || '💰'}</span>
+                  <span className="method-icon"><MapIcon map={PAY_METHODS} name={m.payment_method} size={20} fallback={Wallet} /></span>
                   <div className="method-info">
                     <div className="method-name">{PAY_METHODS[m.payment_method]?.label || m.payment_method}</div>
                     <div className="method-count">{m.order_count} ta buyurtma</div>
@@ -165,10 +170,10 @@ export default function ReportsPage() {
 
         <div className="report-grid mt-3">
           <div className="card card-pad">
-            <div className="bold mb-2">🏅 Top mahsulotlar</div>
+            <div className="bold mb-2 ti"><Trophy size={16} /> Top mahsulotlar</div>
             {report.topProducts.length === 0 ? (
               <div className="empty-state">
-                <span className="empty-emoji">🏅</span>
+                <span className="empty-icon"><Trophy size={40} /></span>
                 Ma'lumot yo'q
               </div>
             ) : (
@@ -185,12 +190,12 @@ export default function ReportsPage() {
 
           <div className="card card-pad">
             <div className="row-between mb-2">
-              <span className="bold">💸 Xarajatlar</span>
-              <button className="btn btn-secondary btn-sm" onClick={() => setExpenseForm(true)}>+ Qo'shish</button>
+              <span className="bold ti"><CreditCard size={16} /> Xarajatlar</span>
+              <button className="btn btn-secondary btn-sm" onClick={() => setExpenseForm(true)}><Plus size={14} /> Qo'shish</button>
             </div>
             {report.expenses.length === 0 ? (
               <div className="empty-state">
-                <span className="empty-emoji">💸</span>
+                <span className="empty-icon"><CreditCard size={40} /></span>
                 Xarajatlar yo'q
               </div>
             ) : (
@@ -201,7 +206,7 @@ export default function ReportsPage() {
                     <div className="method-count">{fmtDate(e.created_at)} · {e.category}</div>
                   </div>
                   <span className="method-sum" style={{ color: 'var(--red)' }}>{fmtMoney(e.amount)}</span>
-                  <button className="btn btn-ghost btn-sm" onClick={() => setExpenseDelete(e)}>🗑</button>
+                  <button className="btn btn-ghost btn-sm" onClick={() => setExpenseDelete(e)}><Trash2 size={15} /></button>
                 </div>
               ))
             )}

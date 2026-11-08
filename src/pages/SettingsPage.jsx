@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Settings, Store, Save, Database, Download, Upload, Info, Loader2 } from 'lucide-react';
 import { useApp } from '../state/AppContext.jsx';
 import { useData } from '../state/useData.js';
 import {
@@ -105,7 +106,7 @@ export default function SettingsPage() {
     <div className="page">
       <div className="page-head">
         <div>
-          <h1 className="page-title">⚙️ Sozlamalar</h1>
+          <h1 className="page-title"><Settings size={22} /> Sozlamalar</h1>
           <div className="page-sub">Do'kon ma'lumotlari va tizim</div>
         </div>
       </div>
@@ -113,7 +114,7 @@ export default function SettingsPage() {
       <div className="page-body">
         <div className="settings-grid">
           <div className="card card-pad">
-            <div className="settings-section-title">🏪 Do'kon ma'lumotlari</div>
+            <div className="settings-section-title"><Store size={18} /> Do'kon ma'lumotlari</div>
             <div className="field">
               <label className="label">Do'kon nomi (chekda chiqadi)</label>
               <input className="input" value={form.store_name} onChange={(e) => set('store_name', e.target.value)} />
@@ -135,26 +136,26 @@ export default function SettingsPage() {
               To'lovdan so'ng chekni avtomatik chop etish
             </label>
             <button className="btn btn-primary" disabled={busy} onClick={save}>
-              {busy ? '⏳ Saqlanmoqda...' : '💾 Saqlash'}
+              {busy ? <><Loader2 size={18} className="spin" /> Saqlanmoqda...</> : <><Save size={18} /> Saqlash</>}
             </button>
           </div>
 
           <div className="col">
             <div className="card card-pad">
-              <div className="settings-section-title">🗄️ Ma'lumotlar</div>
+              <div className="settings-section-title"><Database size={18} /> Ma'lumotlar</div>
               <p className="muted mb-2">
                 Ma'lumotlar serverda (Supabase) saqlanadi: bir do'konga kassa, telefon va boshqa
                 qurilmalardan bir vaqtda kirish mumkin. Internet bo'lmasa sahifalar yangilanmaydi.
               </p>
               <div className="row">
-                <button className="btn btn-outline" disabled={busy} onClick={exportJson}>📤 Zaxira nusxa (JSON)</button>
+                <button className="btn btn-outline" disabled={busy} onClick={exportJson}><Download size={16} /> Zaxira nusxa (JSON)</button>
               </div>
               <p className="muted mt-1">Zaxiraga oxirgi 500 buyurtma va 500 ombor harakati kiradi.</p>
             </div>
 
             {legacy && !firstOrder && (
               <div className="card card-pad">
-                <div className="settings-section-title">📥 Eski ma'lumotni ichga olish</div>
+                <div className="settings-section-title"><Upload size={18} /> Eski ma'lumotni ichga olish</div>
                 <p className="muted mb-2">
                   Kompyuterda saqlangan eski (lokal) bazada {legacy.categories} kategoriya,{' '}
                   {legacy.products} mahsulot, {legacy.tables} stol va {legacy.orders} buyurtma topildi.
@@ -162,7 +163,7 @@ export default function SettingsPage() {
                 </p>
                 <div className="row">
                   <button className="btn btn-outline" disabled={busy} onClick={() => setConfirmImport(true)}>
-                    📥 Eski ma'lumotni import qilish
+                    <Upload size={16} /> Eski ma'lumotni import qilish
                   </button>
                 </div>
                 <p className="muted mt-1">
@@ -172,7 +173,7 @@ export default function SettingsPage() {
             )}
 
             <div className="card card-pad">
-              <div className="settings-section-title">ℹ️ Tizim haqida</div>
+              <div className="settings-section-title"><Info size={18} /> Tizim haqida</div>
               <div className="about-row"><span className="muted">Versiya</span><b>1.0.0</b></div>
               <div className="about-row"><span className="muted">Platforma</span><b>{window.api ? 'Electron (desktop)' : 'Brauzer (Chrome/PWA)'}</b></div>
               <div className="about-row"><span className="muted">Ma'lumotlar bazasi</span><b>Supabase (server)</b></div>

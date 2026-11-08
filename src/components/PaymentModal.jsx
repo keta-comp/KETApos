@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Check, Loader2 } from 'lucide-react';
 import Modal from './Modal.jsx';
 import { useApp } from '../state/AppContext.jsx';
 import { payOrder } from '../supabase/queries.js';
@@ -50,7 +51,7 @@ export default function PaymentModal({ order, onClose, onPaid }) {
         <>
           <button className="btn btn-secondary" onClick={onClose}>Bekor qilish</button>
           <button className="btn btn-success btn-lg" disabled={!canPay || busy} onClick={confirm}>
-            {busy ? '⏳ To\'lanmoqda...' : '✓ To\'lovni tasdiqlash'}
+            {busy ? <><Loader2 size={18} className="spin" /> To&apos;lanmoqda...</> : <><Check size={18} /> To&apos;lovni tasdiqlash</>}
           </button>
         </>
       }
@@ -67,7 +68,7 @@ export default function PaymentModal({ order, onClose, onPaid }) {
             className={`pay-method ${method === key ? 'active' : ''}`}
             onClick={() => setMethod(key)}
           >
-            <span className="pm-emoji">{m.emoji}</span>
+            <span className="pm-icon">{m.icon ? <m.icon size={24} /> : null}</span>
             {m.label}
           </button>
         ))}

@@ -46,23 +46,28 @@ export function fmtQty(n) {
   return Number.isInteger(n) ? String(n) : String(n).replace('.', ',');
 }
 
+import {
+  Utensils, ShoppingBag, Truck, Banknote, CreditCard, Smartphone,
+  Inbox, ChefHat, CircleCheck, PackageCheck,
+} from 'lucide-react';
+
 export const ORDER_TYPES = {
-  dine_in: { label: 'Zalda', emoji: '🍽️' },
-  takeaway: { label: 'Olib ketish', emoji: '🥡' },
-  delivery: { label: 'Yetkazish', emoji: '🛵' },
+  dine_in: { label: 'Zalda', icon: Utensils },
+  takeaway: { label: 'Olib ketish', icon: ShoppingBag },
+  delivery: { label: 'Yetkazish', icon: Truck },
 };
 
 export const PAY_METHODS = {
-  cash: { label: 'Naqd', emoji: '💵' },
-  card: { label: 'Karta', emoji: '💳' },
-  click: { label: 'Click / Payme', emoji: '📱' },
+  cash: { label: 'Naqd', icon: Banknote },
+  card: { label: 'Karta', icon: CreditCard },
+  click: { label: 'Click / Payme', icon: Smartphone },
 };
 
 export const KITCHEN_STATES = {
-  new: { label: 'Yangi', emoji: '🆕' },
-  cooking: { label: 'Tayyorlanmoqda', emoji: '👨‍🍳' },
-  ready: { label: 'Tayyor', emoji: '✅' },
-  served: { label: 'Berildi', emoji: '📦' },
+  new: { label: 'Yangi', icon: Inbox },
+  cooking: { label: 'Tayyorlanmoqda', icon: ChefHat },
+  ready: { label: 'Tayyor', icon: CircleCheck },
+  served: { label: 'Berildi', icon: PackageCheck },
 };
 
 export const ORDER_STATUS = {

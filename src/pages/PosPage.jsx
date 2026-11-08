@@ -1,17 +1,22 @@
 import { useEffect, useMemo, useState } from 'react';
+import {
+  ShoppingCart, Search, FolderOpen, LayoutGrid, ReceiptText, Trash2, Minus, Plus,
+  Loader2, ChefHat, CreditCard, X, Armchair,
+} from 'lucide-react';
 import { useApp } from '../state/AppContext.jsx';
 import { useData } from '../state/useData.js';
 import {
   getCategories, getProducts, getOpenOrders, getOrder, getTableStates,
   createOrder, updateOrder, sendToKitchen, cancelOrder,
 } from '../supabase/queries.js';
-import { fmtMoney, fmtSum, fmtQty, fmtTime, ORDER_TYPES } from '../lib/format.js';
+import { fmtMoney, fmtSum, fmtQty, fmtTime, ORDER_TYPES, KITCHEN_STATES } from '../lib/format.js';
 import Modal, { ConfirmModal } from '../components/Modal.jsx';
 import DataState from '../components/DataState.jsx';
 import PaymentModal from '../components/PaymentModal.jsx';
 import ReceiptModal from '../components/ReceiptModal.jsx';
 import TablePickerModal from '../components/TablePickerModal.jsx';
 import ProductThumb from '../components/ProductThumb.jsx';
+import MapIcon from '../components/MapIcon.jsx';
 
 export default function PosPage() {
   const { pageParams, toast } = useApp();
@@ -233,7 +238,7 @@ export default function PosPage() {
       <div className="page">
         <div className="page-head">
           <div>
-            <h1 className="page-title">🛒 Kassa</h1>
+            <h1 className="page-title"><ShoppingCart size={22} /> Kassa</h1>
             <div className="page-sub">Menyu yuklanmoqda</div>
           </div>
         </div>
@@ -259,7 +264,7 @@ export default function PosPage() {
       <div className="pos-left">
         <div className="pos-toolbar">
           <div className="search-wrap">
-            <span className="search-icon">🔍</span>
+            <span className="search-icon"><Search size={16} /></span>
             <input
               className="input"
               placeholder="Mahsulot qidirish..."
@@ -268,14 +273,14 @@ export default function PosPage() {
             />
           </div>
           <button className="btn btn-outline" onClick={() => setShowOpen(true)}>
-            📂 Ochiq buyurtmalar
+            <FolderOpen size={18} /> Ochiq buyurtmalar
             {openOrders.length > 0 && <span className="badge badge-orange">{openOrders.length}</span>}
           </button>
         </div>
 
         <div className="cat-bar">
           <button className={`chip ${!activeCat ? 'active' : ''}`} onClick={() => setActiveCat(null)}>
-            🍽️ Barchasi
+            <LayoutGrid size={16} /> Barchasi
           </button>
           {categories.map((c) => (
             <button
@@ -291,7 +296,7 @@ export default function PosPage() {
         <div className="product-scroll">
           {filtered.length === 0 ? (
             <div className="empty-state">
-              <span className="empty-emoji">🔍</span>
+              <span className="empty-icon"><Search size={40} /></span>
               Mahsulot topilmadi
             </div>
           ) : (
@@ -321,7 +326,7 @@ export default function PosPage() {
       <div className="cart-panel">
         <div className="cart-head">
           <div className="cart-title-row">
-            <span className="cart-title">🧾 Buyurtma {editingId ? `(tahrir)` : ''}</span>
+            <span className="cart-title"><ReceiptText size={18} /> Buyurtma {editingId ? `(tahrir)` : ''}</span>
             <span className="badge badge-gray">{fmtQty(cartCount)} ta</span>
           </div>
           <div className="cart-type-row">
@@ -335,7 +340,7 @@ export default function PosPage() {
                     if (key !== 'dine_in') setTableId(null);
                   }}
                 >
-                  {t.emoji} {t.label}
+                  <t.icon size={16} /> {t.label}
                 </button>
               ))}
             </div>
@@ -348,14 +353,14 @@ export default function PosPage() {
         {editingId && (
           <div className="editing-banner">
             <span>Buyurtma №{editingNumber} tahrirlanmoqda</span>
-            <button onClick={resetCart}>+ Yangi buyurtma</button>
+            <button onClick={resetCart}><Plus size={13} /> Yangi buyurtma</button>
           </div>
         )}
 
         <div className="cart-items">
           {cart.length === 0 ? (
             <div className="cart-empty">
-              <span className="empty-emoji">🛒</span>
+              <span className="empty-icon"><ShoppingCart size={40} /></span>
               Savat bo'sh.<br />Mahsulot tanlang.
             </div>
           ) : (
@@ -366,12 +371,12 @@ export default function PosPage() {
                   <div className="cart-item-price">{fmtMoney(it.price)} so'm</div>
                 </div>
                 <div className="qty-ctrl">
-                  <button className="qty-btn" onClick={() => changeQty(idx, -1)}>−</button>
+                  <button className="qty-btn" onClick={() => changeQty(idx, -1)} aria-label="Kamaytirish"><Minus size={15} /></button>
                   <span className="qty-val">{fmtQty(it.qty)}</span>
-                  <button className="qty-btn" onClick={() => changeQty(idx, 1)}>+</button>
+                  <button className="qty-btn" onClick={() => changeQty(idx, 1)} aria-label="Ko'paytirish"><Plus size={15} /></button>
                 </div>
                 <span className="cart-item-total">{fmtMoney(it.price * it.qty)}</span>
-                <button className="cart-item-remove" onClick={() => setCart((prev) => prev.filter((_, i) => i !== idx))}>🗑</button>
+                <button className="cart-item-remove" onClick={() => setCart((prev) => prev.filter((_, i) => i !== idx))} aria-label="O'chirish"><Trash2 size={15} /></button>
               </div>
             ))
           )}
@@ -403,10 +408,10 @@ export default function PosPage() {
 
         <div className="cart-actions">
           <button className="btn btn-secondary btn-block" disabled={!cart.length || busy} onClick={() => handleSave(true)}>
-            {busy ? '⏳ Saqlanmoqda...' : '👨‍🍳 Oshxonaga yuborish'}
+            {busy ? <><Loader2 size={18} className="spin" /> Saqlanmoqda...</> : <><ChefHat size={18} /> Oshxonaga yuborish</>}
           </button>
           <button className="btn btn-primary btn-lg btn-block" disabled={!cart.length || busy} onClick={handlePay}>
-            💳 To'lov qilish · {fmtMoney(total)}
+            <CreditCard size={18} /> To'lov qilish · {fmtMoney(total)}
           </button>
         </div>
       </div>
@@ -426,7 +431,7 @@ export default function PosPage() {
         <Modal title={`Ochiq buyurtmalar (${openOrders.length})`} onClose={() => setShowOpen(false)} width={620}>
           {openOrders.length === 0 ? (
             <div className="empty-state">
-              <span className="empty-emoji">📂</span>
+              <span className="empty-icon"><FolderOpen size={40} /></span>
               Ochiq buyurtmalar yo'q
             </div>
           ) : (
@@ -436,9 +441,13 @@ export default function PosPage() {
                   <div className="open-order-num">
                     №{o.number}{' '}
                     <span className="badge badge-gray">
-                      {ORDER_TYPES[o.type]?.emoji} {o.table_name || ORDER_TYPES[o.type]?.label}
+                      <MapIcon map={ORDER_TYPES} name={o.type} size={14} /> {o.table_name || ORDER_TYPES[o.type]?.label}
                     </span>
-                    {o.kitchen_status !== 'none' && <span className="badge badge-blue"> 👨‍🍳 {o.kitchen_status === 'new' ? 'Yangi' : o.kitchen_status === 'cooking' ? 'Tayyorlanmoqda' : 'Tayyor'}</span>}
+                    {o.kitchen_status !== 'none' && (
+                      <span className="badge badge-blue">
+                        <MapIcon map={KITCHEN_STATES} name={o.kitchen_status} size={14} /> {KITCHEN_STATES[o.kitchen_status]?.label}
+                      </span>
+                    )}
                   </div>
                   <div className="open-order-meta">
                     {fmtTime(o.created_at)} · {fmtQty(o.item_count)} mahsulot
@@ -447,7 +456,7 @@ export default function PosPage() {
                 <span className="open-order-total">{fmtSum(o.total)}</span>
                 <button className="btn btn-secondary btn-sm" onClick={() => resumeOrder(o)}>Ochish</button>
                 <button className="btn btn-primary btn-sm" onClick={() => payExisting(o)}>To'lov</button>
-                <button className="btn btn-ghost btn-sm" onClick={() => setCancelTarget(o)}>✕</button>
+                <button className="btn btn-ghost btn-sm" onClick={() => setCancelTarget(o)} aria-label="Bekor qilish"><X size={14} /></button>
               </div>
             ))
           )}
@@ -485,7 +494,7 @@ export default function PosPage() {
 function TableButton({ table, onClick }) {
   return (
     <button className={`table-select-btn ${table ? 'selected' : ''}`} onClick={onClick}>
-      {table ? `🪑 ${table.name} (${table.zone})` : '🪑 Stol tanlang...'}
+      <Armchair size={16} /> {table ? `${table.name} (${table.zone})` : 'Stol tanlang...'}
     </button>
   );
 }

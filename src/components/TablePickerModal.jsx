@@ -1,3 +1,4 @@
+import { Armchair, Users } from 'lucide-react';
 import Modal from './Modal.jsx';
 import DataState from './DataState.jsx';
 import { useData } from '../state/useData.js';
@@ -29,7 +30,7 @@ export default function TablePickerModal({ onSelect, onClose, currentId = null }
                   style={busy ? { opacity: 0.55, cursor: 'not-allowed' } : {}}
                   onClick={() => onSelect(t)}
                 >
-                  <span className="table-emoji">{busy ? '🍽️' : '🪑'}</span>
+                  <span className="table-icon">{busy ? <Users size={26} /> : <Armchair size={26} />}</span>
                   <span className="table-name">{t.name}</span>
                   <span className="table-seats">{t.seats} o'rin</span>
                   {busy ? (

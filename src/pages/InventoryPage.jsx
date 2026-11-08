@@ -1,10 +1,12 @@
 import { useState } from 'react';
+import { Package, TriangleAlert, Wallet, Search, History, Plus, Minus } from 'lucide-react';
 import { useApp } from '../state/AppContext.jsx';
 import { useData } from '../state/useData.js';
 import { getProducts, getMovements, getLowStock, stockIn, stockOut } from '../supabase/queries.js';
 import { fmtMoney, fmtQty, fmtDateTime } from '../lib/format.js';
 import Modal from '../components/Modal.jsx';
 import DataState from '../components/DataState.jsx';
+import ProductThumb from '../components/ProductThumb.jsx';
 
 const REASONS = {
   sale: { label: 'Savdo', cls: 'badge-blue' },
@@ -48,7 +50,7 @@ export default function InventoryPage() {
     <div className="page">
       <div className="page-head">
         <div>
-          <h1 className="page-title">📦 Ombor</h1>
+          <h1 className="page-title"><Package size={22} /> Ombor</h1>
           <div className="page-sub">Mahsulot qoldig'i va harakatlari</div>
         </div>
       </div>
@@ -60,16 +62,16 @@ export default function InventoryPage() {
           <>
             <div className="stat-cards">
               <div className="stat-card">
-                <div className="stat-label">📦 Hisobdagi mahsulotlar</div>
+                <div className="stat-label"><Package size={14} /> Hisobdagi mahsulotlar</div>
                 <div className="stat-value">{tracked.length}</div>
               </div>
               <div className="stat-card">
-                <div className="stat-label">⚠️ Kam qoldiq</div>
+                <div className="stat-label"><TriangleAlert size={14} /> Kam qoldiq</div>
                 <div className={`stat-value ${lowCount ? 'red' : ''}`}>{lowCount}</div>
                 <div className="stat-sub">chegaradan past</div>
               </div>
               <div className="stat-card">
-                <div className="stat-label">💰 Qoldiq qiymati</div>
+                <div className="stat-label"><Wallet size={14} /> Qoldiq qiymati</div>
                 <div className="stat-value orange">{fmtMoney(stockValue)}</div>
                 <div className="stat-sub">so'm (sotuv narxida)</div>
               </div>
@@ -78,11 +80,11 @@ export default function InventoryPage() {
             <div className="card">
               <div className="row-between" style={{ padding: '14px 18px' }}>
                 <div className="search-wrap" style={{ maxWidth: 300 }}>
-                  <span className="search-icon">🔍</span>
+                  <span className="search-icon"><Search size={16} /></span>
                   <input className="input" placeholder="Qidirish..." value={search} onChange={(e) => setSearch(e.target.value)} />
                 </div>
                 <button className={`chip ${onlyLow ? 'active' : ''}`} onClick={() => setOnlyLow(!onlyLow)}>
-                  ⚠️ Faqat kam qoldiq
+                  <TriangleAlert size={14} /> Faqat kam qoldiq
                 </button>
               </div>
               <table className="data-table">
@@ -103,7 +105,7 @@ export default function InventoryPage() {
                       <tr key={p.id}>
                         <td>
                           <div className="product-row-name">
-                            <span className="product-row-emoji">{p.emoji}</span>
+                            <ProductThumb product={p} className="row-photo" emojiClass="product-row-emoji" />
                             {p.name}
                           </div>
                         </td>
@@ -116,8 +118,8 @@ export default function InventoryPage() {
                         </td>
                         <td className="text-right nowrap">{fmtMoney(p.stock_qty * p.price)}</td>
                         <td className="text-right nowrap">
-                          <button className="btn btn-success btn-sm" onClick={() => setStockModal({ product: p, mode: 'in' })}>+ Kirim</button>{' '}
-                          <button className="btn btn-outline btn-sm" onClick={() => setStockModal({ product: p, mode: 'out' })}>− Chiqim</button>
+                          <button className="btn btn-success btn-sm" onClick={() => setStockModal({ product: p, mode: 'in' })}><Plus size={14} /> Kirim</button>{' '}
+                          <button className="btn btn-outline btn-sm" onClick={() => setStockModal({ product: p, mode: 'out' })}><Minus size={14} /> Chiqim</button>
                         </td>
                       </tr>
                     );
@@ -126,7 +128,7 @@ export default function InventoryPage() {
               </table>
               {filtered.length === 0 && (
                 <div className="empty-state">
-                  <span className="empty-emoji">📦</span>
+                  <span className="empty-icon"><Package size={40} /></span>
                   {tracked.length === 0
                     ? "Ombor hisobi yoqilgan mahsulotlar yo'q. Menyu bo'limida mahsulotga \"Ombor hisobini yuritish\" belgisini qo'ying."
                     : 'Mahsulot topilmadi'}
@@ -134,7 +136,7 @@ export default function InventoryPage() {
               )}
             </div>
 
-            <div className="section-title">🕐 So'nggi harakatlar</div>
+            <div className="section-title"><span className="ti"><History size={18} /> So'nggi harakatlar</span></div>
             <div className="card">
               <table className="data-table">
                 <thead>
@@ -164,7 +166,7 @@ export default function InventoryPage() {
               </table>
               {movements.length === 0 && (
                 <div className="empty-state">
-                  <span className="empty-emoji">🕐</span>
+                  <span className="empty-icon"><History size={40} /></span>
                   Harakatlar tarixi bo'sh
                 </div>
               )}
@@ -214,7 +216,7 @@ function StockModal({ product, mode, onClose, onSaved }) {
 
   return (
     <Modal
-      title={mode === 'in' ? `📥 Kirim — ${product.name}` : `📤 Chiqim — ${product.name}`}
+      title={mode === 'in' ? `Kirim — ${product.name}` : `Chiqim — ${product.name}`}
       onClose={onClose}
       width={440}
       footer={

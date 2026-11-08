@@ -1,4 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
+import {
+  ClipboardList, Plus, LayoutGrid, Pencil, Trash2, Camera, RefreshCw, X,
+} from 'lucide-react';
 import { useApp } from '../state/AppContext.jsx';
 import { useAuth } from '../state/AuthContext.jsx';
 import { useData } from '../state/useData.js';
@@ -37,7 +40,7 @@ export default function MenuPage() {
       <div className="page">
         <div className="page-head">
           <div>
-            <h1 className="page-title">📋 Menyu</h1>
+            <h1 className="page-title"><ClipboardList size={22} /> Menyu</h1>
             <div className="page-sub">Ma'lumot yuklanmoqda</div>
           </div>
         </div>
@@ -52,12 +55,12 @@ export default function MenuPage() {
     <div className="page">
       <div className="page-head">
         <div>
-          <h1 className="page-title">📋 Menyu</h1>
+          <h1 className="page-title"><ClipboardList size={22} /> Menyu</h1>
           <div className="page-sub">{categories.length} kategoriya · {products.length} mahsulot</div>
         </div>
         <div className="head-actions">
           <button className="btn btn-primary" onClick={() => setProdForm({ category_id: activeCat || categories[0]?.id })}>
-            + Mahsulot qo'shish
+            <Plus size={18} /> Mahsulot qo'shish
           </button>
         </div>
       </div>
@@ -67,11 +70,11 @@ export default function MenuPage() {
           <div className="card card-pad">
             <div className="row-between mb-2">
               <span className="bold">Kategoriyalar</span>
-              <button className="btn btn-secondary btn-sm" onClick={() => setCatForm({ name: '', emoji: '🍽️', color: COLORS[0] })}>+ Qo'shish</button>
+              <button className="btn btn-secondary btn-sm" onClick={() => setCatForm({ name: '', emoji: '🍽️', color: COLORS[0] })}><Plus size={14} /> Qo'shish</button>
             </div>
             <div className="cat-list">
               <div className={`cat-row ${!activeCat ? 'active' : ''}`} onClick={() => setActiveCat(null)}>
-                <span className="cat-emoji">🍽️</span>
+                <span className="cat-icon"><LayoutGrid size={18} /></span>
                 <span className="cat-name">Barchasi</span>
                 <span className="cat-count">{products.length}</span>
               </div>
@@ -82,8 +85,8 @@ export default function MenuPage() {
                   <span className="cat-name">{c.name}</span>
                   <span className="cat-count">{products.filter((p) => p.category_id === c.id).length}</span>
                   <span className="cat-row-actions">
-                    <button onClick={(e) => { e.stopPropagation(); setCatForm(c); }}>✏️</button>
-                    <button onClick={(e) => { e.stopPropagation(); setCatDelete(c); }}>🗑</button>
+                    <button onClick={(e) => { e.stopPropagation(); setCatForm(c); }}><Pencil size={14} /></button>
+                    <button onClick={(e) => { e.stopPropagation(); setCatDelete(c); }}><Trash2 size={14} /></button>
                   </span>
                 </div>
               ))}
@@ -126,8 +129,8 @@ export default function MenuPage() {
                       {p.active ? <span className="badge badge-green">Faol</span> : <span className="badge badge-gray">Nofaol</span>}
                     </td>
                     <td className="text-right nowrap">
-                      <button className="btn btn-ghost btn-sm" onClick={() => setProdForm(p)}>✏️</button>
-                      <button className="btn btn-ghost btn-sm" onClick={() => setProdDelete(p)}>🗑</button>
+                      <button className="btn btn-ghost btn-sm" onClick={() => setProdForm(p)}><Pencil size={15} /></button>
+                      <button className="btn btn-ghost btn-sm" onClick={() => setProdDelete(p)}><Trash2 size={15} /></button>
                     </td>
                   </tr>
                 ))}
@@ -135,7 +138,7 @@ export default function MenuPage() {
             </table>
             {filtered.length === 0 && (
               <div className="empty-state">
-                <span className="empty-emoji">📋</span>
+                <span className="empty-icon"><ClipboardList size={40} /></span>
                 Mahsulotlar yo'q
               </div>
             )}
@@ -388,16 +391,16 @@ function ProductFormModal({ product, categories, onClose, onSaved }) {
         <label className="label">Rasm (telefon kamerasi yoki galereya)</label>
         <div className="photo-row">
           <div className="photo-box">
-            {preview ? <img src={preview} alt="" /> : <span>📷</span>}
+            {preview ? <img src={preview} alt="" /> : <Camera size={26} />}
           </div>
           <div className="photo-actions">
             <button className="btn btn-outline btn-sm" disabled={busy} onClick={() => fileRef.current.click()}>
-              {preview ? '🔄 Almashtirish' : '📷 Rasm tanlash'}
+              {preview ? <><RefreshCw size={14} /> Almashtirish</> : <><Camera size={14} /> Rasm tanlash</>}
             </button>
             {preview && (photo ? (
               <button className="btn btn-ghost btn-sm" onClick={keepExistingPhoto}>Bekor qilish</button>
             ) : (
-              <button className="btn btn-ghost btn-sm" onClick={() => setRemovePhoto(true)}>✕ Ochirish</button>
+              <button className="btn btn-ghost btn-sm" onClick={() => setRemovePhoto(true)}><X size={14} /> Ochirish</button>
             ))}
           </div>
           <input

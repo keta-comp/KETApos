@@ -1,3 +1,7 @@
+import {
+  ShoppingCart, Users, ChefHat, ClipboardList, Package, ChartNoAxesCombined, Settings,
+  Store, CircleCheck, CircleAlert, Info, Loader2, LogOut, RefreshCw, TriangleAlert,
+} from 'lucide-react';
 import { AuthProvider, useAuth } from './state/AuthContext.jsx';
 import { AppProvider, useApp } from './state/AppContext.jsx';
 import { useData } from './state/useData.js';
@@ -16,13 +20,13 @@ const APP_VERSION = '1.0.0';
 const KIND_LABELS = { fastfood: 'Fastfood', cafe: 'Kafe' };
 
 const NAV = [
-  { id: 'pos', label: 'Kassa', emoji: '🛒' },
-  { id: 'tables', label: 'Stollar', emoji: '🪑' },
-  { id: 'kitchen', label: 'Oshxona', emoji: '👨‍🍳' },
-  { id: 'menu', label: 'Menyu', emoji: '📋' },
-  { id: 'inventory', label: 'Ombor', emoji: '📦' },
-  { id: 'reports', label: 'Hisobot', emoji: '📊' },
-  { id: 'settings', label: 'Sozlamalar', emoji: '⚙️' },
+  { id: 'pos', label: 'Kassa', icon: ShoppingCart },
+  { id: 'tables', label: 'Stollar', icon: Users },
+  { id: 'kitchen', label: 'Oshxona', icon: ChefHat },
+  { id: 'menu', label: 'Menyu', icon: ClipboardList },
+  { id: 'inventory', label: 'Ombor', icon: Package },
+  { id: 'reports', label: 'Hisobot', icon: ChartNoAxesCombined },
+  { id: 'settings', label: 'Sozlamalar', icon: Settings },
 ];
 
 function Sidebar() {
@@ -42,7 +46,7 @@ function Sidebar() {
   return (
     <aside className="sidebar">
       <div className="sidebar-logo">
-        <span className="logo-emoji">🍔</span>
+        <span className="logo-mark"><Store size={24} /></span>
         <div>
           <div className="logo-title">POS Kassa</div>
           <div className="logo-sub">Fastfood &amp; Kafe</div>
@@ -55,7 +59,7 @@ function Sidebar() {
             className={`nav-item ${page === item.id ? 'active' : ''}`}
             onClick={() => navigate(item.id)}
           >
-            <span className="nav-emoji">{item.emoji}</span>
+            <item.icon />
             <span className="nav-label">{item.label}</span>
             {badges[item.id] > 0 && <span className="nav-badge">{badges[item.id]}</span>}
           </button>
@@ -68,7 +72,7 @@ function Sidebar() {
             <div className="account-name">{venue?.name}</div>
             <div className="account-role">{roleLabel} · {KIND_LABELS[venue?.kind] || '—'}</div>
           </div>
-          <button className="btn btn-ghost btn-sm" onClick={handleSignOut} title="Chiqish">⏻</button>
+          <button className="btn btn-ghost btn-sm" onClick={handleSignOut} title="Chiqish" aria-label="Chiqish"><LogOut size={16} /></button>
         </div>
         <div className="store-sub">v{APP_VERSION} · server rejimi</div>
       </div>
@@ -82,7 +86,8 @@ function Toasts() {
     <div className="toast-wrap">
       {toasts.map((t) => (
         <div key={t.id} className={`toast toast-${t.type}`}>
-          {t.type === 'success' ? '✅' : t.type === 'error' ? '⚠️' : 'ℹ️'} {t.message}
+          {t.type === 'success' ? <CircleCheck size={18} /> : t.type === 'error' ? <CircleAlert size={18} /> : <Info size={18} />}
+          <span>{t.message}</span>
         </div>
       ))}
     </div>
@@ -92,11 +97,13 @@ function Toasts() {
 function Boot({ label, error, onRetry }) {
   return (
     <div className="boot-screen">
-      <div className={`boot-emoji ${error ? '' : 'spin'}`}>{error ? '⚠️' : '🍔'}</div>
+      <div className={`boot-icon ${error ? '' : 'spin'}`}>
+        {error ? <TriangleAlert size={52} /> : <Loader2 size={52} />}
+      </div>
       <div className="boot-title">{error ? 'Xatolik yuz berdi' : label}</div>
       {error && <div className="boot-note">{error}</div>}
       {error && onRetry && (
-        <button className="btn btn-primary mt-3" onClick={onRetry}>🔄 Qayta urinish</button>
+        <button className="btn btn-primary mt-3" onClick={onRetry}><RefreshCw size={18} /> Qayta urinish</button>
       )}
     </div>
   );

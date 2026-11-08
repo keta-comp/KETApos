@@ -1,9 +1,10 @@
 import { useState } from 'react';
+import { Sandwich, Coffee, Store, TriangleAlert, ArrowRight, Loader2 } from 'lucide-react';
 import { useAuth } from '../state/AuthContext.jsx';
 
 const KINDS = [
-  { id: 'fastfood', emoji: '🍔', label: 'Fastfood', hint: 'Lavash · burger · pizza — tez xizmat' },
-  { id: 'cafe', emoji: '☕', label: 'Kafe', hint: 'Stollar bilan o‘tirish · keng menyu' },
+  { id: 'fastfood', icon: Sandwich, label: 'Fastfood', hint: 'Lavash · burger · pizza — tez xizmat' },
+  { id: 'cafe', icon: Coffee, label: 'Kafe', hint: 'Stollar bilan o‘tirish · keng menyu' },
 ];
 
 const TABS = {
@@ -25,7 +26,7 @@ export default function AuthScreen() {
     <div className="auth-shell">
       <div className="auth-card">
         <div className="auth-brand">
-          <span className="auth-logo">🍔</span>
+          <span className="auth-logo"><Store size={30} /></span>
           <div>
             <div className="auth-brand-title">POS Kassa</div>
             <div className="auth-brand-sub">Fastfood va kichik kafelar uchun</div>
@@ -46,7 +47,8 @@ export default function AuthScreen() {
 
         {auth.error && (
           <div className="auth-error">
-            ⚠️ {auth.error}
+            <TriangleAlert size={18} />
+            <span>{auth.error}</span>
             {auth.status === 'error' && (
               <button className="auth-switch" onClick={auth.retry}>Qayta urinish</button>
             )}
@@ -86,7 +88,7 @@ function LoginForm() {
       <EmailField value={email} onChange={setEmail} />
       <PasswordField value={password} onChange={setPassword} />
       <button className="btn btn-primary btn-lg btn-block" disabled={busy || !email || !password}>
-        {busy ? 'Kirilmoqda...' : '→ Kassaga kirish'}
+        {busy ? <><Loader2 size={18} className="spin" /> Kirilmoqda...</> : <><ArrowRight size={18} /> Kassaga kirish</>}
       </button>
     </form>
   );
@@ -125,7 +127,7 @@ function VenueForm({ signedIn }) {
             className={`kind-card ${kind === k.id ? 'active' : ''}`}
             onClick={() => setKind(k.id)}
           >
-            <span className="kind-emoji">{k.emoji}</span>
+            <span className="kind-icon"><k.icon size={26} /></span>
             {k.label}
             <span className="kind-hint">{k.hint}</span>
           </button>
@@ -251,7 +253,7 @@ function SetupNotice() {
     <div className="auth-shell">
       <div className="auth-card">
         <div className="auth-brand">
-          <span className="auth-logo">🍔</span>
+          <span className="auth-logo"><Store size={30} /></span>
           <div>
             <div className="auth-brand-title">POS Kassa</div>
             <div className="auth-brand-sub">Serverga ulanish kerak</div>
