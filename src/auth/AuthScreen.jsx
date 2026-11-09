@@ -22,7 +22,7 @@ export default function AuthScreen() {
     <div className="auth-shell">
       <div className="auth-card">
         <div className="auth-brand">
-          <span className="auth-logo"><img src="/brand/ketapos-mark.png" alt="KetaPOS" /></span>
+          <span className="auth-logo"><img src="./brand/ketapos-mark.png" alt="KetaPOS" /></span>
           <div>
             <div className="auth-brand-title">KetaPOS</div>
             <div className="auth-brand-sub">Fastfood va kichik kafelar uchun</div>
@@ -311,7 +311,7 @@ function SetupNotice() {
     <div className="auth-shell">
       <div className="auth-card">
         <div className="auth-brand">
-          <span className="auth-logo"><img src="/brand/ketapos-mark.png" alt="KetaPOS" /></span>
+          <span className="auth-logo"><img src="./brand/ketapos-mark.png" alt="KetaPOS" /></span>
           <div>
             <div className="auth-brand-title">KetaPOS</div>
             <div className="auth-brand-sub">Serverga ulanish kerak</div>

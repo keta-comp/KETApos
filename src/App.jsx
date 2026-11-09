@@ -59,7 +59,7 @@ function Sidebar({ onProfile, onQueue }) {
   return (
     <aside className="sidebar">
       <div className="sidebar-logo">
-        <span className="logo-mark"><img src="/brand/ketapos-mark.png" alt="KetaPOS" /></span>
+        <span className="logo-mark"><img src="./brand/ketapos-mark.png" alt="KetaPOS" /></span>
         <div>
           <div className="logo-title">KetaPOS</div>
           <div className="logo-sub">Fastfood &amp; Kafe</div>
