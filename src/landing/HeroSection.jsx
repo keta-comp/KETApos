@@ -1,12 +1,24 @@
+import { useRef } from 'react';
 import { CalendarPlus, Coffee, Play } from 'lucide-react';
 import { BRAND, HERO_BADGES } from './lib/site.js';
+import { usePauseWhenHidden, useStageMotion } from './lib/motion.js';
 
 export default function HeroSection({ onDemo }) {
+  const root = useRef(null);
+  const stage = useRef(null);
+  useStageMotion(stage, { tilt: 4, parallax: 28 });
+  usePauseWhenHidden(root);
+
   return (
-    <section className="lp-hero" id="hero">
+    <section className="lp-hero" id="hero" ref={root}>
+      <div className="lp-waves" aria-hidden="true">
+        <span className="lp-wave" style={{ top: '8%' }} />
+        <span className="lp-wave" />
+        <span className="lp-wave" />
+      </div>
       <div className="lp-hero-glow" aria-hidden="true" />
       <div className="lp-wrap lp-hero-row">
-        <div className="lp-hero-copy">
+        <div className="lp-hero-copy lp-stagger">
           <span className="lp-badge"><Coffee size={15} /> Kafe • Restoran • Fastfood uchun</span>
           <h1 className="lp-h1">
             Kafe va restoraningizni zamonaviy <span className="lp-pos-chip">POS</span> tizim bilan boshqaring
@@ -32,15 +44,19 @@ export default function HeroSection({ onDemo }) {
         </div>
 
         <div className="lp-hero-art">
-          <img
-            className="lp-hero-img"
-            src={BRAND.hero}
-            alt="KetaPOS ish stoli: sensorli monitor va chek printeri"
-            width="1448"
-            height="1086"
-            fetchPriority="high"
-            decoding="async"
-          />
+          <div className="lp-hero-stage" ref={stage}>
+            <div className="lp-float">
+              <img
+                className="lp-hero-img"
+                src={BRAND.hero}
+                alt="KetaPOS ish stoli: sensorli monitor va chek printeri"
+                width="1448"
+                height="1086"
+                fetchPriority="high"
+                decoding="async"
+              />
+            </div>
+          </div>
         </div>
       </div>
     </section>

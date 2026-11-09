@@ -25,10 +25,11 @@ export default function SiteFooter() {
             <a href={BRAND.appHref}>Kassaga kirish</a>
           </div>
         </div>
+        <p className="lp-footer-made">{BRAND.product} — {BRAND.company} mahsuloti.</p>
         <div className="lp-footer-line" />
         <div className="lp-footer-bottom">
           <span>© {year} {BRAND.company}. Barcha huquqlar himoyalangan.</span>
-          <span>{BRAND.product} — {BRAND.company} mahsuloti.</span>
+          <span>{BRAND.companyNote}</span>
         </div>
       </div>
     </footer>

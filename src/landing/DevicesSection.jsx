@@ -20,7 +20,7 @@ export default function DevicesSection() {
   return (
     <section className="lp-section lp-light" id="qurilmalar">
       <div className="lp-wrap lp-devices-row">
-        <div className="lp-devices-art lp-reveal">
+        <div className="lp-devices-art lp-reveal lp-reveal-scale">
           <img
             className="lp-devices-img"
             src={BRAND.devices}
