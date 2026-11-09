@@ -1,7 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react';
 import { isSupabaseConfigured } from '../supabase/client.js';
 import {
-  fetchMembership, onAuthChange, registerVenue, redeemInvite, signIn, signOut, signUp,
+  fetchIsPlatformAdmin, fetchMembership, onAuthChange, registerVenue, redeemInvite, signIn, signOut, signUp,
 } from '../supabase/auth.js';
 import { roleLabel } from '../lib/roles.js';
 import { purgeAccount, setIdentity } from '../lib/offline.js';
@@ -13,6 +13,7 @@ export function AuthProvider({ children }) {
     status: isSupabaseConfigured ? 'booting' : 'unconfigured',
     user: null,
     membership: null,
+    isPlatformAdmin: false,
     error: null,
   });
   // Akkaunt bosqichida yozilgan ism — do'kon ochilganda yoki kod ishlatilganda saqlanadi.
@@ -25,16 +26,19 @@ export function AuthProvider({ children }) {
     // akkaunt ma'lumoti o'qilishdan oldin ham kimligi ma'lum bo'lishi kerak.
     setIdentity(user ? { id: user.id, name: '' } : null);
     if (!user) {
-      setState({ status: 'unauthenticated', user: null, membership: null, error: null });
+      setState({ status: 'unauthenticated', user: null, membership: null, isPlatformAdmin: false, error: null });
       return;
     }
     try {
-      const membership = await fetchMembership(user.id);
+      const [membership, isPlatformAdmin] = await Promise.all([
+        fetchMembership(user.id),
+        fetchIsPlatformAdmin().catch(() => false),
+      ]);
       if (requestId !== requestRef.current) return;
-      setState({ status: membership ? 'ready' : 'needs-venue', user, membership, error: null });
+      setState({ status: membership ? 'ready' : 'needs-venue', user, membership, isPlatformAdmin, error: null });
     } catch (e) {
       if (requestId !== requestRef.current) return;
-      setState({ status: 'error', user, membership: null, error: e.message });
+      setState({ status: 'error', user, membership: null, isPlatformAdmin: false, error: e.message });
     }
   }, []);
 

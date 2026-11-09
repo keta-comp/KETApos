@@ -3,7 +3,7 @@ import './styles.css';
 import {
   ShoppingCart, Users, ChefHat, ClipboardList, Package, ChartNoAxesCombined, Settings,
   Store, CircleCheck, CircleAlert, Info, LogOut, RefreshCw, TriangleAlert, UserCog, Eye,
-  CircleUser, Save, WifiOff,
+  CircleUser, Save, WifiOff, ShieldCheck,
 } from 'lucide-react';
 import Spinner from './components/Spinner.jsx';
 import Modal from './components/Modal.jsx';
@@ -24,6 +24,7 @@ import InventoryPage from './pages/InventoryPage.jsx';
 import ReportsPage from './pages/ReportsPage.jsx';
 import StaffPage from './pages/StaffPage.jsx';
 import SettingsPage from './pages/SettingsPage.jsx';
+import AdminPage from './pages/AdminPage.jsx';
 
 const KIND_LABELS = { fastfood: 'Fastfood', cafe: 'Kafe' };
 
@@ -36,6 +37,7 @@ const NAV = [
   { id: 'reports', label: 'Hisobot', icon: ChartNoAxesCombined },
   { id: 'staff', label: 'Xodimlar', icon: UserCog },
   { id: 'settings', label: 'Sozlamalar', icon: Settings },
+  { id: 'admin', label: 'Platforma', icon: ShieldCheck },
 ];
 
 function Sidebar({ onProfile, onQueue }) {
@@ -238,7 +240,8 @@ function Gate() {
 }
 
 function Shell() {
-  const { page } = useApp();
+  const { page, navigate, isPlatformAdmin } = useApp();
+  const { venue } = useAuth();
   const [profileOpen, setProfileOpen] = useState(false);
   const [queueOpen, setQueueOpen] = useState(false);
 
@@ -251,12 +254,26 @@ function Shell() {
     reports: <ReportsPage />,
     staff: <StaffPage />,
     settings: <SettingsPage />,
+    admin: <AdminPage />,
   };
 
   return (
     <div className="app">
       <Sidebar onProfile={() => setProfileOpen(true)} onQueue={() => setQueueOpen(true)} />
       <main className="main">
+        {venue?.status === 'suspended' && (
+          <div className="suspended-bar">
+            <TriangleAlert size={16} />
+            <span>
+              {isPlatformAdmin
+                ? 'Bu do‘kon platforma tomonidan to‘xtatilgan (siz o‘zingiz).'
+                : 'Bu do‘kon KetaPOS tomonidan to‘xtatildi — hisobotlarni ko‘rasiz, yangi amal qila olmaysiz.'}
+            </span>
+            {isPlatformAdmin && (
+              <button className="btn btn-ghost btn-sm" onClick={() => navigate('admin')}>Boshqarish</button>
+            )}
+          </div>
+        )}
         <RoleSwitcher />
         <ErrorBoundary key={page}>{pages[page] || <PosPage />}</ErrorBoundary>
       </main>

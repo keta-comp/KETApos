@@ -153,7 +153,7 @@ export default function StaffPage() {
                       </div>
                       <div className="staff-sub">
                         {s.email || 'email ko‘rsatilmagan'}
-                        {s.orders_today > 0 && ` · bugun ${s.orders_today} buyurtma · ${fmtSum(s.total_today)} so‘m`}
+                        {s.orders_today > 0 && ` · bugun ${s.orders_today} buyurtma · ${fmtSum(s.total_today)}`}
                       </div>
                     </div>
                     <span className={`role-chip role-${s.role}`}>{ROLE_META[s.role]?.label || s.role}</span>

@@ -964,6 +964,29 @@ span.role-chip.role-owner { box-shadow: none; }
 .rs-chip.active { background: var(--primary); color: #fff; box-shadow: 0 4px 10px rgba(11, 12, 14, 0.26), inset 0 2px 3px rgba(255, 255, 255, 0.2); }
 .rs-note { font-size: 12px; font-weight: 700; color: var(--yellow); margin-left: auto; }
 
+/* ---------- Platforma (super-admin) ---------- */
+
+.suspended-bar {
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+  padding: 12px 16px; margin-bottom: 14px; border-radius: var(--radius-m);
+  background: var(--red-light); color: var(--red); font-size: 13px; font-weight: 700;
+  box-shadow: var(--clay-sm);
+}
+.status-chip {
+  font-size: 11px; font-weight: 800; padding: 3px 9px; border-radius: 20px; white-space: nowrap;
+  background: var(--green-light); color: var(--green);
+}
+.status-chip.suspended { background: var(--red-light); color: var(--red); }
+.status-chip.info { background: var(--blue-light); color: var(--blue); }
+.staff-row.dim-row { background: var(--face-sunk); }
+.staff-sub.note-line { color: var(--ink-2); font-weight: 600; }
+.link { color: inherit; text-decoration: none; border-bottom: 1px solid var(--metal-3); }
+.role-avatar.venue-fastfood { background: var(--primary-light); color: var(--ink-2); }
+.role-avatar.venue-cafe { background: var(--yellow-light); color: var(--yellow); }
+.admin-filter { padding: 14px 18px; gap: 10px; flex-wrap: wrap; }
+.admin-search { max-width: 320px; flex: 1 1 220px; }
+.role-avatar.big { width: 46px; height: 46px; border-radius: 16px; }
+
 /* ---------- Utilities ---------- */
 
 .row { display: flex; align-items: center; gap: 10px; }
@@ -986,6 +1009,17 @@ span.role-chip.role-owner { box-shadow: none; }
   }
 
   .app { flex-direction: column; }
+  /* Platforma ro'yxatida 4 ta tugma bor — kichik ekranda qatorga qaytadi. */
+  .staff-row.venue-row { flex-wrap: wrap; }
+  .staff-row.venue-row .staff-meta { flex: 1 1 calc(100% - 60px); }
+  .staff-row.venue-row > .row.gap-sm { width: 100%; justify-content: flex-end; flex-wrap: wrap; }
+  /* Qidiruv va holat filtri kichik ekranda ustunma-ustun tiziladi. */
+  .admin-filter { padding: 10px 12px; }
+  .admin-search { max-width: none; flex: 1 1 100%; }
+  .admin-filter > .row.gap-sm { width: 100%; }
+  /* Uchta yorliq 390px qatorga sig'maydi — o'ramga o'tadi. */
+  .admin-tabs { display: flex; width: 100%; flex-wrap: wrap; }
+  .admin-tabs .seg-item { flex: 1 1 auto; padding: 9px 12px; font-size: 13px; }
   .sidebar {
     width: 100%; flex-direction: row; align-items: center; gap: 8px;
     padding: 6px 10px; padding-top: calc(6px + env(safe-area-inset-top));
@@ -1109,8 +1143,7 @@ span.role-chip.role-owner { box-shadow: none; }
     content: attr(data-label); display: inline; margin-right: 5px;
     font-size: 11px; font-weight: 700; color: var(--muted); text-transform: none;
   }
-  .data-table.stack-sm .cell-main { flex: 1 1 100%; order: -1; font-size: 14.5px; }
-  .data-table.stack-sm .cell-actions { order: 3; display: flex; gap: 8px; justify-content: flex-end; margin-left: auto; }
+  .data-table.stack-sm .cell-main { flex: 1 1 100%; order: -1; font-size: 14.5px; }  .data-table.stack-sm .cell-actions { order: 3; display: flex; gap: 8px; justify-content: flex-end; margin-left: auto; }
 
   .modal-overlay { padding: 0; align-items: flex-end; }
   .modal { border-radius: var(--radius-xl) var(--radius-xl) 0 0; max-height: 92vh; max-height: 92dvh; }

@@ -9,7 +9,7 @@ import { drain, onSynced, watchSync } from '../lib/sync.js';
 const AppCtx = createContext(null);
 
 export function AppProvider({ children }) {
-  const { status, role, user, venue, displayName } = useAuth();
+  const { status, role, user, venue, displayName, isPlatformAdmin } = useAuth();
   const userId = user?.id || null;
   const venueId = venue?.id || null;
   const [ready, setReady] = useState(false);
@@ -27,7 +27,12 @@ export function AppProvider({ children }) {
 
   const connected = status === 'ready';
   const viewRole = previewRole || role;
-  const allowedPages = useMemo(() => pagesFor(viewRole), [viewRole]);
+  // Platforma paneli roldan emas, alohida belgidan ochiladi (do'kon egalari
+  // uni ko'rmaydi, administrator esa o'z do'koni rejimida ham ko'radi).
+  const allowedPages = useMemo(() => {
+    const base = pagesFor(viewRole);
+    return isPlatformAdmin && !base.includes('admin') ? [...base, 'admin'] : base;
+  }, [viewRole, isPlatformAdmin]);
 
   // Oflaynda ochilgan buyurtmalarga "kim ochgan" yozilsin.
   useEffect(() => {
@@ -154,6 +159,7 @@ export function AppProvider({ children }) {
     role, viewRole, isPreview: Boolean(previewRole), previewRole,
     setPreviewRole, viewRoleLabel: roleLabel(viewRole),
     allowedPages,
+    isPlatformAdmin,
     can: (perm) => roleCan(viewRole, perm),
     realCan: (perm) => roleCan(role, perm),
   };

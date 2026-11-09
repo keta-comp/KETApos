@@ -76,7 +76,7 @@ export async function fetchMembership(userId) {
   }
   const { data, error } = await supabase
     .from('staff')
-    .select('role, display_name, venue_id, venues(id, name, kind, phone, address)')
+    .select('role, display_name, venue_id, venues(id, name, kind, phone, address, status)')
     .eq('user_id', userId)
     .maybeSingle();
   if (error) {
@@ -103,4 +103,18 @@ export function onAuthChange(callback) {
     callback(session?.user ?? null);
   });
   return () => data.subscription.unsubscribe();
+}
+
+// Platforma egasi belgisi: a'zollikdan alohida so'raladi (har do'konda
+// administratorlik belgisi yo'q). Internetsiz holatda false — panel
+// yopilgan holda qoladi, kassa esa ishlayveradi.
+export async function fetchIsPlatformAdmin() {
+  if (isOffline()) return false;
+  const { data, error } = await supabase.rpc('is_platform_admin');
+  if (error) {
+    if (!isNetworkError(error)) fail(error);
+    reportNetworkFailure();
+    return false;
+  }
+  return Boolean(data);
 }

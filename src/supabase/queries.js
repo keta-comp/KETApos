@@ -70,6 +70,14 @@ const MESSAGES = {
   FAQAT_EGA: 'Buni faqat do‘kon egasi qilishi mumkin.',
   EGA_NOTOGRIDAN: 'Egani roli o‘zgarmaydi va u o‘chirilmaydi.',
   XODIM_TOPILMADI: 'Xodim topilmadi yoki sizning do‘koningizga tegishli emas.',
+  DOKON_TOXTATILGAN: "Bu do‘kon platforma tomonidan to‘xtatildi — yozishlar vaqtinchalik yopiq.",
+  DOKON_TOPILMADI: 'Do‘kon topilmadi — balki o‘chirilgan.',
+  ARIZA_TOPILMADI: 'Ariza topilmadi — balki o‘chirilgan.',
+  DOKON_EGASI_BOR: 'Bu do‘konning egasi allaqachon bor — egalik kodi ishlatilgan.',
+  AKKAUNT_MAVLUD_EMAS: 'Bunday email bilan akkaunt yo‘q — avval xodim ro‘yxatdan o‘tsin.',
+  EMAIL_NOTOGRI: 'Emailni to‘liq yozing.',
+  OXIRGI_ADMIN: 'Bu platformaning oxirgi administratori — o‘chirib bo‘lmaydi.',
+  ADMIN_TOPILMADI: 'Administrator topilmadi.',
   'relation does not exist': "Baza tayyor emas — sxemani qo'llash kerak.",
 };
 
@@ -537,5 +545,98 @@ export async function removeStaff(staffId) {
 
 export async function setMyName(name) {
   await write('set_my_name', { p_name: name });
+}
+
+// ---------- Platforma (super-admin) ----------
+// Bu funksiyalarni faqat platforma egasining qurilmasi chaqiradi. Keshga
+// yozilmaydi: boshqa do'konlarning ma'lumoti oddiy mijoz qurilmasisa tushib
+// qolmasligi kerak, oflaynda esa panelning o'zi keraksiz.
+
+async function adminRead(fn, args = {}) {
+  const { data, error } = await tryRpc(fn, args);
+  if (error) {
+    if (isNetworkError(error)) {
+      reportNetworkFailure();
+      throw new Error(OFFLINE_OP);
+    }
+    fail(error);
+  }
+  return data;
+}
+
+const num = (v) => Number(v ?? 0);
+
+export async function getPlatformStats() {
+  const r = await adminRead('admin_stats');
+  return {
+    venues: num(r?.venues),
+    venuesActive: num(r?.venues_active),
+    venuesSuspended: num(r?.venues_suspended),
+    users: num(r?.users),
+    staff: num(r?.staff),
+    owners: num(r?.owners),
+    orders: num(r?.orders),
+    ordersToday: num(r?.orders_today),
+    ordersOpen: num(r?.orders_open),
+    revenue: num(r?.revenue),
+    revenueToday: num(r?.revenue_today),
+    revenueMonth: num(r?.revenue_month),
+    demoNew: num(r?.demo_new),
+    demoTotal: num(r?.demo_total),
+    daily: (r?.daily ?? []).map((d) => ({ day: d.day, orders: num(d.orders), revenue: num(d.revenue) })),
+  };
+}
+
+export async function getPlatformVenues({ query = null, status = null } = {}) {
+  const list = await adminRead('admin_venues', { p_query: query || null, p_status: status || null });
+  return (list || []).map((v) => ({ ...v, revenue: num(v.revenue), orders: num(v.orders), staff_count: num(v.staff_count) }));
+}
+
+export async function getPlatformVenue(venueId) {
+  return adminRead('admin_venue_detail', { p_id: venueId });
+}
+
+export async function setPlatformVenueStatus(venueId, status) {
+  await write('admin_set_venue_status', { p_id: venueId, p_status: status });
+}
+
+export async function updatePlatformVenue(venueId, fields) {
+  const p = {};
+  for (const key of ['name', 'kind', 'phone', 'address', 'notes']) {
+    if (fields[key] !== undefined) p[key] = fields[key];
+  }
+  await write('admin_update_venue', { p_id: venueId, p });
+}
+
+export async function createPlatformVenue({ name, kind = 'fastfood', phone = null, address = null, notes = null }) {
+  return write('admin_create_venue', { p: { name, kind, phone, address, notes } });
+}
+
+export async function reissueOwnerCode(venueId) {
+  return write('admin_reissue_owner_code', { p_venue: venueId });
+}
+
+export async function getDemoRequests() {
+  return (await adminRead('admin_demo_requests')) || [];
+}
+
+export async function setDemoHandled(demoId, handled) {
+  await write('admin_set_demo_handled', { p_id: demoId, p_handled: Boolean(handled) });
+}
+
+export async function deleteDemoRequest(demoId) {
+  await write('admin_delete_demo', { p_id: demoId });
+}
+
+export async function getPlatformAdmins() {
+  return (await adminRead('admin_admins')) || [];
+}
+
+export async function addPlatformAdmin(email) {
+  return write('admin_add_admin', { p_email: email });
+}
+
+export async function removePlatformAdmin(userId) {
+  await write('admin_remove_admin', { p_user_id: userId });
 }
 
