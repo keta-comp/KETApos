@@ -7,6 +7,7 @@ const MESSAGES = {
 
 export const NOT_READY = 'Ariza qabul qilish hozircha yo‘q — +998 77 763 02 16 raqami bo‘yicha qo‘ng‘iroq qiling.';
 export const OFFLINE = 'Internet yo‘q ko‘rinadi — ulanish tiklangach qayta urinib ko‘ring.';
+const GENERIC = 'Ariza yuborilmadi — qayta urinib ko‘ring yoki qo‘ng‘iroq qiling.';
 
 // Raqamni +998XXXXXXXXXX ko‘rinishiga keltiramiz. Baza tomonidagi qoida bilan
 // bir xil: operator kodi ro'yxatdan, qolgan 9 ta raqam to'liq bo'lishi kerak.
@@ -46,5 +47,5 @@ export async function submitDemoRequest({ name, phone, business, note, trap }) {
   const text = String(error.message || '');
   if (/submit_demo_request|Could not find the function|PGRST202|permission denied/i.test(text)) throw new Error(NOT_READY);
   if (/Failed to fetch|NetworkError|ERR_[A-Z_]+|timed out/i.test(text) || error.name === 'TypeError') throw new Error(OFFLINE);
-  throw new Error(MESSAGES[text] || 'Ariza yuborilmadi — qayta urinib ko‘ring yoki qo‘ng‘iroq qiling.');
+  throw new Error(MESSAGES[text] || GENERIC);
 }

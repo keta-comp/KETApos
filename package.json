@@ -16,6 +16,7 @@
     "deploy": "wrangler deploy",
     "preview": "wrangler dev",
     "brand": "node scripts/make-brand.mjs",
+    "lang:check": "node scripts/lang-coverage.mjs",
     "db:apply": "node scripts/apply-sql.mjs",
     "smoke:auth": "node scripts/smoke-auth.mjs",
     "smoke:pos": "node scripts/smoke-pos.mjs",

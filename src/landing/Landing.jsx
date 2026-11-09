@@ -11,9 +11,12 @@ import FaqSection from './FaqSection.jsx';
 import ContactSection from './ContactSection.jsx';
 import SiteFooter from './SiteFooter.jsx';
 import DemoModal from './DemoModal.jsx';
+import { useLang } from '../lib/lang.js';
 
 export default function Landing() {
   const [demoOpen, setDemoOpen] = useState(false);
+  // Til o'zgarganda butun sahifa qayta chiziladi — matnlar render paytida tarjima qilinadi.
+  useLang();
   const openDemo = () => setDemoOpen(true);
 
   return (

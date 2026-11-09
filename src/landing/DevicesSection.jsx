@@ -1,5 +1,6 @@
 import { MonitorSmartphone } from 'lucide-react';
 import { BRAND, PLATFORMS } from './lib/site.js';
+import { t } from '../lib/i18n.js';
 
 // Lucide'da brend ikonkalari yo'q — Windows/Android belgilarini o'zimiz chizamiz.
 const ICONS = {
@@ -24,7 +25,7 @@ export default function DevicesSection() {
           <img
             className="lp-devices-img"
             src={BRAND.devices}
-            alt="Noutbukda ochilgan KetaPOS kassa ekrani"
+            alt={t('Noutbukda ochilgan KetaPOS kassa ekrani')}
             width="1774"
             height="887"
             loading="lazy"
@@ -32,11 +33,10 @@ export default function DevicesSection() {
           />
         </div>
         <div className="lp-devices-copy lp-reveal">
-          <span className="lp-eyebrow">Qurilmalar</span>
-          <h2 className="lp-h2">Bir tizim — har qanday ekran</h2>
+          <span className="lp-eyebrow">{t('Qurilmalar')}</span>
+          <h2 className="lp-h2">{t('Bir tizim — har qanday ekran')}</h2>
           <p className="lp-lead lp-lead-sm">
-            Kassa joyida kompyuter, ofitsiant qo'lida telefon yoki oddiy brauzer —
-            hammasi bitta akkaunt va bitta ma'lumot bilan ishlaydi.
+            {t("Kassa joyida kompyuter, ofitsiant qo'lida telefon yoki oddiy brauzer — hammasi bitta akkaunt va bitta ma'lumot bilan ishlaydi.")}
           </p>
           <ul className="lp-platforms">
             {PLATFORMS.map((p) => (
@@ -44,7 +44,7 @@ export default function DevicesSection() {
                 <span className="lp-platform-icon">{ICONS[p.id]}</span>
                 <span>
                   <b>{p.label}</b>
-                  <i>{p.note}</i>
+                  <i>{t(p.note)}</i>
                 </span>
               </li>
             ))}

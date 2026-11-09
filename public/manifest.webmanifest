@@ -1,13 +1,13 @@
 {
-  "name": "KetaPOS — kassa va ofitsant",
+  "name": "KetaPOS — kassa hám ofitsiant",
   "short_name": "KetaPOS",
-  "description": "KetaPOS: fastfood va kichik kafelar uchun POS tizimi",
+  "description": "KetaPOS: fastfood hám kishi kafeler ushın POS tizimi",
   "id": "/",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
   "orientation": "any",
-  "lang": "uz",
+  "lang": "kaa",
   "background_color": "#ffffff",
   "theme_color": "#0b0c0e",
   "icons": [

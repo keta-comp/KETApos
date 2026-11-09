@@ -151,6 +151,31 @@ body {
 .lp-head-actions { display: flex; align-items: center; gap: 10px; margin-left: auto; }
 .lp-nav + .lp-head-actions { margin-left: 0; }
 
+/* Til almashtirgich (QQ/UZ) — qorong'i shkaturda ishlaydi. */
+.lp-lang {
+  display: flex;
+  gap: 2px;
+  padding: 3px;
+  border: 1px solid rgba(200, 205, 213, 0.22);
+  border-radius: 11px;
+  background: rgba(255, 255, 255, 0.06);
+}
+.lp-lang-btn {
+  border: 0;
+  border-radius: 8px;
+  padding: 5px 8px;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 650;
+  letter-spacing: 0.03em;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.66);
+  cursor: pointer;
+  transition: background 0.2s var(--lp-ease), color 0.2s var(--lp-ease);
+}
+.lp-lang-btn:hover { color: #fff; }
+.lp-lang-btn.on { background: rgba(255, 255, 255, 0.92); color: #0b0c0e; }
+
 .lp-burger {
   display: none;
   width: 44px;
