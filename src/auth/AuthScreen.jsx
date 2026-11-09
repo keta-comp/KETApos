@@ -266,15 +266,15 @@ function JoinForm() {
   return (
     <form onSubmit={submit}>
       <p className="auth-sub mb-2">
-        Do‘kon egasi bergan 6 belgili kodni kiriting. Kod rolingizni belgilaydi: ofitsant, kassir yoki oshxona.
+        Do‘kon egasi bergan kodni kiriting. Kod rolingizni belgilaydi: ofitsant, kassir yoki oshxona.
       </p>
       <div className="field">
         <label className="label">Taklif kodi</label>
         <input
           className="input code-input"
           value={code}
-          onChange={(e) => setCode(e.target.value.replace(/[^a-zA-Z0-9]/g, '').slice(0, 6))}
-          placeholder="ABC123"
+          onChange={(e) => setCode(e.target.value.replace(/[^a-zA-Z0-9]/g, '').slice(0, 12))}
+          placeholder="A1B2C3D4E5F6"
           inputMode="text"
           autoComplete="off"
         />
@@ -283,7 +283,7 @@ function JoinForm() {
         <label className="label">Ism (stolda shu nom chiqadi)</label>
         <input className="input" value={name} onChange={(e) => setName(e.target.value)} placeholder="Masalan: Sardor" />
       </div>
-      <button className="btn btn-primary btn-lg btn-block" disabled={busy || code.trim().length !== 6}>
+      <button className="btn btn-primary btn-lg btn-block" disabled={busy || code.trim().length < 6}>
         {busy ? <Spinner size={18} label="Tekshirilmoqda..." /> : <><KeyRound size={18} /> Do‘konga qo‘shilish</>}
       </button>
     </form>

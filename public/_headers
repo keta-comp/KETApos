@@ -1,0 +1,11 @@
+# Cloudflare Workers Static Assets sarlavhalari (dist/_headers sifatida ko'chadi).
+# Ilova mijozda ishlaydi, shuning uchun bu sarlavhalar brauzer tomonidagi
+# eng asosiy himoya: sirt (XSS) ochilsa ham tashqi skriptga yo'l qo'ymaymiz.
+
+/*
+  Content-Security-Policy: default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.supabase.co; font-src 'self' data:; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://*.supabase.in; worker-src 'self'; manifest-src 'self'; form-action 'self'; upgrade-insecure-requests
+  Strict-Transport-Security: max-age=31536000; includeSubDomains
+  X-Content-Type-Options: nosniff
+  X-Frame-Options: DENY
+  Referrer-Policy: no-referrer
+  Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=(), usb=(self), serial=(self)

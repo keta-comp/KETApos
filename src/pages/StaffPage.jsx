@@ -97,7 +97,7 @@ export default function StaffPage() {
 
   const staff = data?.staff || [];
   const invites = data?.invites || [];
-  const active = invites.filter((i) => !i.used_by);
+  const active = invites.filter((i) => !i.used_by && !i.expired);
   const used = invites.filter((i) => i.used_by);
 
   return (
@@ -192,11 +192,11 @@ export default function StaffPage() {
             <div className="how-card">
               <div className="how-head"><Info size={16} /> Xodim qanday qo'shiladi</div>
               <ol className="how-list">
-                <li>Yuqoridagi tugma bilan rolga mos <b>6 belgili kod</b> oling va xodimga bering.</li>
+                <li>Yuqoridagi tugma bilan rolga mos <b>12 belgili kod</b> oling va xodimga bering.</li>
                 <li>Xodim o'z telefonida ilovani ochib, <b>Yangi akkaunt</b> bo'limida email va parol yozadi.</li>
                 <li>So'ng <b>Kod bilan qo'shilish</b> bo'limiga kodni kiritadi — roli va ismi avtomatik tanlanadi.</li>
               </ol>
-              <div className="how-note">Kod bir marta ishlatiladi. Eski kodni bekor qilib, yangisini olishingiz mumkin.</div>
+              <div className="how-note">Kod bir marta ishlatiladi va 7 kundan keyin o‘z-o‘zidan yopiladi. Eski kodni bekor qilib, yangisini olishingiz mumkin.</div>
             </div>
 
             {active.length > 0 && (
@@ -208,7 +208,7 @@ export default function StaffPage() {
                       <span className="staff-code">{i.code}</span>
                       <div className="staff-meta">
                         <div className="staff-title">{ROLE_META[i.role]?.label || i.role}</div>
-                        <div className="staff-sub">{i.created_at} · hali ishlatilmagan</div>
+                        <div className="staff-sub">{i.created_at} · ishlatilmagan · muddati {i.expires_at || 'cheksiz'}</div>
                       </div>
                       <div className="row gap-sm">
                         <button className="btn btn-ghost btn-sm" onClick={() => copyCode(i.code)}>

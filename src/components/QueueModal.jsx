@@ -68,6 +68,12 @@ export default function QueueModal({ onClose }) {
         </div>
       )}
 
+      {queue.foreign > 0 && (
+        <div className="queue-hint">
+          Yana {queue.foreign} ta yozuv boshqa hisobga tegishli — ular o‘sha akkaunt kirganda yuboriladi.
+        </div>
+      )}
+
       {queue.records.length > 0 ? (
         <div className="queue-list">
           {queue.records.map((r) => (

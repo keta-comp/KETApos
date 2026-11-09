@@ -149,7 +149,21 @@ function registerFileIpc(ipcMain, dialog) {
 
 // WebUSB/Web Serial Chromium API'lari Electron'da ham ishlaydi, lekin qurilma
 // tanlovini ilova o'zi bajarishi kerak (brauzerdagidek ro'yxat oynasi yo'q).
-function registerDeviceSelection(app) {
+//
+// Ruxsat faqat bitta oynaga: asosiy kassa oynasi. Aks holda istalgan ochiq
+// sahifa (masalan chop etish uchun yaratilgan data: oynasi) USB/COM portga
+// so'rovsiz yza olar edi.
+const ALLOWED_PERMISSIONS = new Set(['usb', 'serial', 'hid', 'clipboard-sanitized-write', 'fullscreen']);
+
+function registerDeviceSelection(app, getTrustedContents) {
+  const trusted = () => {
+    try {
+      return getTrustedContents ? getTrustedContents() : null;
+    } catch {
+      return null;
+    }
+  };
+
   app.on('select-usb-device', (event, details, callback) => {
     event.preventDefault();
     // deviceList requestDevice()ga berilgan filtrlar bilan qisqartirilgan
@@ -164,8 +178,15 @@ function registerDeviceSelection(app) {
   });
 
   // Kassa — printer bilan ishlaydigan maxsus dastur: har chop etishda ruxsat
-  // so'rash o'rniga bir marta tanlangan qurilmaga doim yo'l ochiq.
-  session.defaultSession.setDevicePermissionHandler(() => true);
+  // so'rash o'rniga tanlangan qurilmaga yo'l ochiq, lekin faqat o'z oynasidan.
+  const ses = session.defaultSession;
+  ses.setDevicePermissionHandler((details) => Boolean(details) && details.webContents === trusted());
+  ses.setPermissionRequestHandler((webContents, permission, callback) => {
+    callback(ALLOWED_PERMISSIONS.has(permission) && webContents === trusted());
+  });
+  ses.setPermissionCheckHandler((webContents, permission) => (
+    ALLOWED_PERMISSIONS.has(permission) && webContents === trusted()
+  ));
 }
 
 module.exports = { registerSerialIpc, registerFileIpc, registerDeviceSelection };

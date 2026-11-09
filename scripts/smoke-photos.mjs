@@ -180,7 +180,7 @@ try {
   const strayUp = await upload(stranger, `${venueId}/stray.jpg`, jpeg);
   check('ulanmagan foydalanuvchi yuklay olmaydi', Boolean(strayUp.error), strayUp.error?.message || 'YUKLANDI!');
   if (!strayUp.error) paths.push(`${venueId}/stray.jpg`);
-  await rpcErr(stranger, 'set_product_photo', { p_product: prod.id, p_path: ownPath }, 'AVVAL_KIRING', 'ulanmagan RPC');
+  await rpcErr(stranger, 'set_product_photo', { p_product: prod.id, p_path: ownPath }, 'RUXSAT_YOQ', 'ulanmagan RPC');
   const noAuth = anon();
   const anonUp = await noAuth.storage.from(BUCKET).upload(`${venueId}/anon.jpg`, jpeg, { contentType: 'image/jpeg' });
   check('anon yuklash rad etildi', Boolean(anonUp.error), anonUp.error?.message || 'YUKLANDI!');

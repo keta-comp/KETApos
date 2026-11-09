@@ -1,6 +1,6 @@
 {
   "name": "pos-fastfood",
-  "version": "1.5.1",
+  "version": "1.5.2",
   "description": "KetaPOS — fastfood va kichik kafelar uchun kassa tizimi",
   "main": "electron/main.js",
   "engines": {

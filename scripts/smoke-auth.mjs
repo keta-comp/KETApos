@@ -99,7 +99,7 @@ try {
 
   console.log('3) issue_invite(waiter)');
   const invite = await owner.rpc('issue_invite', { p_role: 'waiter' });
-  check('6 belgili kod chiqdi', !invite.error && /^[A-F0-9]{6}$/.test(invite.data || ''), invite.error?.message || invite.data);
+  check('12 belgili kod chiqdi', !invite.error && /^[A-F0-9]{12}$/.test(invite.data || ''), invite.error?.message || invite.data);
 
   console.log('4) Ofitsant kodni ishlatadi');
   const waiter = await login(emails.waiter);
@@ -109,7 +109,8 @@ try {
   console.log('5) Ishlatilgan kod boshqaga yaramaydi');
   const reuseUser = await login(emails.reuse);
   const reused = await reuseUser.rpc('redeem_invite', { p_code: invite.data });
-  check('takroriy kod rad', Boolean(reused.error) && reused.error.message.includes('KOD_NOTOGRI'), reused.error?.message || 'QABUL QILDI!');
+  const rejected = (r, code) => (Boolean(r.error) && String(r.error.message).includes(code)) || r.data === code;
+  check('takroriy kod rad', rejected(reused, 'KOD_NOTOGRI'), reused.error?.message || String(reused.data));
 
   console.log('6) Menfiy tekshiruvlar va RLS');
   const stranger = await login(emails.stranger);
@@ -124,7 +125,7 @@ try {
   const staffList = await owner.from('staff').select('role').eq('venue_id', venueId);
   check('egasi 2 xodimni ko‘radi', !staffList.error && staffList.data?.length === 2, JSON.stringify(staffList.error || staffList.data));
   const badCode = await stranger.rpc('redeem_invite', { p_code: 'ZZZZZZ' });
-  check('noto‘g‘ri kod rad (KOD_NOTOGRI / AVVAL_KIRING)', Boolean(badCode.error), badCode.error?.message || 'QABUL QILDI!');
+  check('noto‘g‘ri kod rad (KOD_NOTOGRI / AVVAL_KIRING)', Boolean(badCode.error) || rejected(badCode, 'KOD_NOTOGRI'), badCode.error?.message || String(badCode.data));
 
   console.log('7) Xodimning o‘z ko‘rinishi');
   const curRole = await waiter.from('staff').select('id').limit(1);

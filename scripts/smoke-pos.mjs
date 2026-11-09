@@ -259,7 +259,8 @@ try {
   check('o‘z hisoblagichi (1001)', otherFirst.number === 1001, `${otherFirst.number}`);
 
   const stranger = await login(`smoke.stranger.${stamp}@proton.me`);
-  await rpcErr(stranger, 'create_order', { p: { type: 'takeaway', items: [{ name: 'X', price: 100, qty: 1 }] } }, 'AVVAL_KIRING');
+  // Do'konga ulanmagan akkaunt: rol qatlami (5-bosqich) RUXSAT_YOQ deb javob beradi.
+  await rpcErr(stranger, 'create_order', { p: { type: 'takeaway', items: [{ name: 'X', price: 100, qty: 1 }] } }, 'RUXSAT_YOQ');
   check('docsinga ulanmagan: mahsulot yo‘q', (await rpc(stranger, 'pos_products', {})).length === 0);
   const noAuth = anon();
   const anonCall = await noAuth.rpc('pos_products', {});

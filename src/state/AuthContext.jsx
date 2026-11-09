@@ -4,6 +4,7 @@ import {
   fetchMembership, onAuthChange, registerVenue, redeemInvite, signIn, signOut, signUp,
 } from '../supabase/auth.js';
 import { roleLabel } from '../lib/roles.js';
+import { purgeAccount, setIdentity } from '../lib/offline.js';
 
 const AuthCtx = createContext(null);
 
@@ -20,6 +21,9 @@ export function AuthProvider({ children }) {
 
   const loadMembership = useCallback(async (user) => {
     const requestId = ++requestRef.current;
+    // Kesh va navbat yozuvlari shu id bilan belgilanadi — shuning uchun
+    // akkaunt ma'lumoti o'qilishdan oldin ham kimligi ma'lum bo'lishi kerak.
+    setIdentity(user ? { id: user.id, name: '' } : null);
     if (!user) {
       setState({ status: 'unauthenticated', user: null, membership: null, error: null });
       return;
@@ -91,9 +95,12 @@ export function AuthProvider({ children }) {
 
     handleSignOut: async () => {
       ++requestRef.current;
+      const leaving = state.user?.id || null;
       setProfileName('');
       await signOut().catch(() => {});
       setState({ status: 'unauthenticated', user: null, membership: null, error: null });
+      // Bu hisobning oflayn keshi qurilmada qolmasin (keyingi akkaunt ko'rmasin).
+      await purgeAccount(leaving);
     },
   };
 

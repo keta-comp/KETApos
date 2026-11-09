@@ -104,7 +104,7 @@ if (!gotLock) {
 
     registerSerialIpc(ipcMain);
     registerFileIpc(ipcMain, dialog);
-    registerDeviceSelection(app);
+    registerDeviceSelection(app, () => (mainWindow && !mainWindow.isDestroyed() ? mainWindow.webContents : null));
 
     createWindow();
 

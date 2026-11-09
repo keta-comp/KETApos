@@ -8,7 +8,7 @@
 import { supabase } from '../supabase/client.js';
 import { bumpExternal } from '../supabase/queries.js';
 import {
-  isNetworkError, isOffline, queueAll, queueDelete, queuePut,
+  isNetworkError, isOffline, queueDelete, queueMine, queuePut,
   rememberId, reportNetworkFailure, reportOnline, serverId, shotDrop,
 } from './offline.js';
 
@@ -98,7 +98,7 @@ export function onSynced(cb) {
 
 export async function drain({ force = false } = {}) {
   if (running) return null;
-  const queue = await queueAll();
+  const queue = await queueMine();
   if (!queue.length) return { synced: 0, failed: 0, empty: true };
   if (isOffline() && !force) return null;
 

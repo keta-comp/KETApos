@@ -21,7 +21,7 @@ export function AppProvider({ children }) {
   const [toasts, setToasts] = useState([]);
   const [peers, setPeers] = useState([]);
   const [offline, setOffline] = useState(isOffline());
-  const [queue, setQueue] = useState({ waiting: 0, failed: 0, orders: 0, total: 0, records: [] });
+  const [queue, setQueue] = useState({ waiting: 0, failed: 0, foreign: 0, orders: 0, total: 0, records: [] });
   // Egasi boshqa rollar ekranini o'z qurilmabida ko'radi (ko'rinish uchun, ruxsat o'zgarmaydi).
   const [previewRole, setPreviewRole] = useState(null);
 

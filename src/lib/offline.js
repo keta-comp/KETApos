@@ -16,6 +16,25 @@ const DB_VERSION = 1;
 let handle = null;
 let broken = false;
 
+let identity = { id: null, name: '' };
+
+// Kim ochganini lokal buyurtma yozib qo'yish uchun (AppContext aytadi).
+// Ism berilmasa va hisob o'zgarmagan bo'lsa saqlanadi — token yangilanishida
+// kassa ismi yo'qolmasligi uchun.
+export function setIdentity(next) {
+  const id = next?.id || null;
+  const sameAccount = id === identity.id;
+  identity = { id, name: next?.name || (sameAccount ? identity.name : '') };
+}
+
+export function getIdentity() {
+  return identity;
+}
+
+// Ega bilan yozilgan hamma narsa shu hisobga tegishli. Egasi yozilmagan
+// (eski) yozuvlar joyida qoladi — ular birinchi bo'lib kirgan hisobniki.
+const mine = (user) => !user || user === identity.id;
+
 function open() {
   if (handle) return Promise.resolve(handle);
   if (broken || typeof indexedDB === 'undefined') return Promise.reject(new Error('idb-yoq'));
@@ -53,8 +72,10 @@ async function run(store, mode, work) {
 }
 
 // ---------- Kesh ----------
+// Kalit hisob egasi bilan boshlanadi: bir qurilmada keyingi akkaunt oldingi
+// do'konning menyu/savdo keshini oflaynda ko'rmasin.
 
-export const cacheKey = (fn, args = {}) => `${fn}|${JSON.stringify(args)}`;
+export const cacheKey = (fn, args = {}) => `${identity.id || '?'}|${fn}|${JSON.stringify(args)}`;
 
 export async function cacheRead(key) {
   try {
@@ -74,11 +95,21 @@ export async function cacheWrite(key, value) {
 // ---------- Navbat ----------
 
 export function queueAdd(rec) {
-  return run('queue', 'readwrite', (s) => s.add(rec)).catch(() => null);
+  return run('queue', 'readwrite', (s) => s.add({ ...rec, user: identity.id })).catch(() => null);
 }
 
 export function queueAll() {
   return run('queue', 'readonly', (s) => s.getAll()).then((rows) => rows || []).catch(() => []);
+}
+
+// Faqat shu hisobning amallari: begona navbat yozuvi serverga jo'natsa,
+// savdo boshqa do'kon hisobotiga tushadi (create_order do'konni JWT'dan oladi).
+export async function queueMine() {
+  return (await queueAll()).filter((r) => mine(r.user));
+}
+
+export async function queueForeignCount() {
+  return (await queueAll()).filter((r) => !mine(r.user)).length;
 }
 
 export function queuePut(rec) {
@@ -114,17 +145,6 @@ try {
 
 let offline = forced;
 const watchers = new Set();
-
-let identity = { id: null, name: '' };
-
-// Kim ochganini lokal buyurtma yozib qo'yish uchun (AppContext aytadi).
-export function setIdentity(next) {
-  identity = { id: next?.id || null, name: next?.name || '' };
-}
-
-export function getIdentity() {
-  return identity;
-}
 
 export function isOffline() {
   return forced || offline;
@@ -246,7 +266,8 @@ export function shadowOrder(order, patch = {}) {
 
 async function shotAll() {
   try {
-    return (await run('shots', 'readonly', (s) => s.getAll())) || [];
+    const rows = (await run('shots', 'readonly', (s) => s.getAll())) || [];
+    return rows.filter((r) => mine(r.user));
   } catch {
     return [];
   }
@@ -256,7 +277,7 @@ export async function shotGet(id) {
   if (!id) return null;
   try {
     const row = await run('shots', 'readonly', (s) => s.get(String(id)));
-    return row ? row.order : null;
+    return row && mine(row.user) ? row.order : null;
   } catch {
     return null;
   }
@@ -264,7 +285,7 @@ export async function shotGet(id) {
 
 export async function shotSet(order, real = false) {
   try {
-    await run('shots', 'readwrite', (s) => s.put({ id: String(order.id), order, real: Boolean(real) }));
+    await run('shots', 'readwrite', (s) => s.put({ id: String(order.id), order, real: Boolean(real), user: identity.id }));
   } catch { /* saqlanmasa ham ish davom etadi */ }
 }
 
@@ -300,7 +321,8 @@ export async function findCachedOrder(orderId) {
   if (!orderId) return null;
   let rows = [];
   try {
-    rows = (await run('kv', 'readonly', (s) => s.getAll())) || [];
+    rows = ((await run('kv', 'readonly', (s) => s.getAll())) || [])
+      .filter((r) => String(r.key).startsWith(`${identity.id || '?'}|`));
   } catch {
     return null;
   }
@@ -369,13 +391,33 @@ export async function pendingQtyByProduct() {
 
 export async function queueStats() {
   const queue = await queueAll();
+  const own = queue.filter((r) => mine(r.user));
   const shots = await shotAll();
-  const failed = queue.filter((r) => r.failed);
+  const failed = own.filter((r) => r.failed);
   return {
-    waiting: queue.length - failed.length,
+    waiting: own.length - failed.length,
     failed: failed.length,
+    foreign: queue.length - own.length,
     orders: shots.length,
     total: shots.reduce((s, x) => s + (x.order?.status === 'cancelled' ? 0 : (x.order?.total || 0)), 0),
-    records: queue,
+    records: own,
   };
+}
+
+// Chiqib ketganda shu hisobning o'qish keshi va lokal buyurtma holatlari
+// qurilmada qolmasin. Navbat (serverga yetmagan amallar) saqlanadi — ular
+// egasi qaytib kelganda yuboriladi va begona hisobga ko'rinmaydi.
+export async function purgeAccount(userId) {
+  if (!userId) return;
+  const prefix = `${userId}|`;
+  try {
+    const kvRows = (await run('kv', 'readonly', (s) => s.getAll())) || [];
+    await run('kv', 'readwrite', (s) => {
+      for (const row of kvRows) if (String(row.key).startsWith(prefix)) s.delete(row.key);
+    });
+    const shotRows = (await run('shots', 'readonly', (s) => s.getAll())) || [];
+    await run('shots', 'readwrite', (s) => {
+      for (const row of shotRows) if (row.user === userId) s.delete(row.id);
+    });
+  } catch { /* kesh ochilmasa chiqish baribir bo'ladi */ }
 }

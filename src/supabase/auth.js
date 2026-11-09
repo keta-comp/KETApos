@@ -7,6 +7,8 @@ const MESSAGES = {
   DOKON_TURI_NOTOGRI: 'Do‘kon turi fastfood yoki cafe bo‘lishi kerak.',
   NOM_KERTILMADI: 'Do‘kon nomini kiriting.',
   KOD_NOTOGRI: 'Taklif kodi noto‘g‘ri yoki allaqachon ishlatilgan.',
+  KOD_TUGADI: 'Bu taklif kodining muddati tugagan — egasidan yangi kod so‘rang.',
+  KO_P_URILDI: 'Kod juda ko‘p marta noto‘g‘ri kiritildi — 15 daqiqadan so‘ng urinib ko‘ring.',
   ROL_NOTOGRI: 'Rol tanlang: ofitsant, kassir yoki oshxona.',
   FAQAT_EGA: 'Buni faqat do‘kon egasi qilishi mumkin.',
   'Invalid login credentials': 'Email yoki parol xato.',
@@ -51,9 +53,14 @@ export async function registerVenue({ name, kind, phone, address, ownerName }) {
   if (error) fail(error);
 }
 
+// Kodni topib bo'lmaganda baza xato ko'tarmaydi, qiymat qaytaradi: raise
+// tranzaksiyani bekor qilib urinishlar hisoblagichini o'chirib yuborardi.
+const RESULT_ERRORS = ['KOD_NOTOGRI'];
+
 export async function redeemInvite(code, name) {
   const { data, error } = await supabase.rpc('redeem_invite', { p_code: code, p_name: name || null });
   if (error) fail(error);
+  if (RESULT_ERRORS.includes(data)) fail({ message: data });
   return data;
 }
 

@@ -98,7 +98,7 @@ try {
   for (const role of ['waiter', 'cashier', 'kitchen']) {
     const inv = await owner.rpc('issue_invite', { p_role: role });
     codes[role] = inv.data;
-    check(`issue_invite ${role}`, !inv.error && /^[A-F0-9]{6}$/.test(inv.data || ''), inv.error?.message || inv.data);
+    check(`issue_invite ${role}`, !inv.error && /^[A-F0-9]{6,12}$/.test(inv.data || ''), inv.error?.message || inv.data);
   }
   const waiter = await login(emails.waiter);
   const cashier = await login(emails.cashier);
@@ -180,6 +180,26 @@ try {
   const revoke = await owner.rpc('revoke_invite', { p_id: (await owner.rpc('pos_invites')).data.find((i) => i.code === newCode.data)?.id });
   const afterRevoke = await owner.rpc('pos_invites');
   check('kod bekor qilindi', !revoke.error && !afterRevoke.data.some((i) => i.code === newCode.data), JSON.stringify(revoke.error || afterRevoke.data?.length));
+
+  // 7-bosqich (xafsizlik): kod muddati va urinishlar limiti.
+  const lateCode = await owner.rpc('issue_invite', { p_role: 'waiter' });
+  await admin.from('invite_codes').update({ expires_at: new Date(Date.now() - 3600e3).toISOString() }).eq('code', lateCode.data);
+  const lateEmail = `smoke.late.${stamp}@proton.me`;
+  await makeUser(lateEmail);
+  const late = await login(lateEmail);
+  const expired = await late.rpc('redeem_invite', { p_code: lateCode.data, p_name: 'Kechikkan' });
+  check('muddati tugagan kod rad etildi', isErr(expired, 'KOD_TUGADI'), expired.error?.message || 'QABUL QILDI!');
+
+  // Noto'g'ri kod endi xato ko'tarmaydi (qiymat qaytaradi) — shuning uchun
+  // hisoblagich tranzaksiyada saqlanadi va 15 urinishdan so'ng KO_P_URILDI chiqadi.
+  let throttled = false;
+  const trace = [];
+  for (let i = 0; i < 17 && !throttled; i += 1) {
+    const bad = await late.rpc('redeem_invite', { p_code: 'BADC0DE12AB', p_name: 'X' });
+    trace.push(String(bad.error?.message || bad.data));
+    if (isErr(bad, 'KO_P_URILDI')) throttled = true;
+  }
+  check('15 xato urinishdan so‘ng kod kiritish to‘xtadi', throttled, trace[trace.length - 1] || 'limit ishlamadi');
 
   console.log('6) Realtime: bir qurilmadagi yozuv boshqasiga yetib boradi');
   const events = [];
