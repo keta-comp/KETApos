@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import './styles.css';
 import {
   ShoppingCart, Users, ChefHat, ClipboardList, Package, ChartNoAxesCombined, Settings,
   Store, CircleCheck, CircleAlert, Info, LogOut, RefreshCw, TriangleAlert, UserCog, Eye,

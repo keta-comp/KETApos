@@ -7,11 +7,12 @@
 //     to'g'ridan-to'g'ri tarmoqqa ketadi. Ma'lumot oflayn bo'lsa qurilma
 //     o'z IndexedDB keshidan ishlaydi (src/lib/offline.js).
 
-const SHELL = 'pos-shell-v2';
+const SHELL = 'pos-shell-v3';
 const RUN = 'pos-run-v2';
 const CORE = [
   '/',
   '/index.html',
+  '/app',
   '/manifest.webmanifest',
   '/app-icon.png',
   '/favicon-16.png',
