@@ -21,9 +21,16 @@ function read() {
 
 let current = typeof window === 'undefined' ? 'kaa' : read();
 
+// Sakich yoki Electron oynasining sarlavhasi ham tilga ergashishi uchun.
+const TITLES = {
+  kaa: 'KetaPOS — kafe, restoran hám fastfoodlar ushın kassa tizimi | KETA-COMP',
+  uz: 'KetaPOS — kafe, restoran va fastfoodlar uchun kassa tizimi | KETA-COMP',
+};
+
 function applyDoc() {
   if (typeof document === 'undefined') return;
   document.documentElement.lang = current;
+  document.title = TITLES[current];
 }
 applyDoc();
 

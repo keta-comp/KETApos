@@ -28,6 +28,9 @@ const PASS = new Set([
   'Serial port', 'Electron (desktop)', 'Stol 3', 'Chilonzor 12',
   'https://keta.uz', 'tel:+998777630216', '+998 77 763 02 16', '/app',
   'ketapos.lang', 'ketapos', 'file://', 'utf-8',
+  // lang.js TITLES: sarlavhaning ikki tili birga yoziladi, lug'atga kirmaydi.
+  'KetaPOS — kafe, restoran hám fastfoodlar ushın kassa tizimi | KETA-COMP',
+  'KetaPOS — kafe, restoran va fastfoodlar uchun kassa tizimi | KETA-COMP',
 ]);
 
 function walk(entry) {
