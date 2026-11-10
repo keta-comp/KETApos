@@ -17,6 +17,7 @@ import { getOpenOrders, getKitchenOrders, getLowStock, setMyName } from './supab
 import { ROLES, ROLE_META, ROLE_PAGES } from './lib/roles.js';
 import { APP_VERSION } from './lib/version.js';
 import { t } from './lib/i18n.js';
+import { useLang } from './lib/lang.js';
 import PosPage from './pages/PosPage.jsx';
 import TablesPage from './pages/TablesPage.jsx';
 import KitchenPage from './pages/KitchenPage.jsx';
@@ -286,6 +287,8 @@ function Shell() {
 }
 
 export default function App() {
+  // Til o'zgarganda butun daraxt qayta chizilishi uchun; t() o'zi obuna emas.
+  useLang();
   return (
     <ErrorBoundary>
       <AuthProvider>
