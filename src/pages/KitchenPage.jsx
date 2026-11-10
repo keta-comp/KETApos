@@ -7,6 +7,7 @@ import DataState from '../components/DataState.jsx';
 import MapIcon from '../components/MapIcon.jsx';
 import { Sk } from '../components/Skeleton.jsx';
 import { fmtQty, fmtTime, minutesSince, ORDER_TYPES, KITCHEN_STATES } from '../lib/format.js';
+import { t } from '../lib/i18n.js';
 
 const COLUMNS = [
   { key: 'new', cls: 'col-new', action: 'Boshlash', actionIcon: Play, next: 'cooking', actionCls: 'btn-primary' },
@@ -39,9 +40,9 @@ export default function KitchenPage() {
     <div className="page">
       <div className="page-head">
         <div>
-          <h1 className="page-title"><ChefHat size={22} /> Oshxona ekrani</h1>
+          <h1 className="page-title"><ChefHat size={22} /> {t('Oshxona ekrani')}</h1>
           <div className="page-sub">
-            {list.length} ta faol buyurtma · boshqa qurilmalardan jonli yangilanadi
+            {t('{n} ta faol buyurtma · boshqa qurilmalardan jonli yangilanadi', { n: list.length })}
           </div>
         </div>
       </div>
@@ -69,14 +70,14 @@ export default function KitchenPage() {
                 return (
                   <div key={col.key} className={`kitchen-col ${col.cls}`}>
                     <div className="kitchen-col-head">
-                      <span className="ti"><MapIcon map={KITCHEN_STATES} name={col.key} size={17} /> {KITCHEN_STATES[col.key].label}</span>
+                      <span className="ti"><MapIcon map={KITCHEN_STATES} name={col.key} size={17} /> {t(KITCHEN_STATES[col.key].label)}</span>
                       <span className="count">{colOrders.length}</span>
                     </div>
                     <div className="kitchen-col-body">
                       {colOrders.length === 0 && (
                         <div className="empty-state" style={{ padding: '18px 8px' }}>
                           <span className="empty-icon"><UtensilsCrossed size={22} /></span>
-                          Buyurtmalar yo'q
+                          {t('Buyurtmalar yo\'q')}
                         </div>
                       )}
                       {colOrders.map((o) => {
@@ -88,12 +89,12 @@ export default function KitchenPage() {
                               <div>
                                 <div className="order-num">№{o.number}</div>
                                 <div className="order-type-badge">
-                                  <MapIcon map={ORDER_TYPES} name={o.type} size={14} /> {o.table_name || ORDER_TYPES[o.type]?.label} · {fmtTime(o.created_at)}
+                                  <MapIcon map={ORDER_TYPES} name={o.type} size={14} /> {o.table_name || t(ORDER_TYPES[o.type]?.label)} · {fmtTime(o.created_at)}
                                 </div>
                                 <div className="order-staff"><User size={13} /> {o.staff_name}</div>
                               </div>
                               <span className={`elapsed ${mins >= 20 ? 'late' : mins >= 10 ? 'warn' : ''}`}>
-                                <Timer size={14} /> {mins} daq
+                                <Timer size={14} /> {t('{n} daq', { n: mins })}
                               </span>
                             </div>
                             <div className="kitchen-items">
@@ -112,13 +113,13 @@ export default function KitchenPage() {
                             {o.note && <div className="kitchen-note"><Info size={13} /> {o.note}</div>}
                             <div className="kitchen-paid">
                               {o.status === 'paid'
-                                ? <span className="badge badge-green">To'langan</span>
-                                : <span className="badge badge-yellow">To'lanmagan</span>}
+                                ? <span className="badge badge-green">{t("To'langan")}</span>
+                                : <span className="badge badge-yellow">{t("To'lanmagan")}</span>}
                             </div>
                             {mayAdvance && (
                               <div className="kitchen-actions">
                                 <button className={`btn ${col.actionCls} btn-block`} onClick={() => advance(o, col.next)}>
-                                  <col.actionIcon size={16} /> {col.action}
+                                  <col.actionIcon size={16} /> {t(col.action)}
                                 </button>
                               </div>
                             )}

@@ -16,6 +16,7 @@ import AuthScreen from './auth/AuthScreen.jsx';
 import { getOpenOrders, getKitchenOrders, getLowStock, setMyName } from './supabase/queries.js';
 import { ROLES, ROLE_META, ROLE_PAGES } from './lib/roles.js';
 import { APP_VERSION } from './lib/version.js';
+import { t } from './lib/i18n.js';
 import PosPage from './pages/PosPage.jsx';
 import TablesPage from './pages/TablesPage.jsx';
 import KitchenPage from './pages/KitchenPage.jsx';
@@ -57,7 +58,7 @@ function Sidebar({ onProfile, onQueue }) {
 
   const items = NAV.filter((item) => allowedPages.includes(item.id));
   const who = displayName || venue?.name || '?';
-  const peerNames = peers.map((p) => `${p.name || '?'} (${ROLE_META[p.role]?.label || p.role})`).join(', ');
+  const peerNames = peers.map((p) => `${p.name || '?'} (${t(ROLE_META[p.role]?.label || p.role)})`).join(', ');
 
   return (
     <aside className="sidebar">
@@ -65,7 +66,7 @@ function Sidebar({ onProfile, onQueue }) {
         <span className="logo-mark"><img src="./brand/ketapos-mark.png" alt="KetaPOS" /></span>
         <div>
           <div className="logo-title">KetaPOS</div>
-          <div className="logo-sub">Fastfood &amp; Kafe</div>
+          <div className="logo-sub">{t('Fastfood & Kafe')}</div>
         </div>
       </div>
       <nav className="sidebar-nav">
@@ -76,13 +77,13 @@ function Sidebar({ onProfile, onQueue }) {
             onClick={() => navigate(item.id)}
           >
             <item.icon />
-            <span className="nav-label">{item.label}</span>
+            <span className="nav-label">{t(item.label)}</span>
             {badges[item.id] > 0 && <span className="nav-badge">{badges[item.id]}</span>}
           </button>
         ))}
         <button className="nav-item" onClick={onProfile}>
           <CircleUser />
-          <span className="nav-label">Profil</span>
+          <span className="nav-label">{t('Profil')}</span>
           <span className="nav-label role-tag">{roleLabel}</span>
         </button>
       </nav>
@@ -96,21 +97,21 @@ function Sidebar({ onProfile, onQueue }) {
         </div>
         <div className="live-bar" title={peerNames}>
           <span className="live-dot" />
-          {peers.length > 0 ? `Siz + ${peers.length} kishi onlayn` : 'Hozir faqat siz onlaysiz'}
+          {peers.length > 0 ? t('Siz + {n} kishi onlayn', { n: peers.length }) : t('Hozir faqat siz onlaysiz')}
         </div>
         {(offline || queue.waiting > 0 || queue.failed > 0) && (
           <button
             className={`net-bar ${offline ? 'off' : ''} ${queue.failed > 0 ? 'bad' : ''}`}
             onClick={onQueue}
-            title="Oflaynda qilingan amallar — ochib ko‘ring"
+            title={t('Oflaynda qilingan amallar — ochib ko‘ring')}
           >
             {offline ? <WifiOff size={14} /> : <RefreshCw size={14} />}
             {offline
-              ? `Oflayn · ${queue.waiting} amal navbatda`
-              : `${queue.waiting} amal yuborilmoqda`}
+              ? t('Oflayn · {n} amal navbatda', { n: queue.waiting })
+              : t('{n} amal yuborilmoqda', { n: queue.waiting })}
           </button>
         )}
-        <div className="store-sub">v{APP_VERSION} · {offline ? 'oflayn rejim' : 'server rejimi'}</div>
+        <div className="store-sub">v{APP_VERSION} · {offline ? t('oflayn rejim') : t('server rejimi')}</div>
       </div>
     </aside>
   );
@@ -129,7 +130,7 @@ function ProfileModal({ onClose }) {
     setBusy(true);
     try {
       await setMyName(trimmed);
-      toast('Ism yangilandi');
+      toast(t('Ism yangilandi'));
       onClose();
       retry();
       refresh();
@@ -141,7 +142,7 @@ function ProfileModal({ onClose }) {
   }
 
   return (
-    <Modal title="Mening akkauntim" onClose={onClose} width={420}>
+    <Modal title={t('Mening akkauntim')} onClose={onClose} width={420}>
       <div className="profile-head">
         <span className="account-avatar big">{(displayName || venue?.name || '?').slice(0, 1).toUpperCase()}</span>
         <div>
@@ -150,20 +151,20 @@ function ProfileModal({ onClose }) {
         </div>
         <span className={`role-chip role-${role}`}>{roleLabel}</span>
       </div>
-      <div className="about-row"><span className="muted">Do‘kon</span><b>{venue?.name || '—'}</b></div>
-      <div className="about-row"><span className="muted">Tur</span><b>{KIND_LABELS[venue?.kind] || '—'}</b></div>
-      <div className="about-row"><span className="muted">Ekranlar</span><b>{allowedNames(role)}</b></div>
+      <div className="about-row"><span className="muted">{t('Do‘kon')}</span><b>{venue?.name || '—'}</b></div>
+      <div className="about-row"><span className="muted">{t('Tur')}</span><b>{KIND_LABELS[venue?.kind] || '—'}</b></div>
+      <div className="about-row"><span className="muted">{t('Ekranlar')}</span><b>{allowedNames(role)}</b></div>
 
       <div className="field mt-2">
-        <label className="label">Ism (buyurtmada va stolda ko'rinadi)</label>
+        <label className="label">{t('Ism (buyurtmada va stolda ko‘rinadi)')}</label>
         <input className="input" value={name} onChange={(e) => setName(e.target.value)} />
       </div>
       <div className="row mt-1">
         <button className="btn btn-primary" disabled={busy || !name.trim() || name.trim() === displayName} onClick={save}>
-          {busy ? <Spinner size={16} /> : <Save size={16} />} Saqlash
+          {busy ? <Spinner size={16} /> : <Save size={16} />} {t('Saqlash')}
         </button>
         <button className="btn btn-danger" onClick={() => { onClose(); handleSignOut(); }}>
-          <LogOut size={16} /> Chiqish
+          <LogOut size={16} /> {t('Chiqish')}
         </button>
       </div>
     </Modal>
@@ -171,7 +172,7 @@ function ProfileModal({ onClose }) {
 }
 
 function allowedNames(role) {
-  return (ROLE_PAGES[role] || []).map((p) => NAV.find((n) => n.id === p)?.label).filter(Boolean).join(', ');
+  return (ROLE_PAGES[role] || []).map((p) => t(NAV.find((n) => n.id === p)?.label)).filter(Boolean).join(', ');
 }
 
 // Egasi uchun: bir qurilmada ofitsant/kassir/oshxona ekranini ko'rib chiqish.
@@ -181,7 +182,7 @@ function RoleSwitcher() {
 
   return (
     <div className={`role-switcher ${viewRole !== role ? 'previewing' : ''}`}>
-      <span className="rs-label">{viewRole === role ? <Store size={15} /> : <Eye size={15} />} Rejim:</span>
+      <span className="rs-label">{viewRole === role ? <Store size={15} /> : <Eye size={15} />} {t('Rejim:')}</span>
       <div className="rs-options">
         {ROLES.map((r) => (
           <button
@@ -189,12 +190,12 @@ function RoleSwitcher() {
             className={`rs-chip ${viewRole === r ? 'active' : ''}`}
             onClick={() => setPreviewRole(r === 'owner' ? null : r)}
           >
-            {ROLE_META[r].label}
+            {t(ROLE_META[r].label)}
           </button>
         ))}
       </div>
       {viewRole !== role && (
-        <span className="rs-note">Faqat ko‘rinish — amal rolingizga qarab cheklanadi</span>
+        <span className="rs-note">{t('Faqat ko‘rinish — amal rolingizga qarab cheklanadi')}</span>
       )}
     </div>
   );
@@ -218,10 +219,10 @@ function Boot({ label, error, onRetry }) {
   return (
     <div className="boot-screen">
       {error ? <TriangleAlert size={22} /> : <Spinner size={22} />}
-      <div className="boot-title">{error ? 'Xatolik yuz berdi' : label}</div>
-      {error && <div className="boot-note">{error}</div>}
+      <div className="boot-title">{error ? t('Xatolik yuz berdi') : label}</div>
+      {error && <div className="boot-note">{t(error)}</div>}
       {error && onRetry && (
-        <button className="btn btn-primary mt-3" onClick={onRetry}><RefreshCw size={18} /> Qayta urinish</button>
+        <button className="btn btn-primary mt-3" onClick={onRetry}><RefreshCw size={18} /> {t('Qayta urinish')}</button>
       )}
     </div>
   );
@@ -231,11 +232,11 @@ function Gate() {
   const { status, error: authError } = useAuth();
   const { ready, error, retry } = useApp();
 
-  if (status === 'booting') return <Boot label="Akkaunt tekshirilmoqda..." />;
+  if (status === 'booting') return <Boot label={t('Akkaunt tekshirilmoqda...')} />;
   if (status !== 'ready') return <AuthScreen />;
   if (authError) return <Boot error={authError} />;
   if (error) return <Boot error={error} onRetry={retry} />;
-  if (!ready) return <Boot label="POS yuklanmoqda..." />;
+  if (!ready) return <Boot label={t('POS yuklanmoqda...')} />;
   return <Shell />;
 }
 
@@ -266,11 +267,11 @@ function Shell() {
             <TriangleAlert size={16} />
             <span>
               {isPlatformAdmin
-                ? 'Bu do‘kon platforma tomonidan to‘xtatilgan (siz o‘zingiz).'
-                : 'Bu do‘kon KetaPOS tomonidan to‘xtatildi — hisobotlarni ko‘rasiz, yangi amal qila olmaysiz.'}
+                ? t('Bu do‘kon platforma tomonidan to‘xtatilgan (siz o‘zingiz).')
+                : t('Bu do‘kon KetaPOS tomonidan to‘xtatildi — hisobotlarni ko‘rasiz, yangi amal qila olmaysiz.')}
             </span>
             {isPlatformAdmin && (
-              <button className="btn btn-ghost btn-sm" onClick={() => navigate('admin')}>Boshqarish</button>
+              <button className="btn btn-ghost btn-sm" onClick={() => navigate('admin')}>{t('Boshqarish')}</button>
             )}
           </div>
         )}

@@ -7,6 +7,7 @@
 // 203 dpi standart: 1 mm = 8 nuqta. 58 mm qog'oz = 384 nuqta, 80 mm = 576 nuqta.
 
 import { fmtDateTime, fmtMoney, fmtQty, ORDER_TYPES, PAY_METHODS } from './format.js';
+import { t } from './i18n.js';
 
 export const PAPER_WIDTHS = { 58: 384, 80: 576 };
 
@@ -139,8 +140,8 @@ export function drawReceipt(order, settings, { mm = 80 } = {}) {
   const width = paperWidthDots(mm);
   const painter = createPainter(width);
   const items = order.items || [];
-  const type = ORDER_TYPES[order.type]?.label || order.type;
-  const method = PAY_METHODS[order.payment_method]?.label || '';
+  const type = t(ORDER_TYPES[order.type]?.label) || order.type;
+  const method = t(PAY_METHODS[order.payment_method]?.label) || '';
 
   // --- Sarlavha ---
   painter.y = 4;
@@ -153,13 +154,13 @@ export function drawReceipt(order, settings, { mm = 80 } = {}) {
 
   // --- Chek ma'lumoti ---
   space(painter, 1);
-  drawRow(painter, { left: `Chek №${order.number}`, right: type });
+  drawRow(painter, { left: t('Chek №{n}', { n: order.number }), right: type });
   drawRow(painter, {
     left: fmtDateTime(order.paid_at || order.created_at),
-    right: order.table_name ? `Stol: ${order.table_name}` : '',
+    right: order.table_name ? `${t('Stol')}: ${order.table_name}` : '',
     size: SIZE.small,
   });
-  if (order.staff_name) drawRow(painter, { left: `Xodim: ${order.staff_name}`, size: SIZE.small });
+  if (order.staff_name) drawRow(painter, { left: t('Xodim: {name}', { name: order.staff_name }), size: SIZE.small });
   drawDivider(painter);
 
   // --- Mahsulotlar ---
@@ -167,32 +168,32 @@ export function drawReceipt(order, settings, { mm = 80 } = {}) {
     space(painter, 1);
     drawRow(painter, { left: it.name, bold: true });
     drawRow(painter, { left: `${fmtQty(it.qty)} x ${fmtMoney(it.price)}`, right: fmtMoney(it.total) });
-    if (it.note) drawRow(painter, { left: `Izoh: ${it.note}`, size: SIZE.small });
+    if (it.note) drawRow(painter, { left: `${t('Izoh')}: ${it.note}`, size: SIZE.small });
   }
   space(painter, 1);
   drawDivider(painter);
 
   // --- Yakuniy hisob ---
-  drawRow(painter, { left: 'Jami:', right: fmtMoney(order.subtotal) });
+  drawRow(painter, { left: t('Jami:'), right: fmtMoney(order.subtotal) });
   if (Number(order.discount) > 0) {
     drawRow(painter, {
-      left: `Chegirma (${order.discount_percent || 0}%):`,
+      left: `${t('Chegirma ({pct}%)', { pct: order.discount_percent || 0 })}:`,
       right: `-${fmtMoney(order.discount)}`,
     });
   }
   space(painter, 1);
-  drawRow(painter, { left: "TO'LOV:", right: `${fmtMoney(order.total)} so'm`, size: SIZE.total, bold: true });
+  drawRow(painter, { left: t("TO'LOV:"), right: `${fmtMoney(order.total)} so'm`, size: SIZE.total, bold: true });
   space(painter, 1);
-  if (method) drawRow(painter, { left: "To'lov turi:", right: method, size: SIZE.small });
+  if (method) drawRow(painter, { left: t("To'lov turi:"), right: method, size: SIZE.small });
   if (order.payment_method === 'cash') {
-    drawRow(painter, { left: 'Qabul qilindi:', right: fmtMoney(order.received), size: SIZE.small });
-    drawRow(painter, { left: 'Qaytim:', right: fmtMoney(order.change_amount), size: SIZE.small });
+    drawRow(painter, { left: t('Qabul qilindi:'), right: fmtMoney(order.received), size: SIZE.small });
+    drawRow(painter, { left: t('Qaytim:'), right: fmtMoney(order.change_amount), size: SIZE.small });
   }
   drawDivider(painter);
 
   // --- Pastki qism ---
   space(painter, 1);
-  drawCenter(painter, settings.receipt_footer || 'Xaridingiz uchun rahmat!', { size: SIZE.small });
+  drawCenter(painter, t(settings.receipt_footer || 'Xaridingiz uchun rahmat!'), { size: SIZE.small });
   painter.y += 12;
   reserve(painter, 24);
 

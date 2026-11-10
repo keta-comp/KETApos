@@ -5,6 +5,8 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../state/AuthContext.jsx';
 import Spinner from '../components/Spinner.jsx';
+import LangToggle from '../components/LangToggle.jsx';
+import { t } from '../lib/i18n.js';
 
 const KINDS = [
   { id: 'fastfood', icon: Sandwich, label: 'Fastfood', hint: 'Lavash · burger · pizza — tez xizmat' },
@@ -21,11 +23,14 @@ export default function AuthScreen() {
   return (
     <div className="auth-shell">
       <div className="auth-card">
+        <div className="row" style={{ justifyContent: 'flex-end', marginBottom: -8 }}>
+          <LangToggle />
+        </div>
         <div className="auth-brand">
           <span className="auth-logo"><img src="./brand/ketapos-mark.png" alt="KetaPOS" /></span>
           <div>
             <div className="auth-brand-title">KetaPOS</div>
-            <div className="auth-brand-sub">Fastfood va kichik kafelar uchun</div>
+            <div className="auth-brand-sub">{t('Fastfood va kichik kafelar uchun')}</div>
           </div>
         </div>
 
@@ -34,9 +39,9 @@ export default function AuthScreen() {
         {auth.error && (
           <div className="auth-error">
             <TriangleAlert size={18} />
-            <span>{auth.error}</span>
+            <span>{t(auth.error)}</span>
             {auth.status === 'error' && (
-              <button className="auth-switch" onClick={auth.retry}>Qayta urinish</button>
+              <button className="auth-switch" onClick={auth.retry}>{t('Qayta urinish')}</button>
             )}
           </div>
         )}
@@ -45,7 +50,7 @@ export default function AuthScreen() {
 
         {signedIn && (
           <button className="auth-switch" onClick={auth.handleSignOut}>
-            <LogOut size={14} /> {email ? `Boshqa akkauntga o‘tish (${email})` : 'Boshqa akkauntga o‘tish'}
+            <LogOut size={14} /> {email ? t('Boshqa akkauntga o‘tish ({email})', { email }) : t('Boshqa akkauntga o‘tish')}
           </button>
         )}
       </div>
@@ -58,11 +63,11 @@ function Steps({ signedIn }) {
     <div className="wizard-steps">
       <div className={`wizard-step ${signedIn ? 'done' : 'active'}`}>
         <span className="wizard-dot">{signedIn ? <CircleCheck size={14} /> : '1'}</span>
-        Akkaunt
+        {t('Akkaunt')}
       </div>
       <div className={`wizard-step ${signedIn ? 'active' : ''}`}>
         <span className="wizard-dot">2</span>
-        Do‘kon yoki kod
+        {t('Do‘kon yoki kod')}
       </div>
     </div>
   );
@@ -76,10 +81,10 @@ function AccountStep() {
     <>
       <div className="auth-tabs">
         <button className={`auth-tab ${tab === 'signup' ? 'active' : ''}`} onClick={() => setTab('signup')}>
-          <UserPlus size={15} /> Yangi akkaunt
+          <UserPlus size={15} /> {t('Yangi akkaunt')}
         </button>
         <button className={`auth-tab ${tab === 'login' ? 'active' : ''}`} onClick={() => setTab('login')}>
-          <LogIn size={15} /> Kirish
+          <LogIn size={15} /> {t('Kirish')}
         </button>
       </div>
       {tab === 'signup' ? <SignUpForm /> : <LoginForm />}
@@ -97,15 +102,15 @@ function MembershipStep({ email }) {
         <span className="account-avatar">{(email || '?').slice(0, 1).toUpperCase()}</span>
         <div>
           <div className="auth-account-mail">{email}</div>
-          <div className="auth-account-hint">Akkaunt tayyor — 2-bosqichni tanlang</div>
+          <div className="auth-account-hint">{t('Akkaunt tayyor — 2-bosqichni tanlang')}</div>
         </div>
       </div>
       <div className="auth-tabs">
         <button className={`auth-tab ${tab === 'venue' ? 'active' : ''}`} onClick={() => setTab('venue')}>
-          <Store size={15} /> Do‘kon ochish
+          <Store size={15} /> {t('Do‘kon ochish')}
         </button>
         <button className={`auth-tab ${tab === 'join' ? 'active' : ''}`} onClick={() => setTab('join')}>
-          <KeyRound size={15} /> Kod bilan qo‘shilish
+          <KeyRound size={15} /> {t('Kod bilan qo‘shilish')}
         </button>
       </div>
       {tab === 'venue' ? <VenueForm /> : <JoinForm />}
@@ -127,7 +132,7 @@ function SignUpForm() {
     setNote('');
     const result = await auth.handleSignUp({ name: name.trim(), email, password });
     if (result?.needsConfirmation) {
-      setNote('Pochtangizga tasdiqlash havolasi yuborildi. Havolani ochgach, „Kirish“ bo‘limidan kiring.');
+      setNote(t('Pochtangizga tasdiqlash havolasi yuborildi. Havolani ochgach, „Kirish“ bo‘limidan kiring.'));
     }
     setBusy(false);
   }
@@ -135,17 +140,17 @@ function SignUpForm() {
   return (
     <form onSubmit={submit}>
       <p className="auth-sub mb-2">
-        Avval akkaunt ochasiz — email va parol. Keyingi qadamda do‘kon ochasiz yoki egasi bergan kodni kiritasiz.
+        {t('Avval akkaunt ochasiz — email va parol. Keyingi qadamda do‘kon ochasiz yoki egasi bergan kodni kiritasiz.')}
       </p>
       <div className="field">
-        <label className="label">Ism</label>
+        <label className="label">{t('Ism')}</label>
         <div className="input-icon">
           <span className="input-icon-mark"><User size={16} /></span>
-          <input className="input" value={name} onChange={(e) => setName(e.target.value)} placeholder="Masalan: Dilnoza" />
+          <input className="input" value={name} onChange={(e) => setName(e.target.value)} placeholder={t('Masalan: Dilnoza')} />
         </div>
       </div>
       <div className="field">
-        <label className="label">Email</label>
+        <label className="label">{t('Email')}</label>
         <div className="input-icon">
           <span className="input-icon-mark"><Mail size={16} /></span>
           <input className="input" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="ish@doikon.uz" autoComplete="email" />
@@ -154,7 +159,7 @@ function SignUpForm() {
       <PasswordField value={password} onChange={setPassword} />
       {note && <div className="auth-note mb-2">{note}</div>}
       <button className="btn btn-primary btn-lg btn-block" disabled={busy || !name.trim() || !email || password.length < 6}>
-        {busy ? <Spinner size={18} label="Akkaunt ochilmoqda..." /> : <><ArrowRight size={18} /> Akkaunt ochish</>}
+        {busy ? <Spinner size={18} label={t('Akkaunt ochilmoqda...')} /> : <><ArrowRight size={18} /> {t('Akkaunt ochish')}</>}
       </button>
     </form>
   );
@@ -175,9 +180,9 @@ function LoginForm() {
 
   return (
     <form onSubmit={submit}>
-      <p className="auth-sub mb-2">Email va parol bilan kiring. Tizim rolingizni o‘zidan aniqlaydi.</p>
+      <p className="auth-sub mb-2">{t('Email va parol bilan kiring. Tizim rolingizni o‘zidan aniqlaydi.')}</p>
       <div className="field">
-        <label className="label">Email</label>
+        <label className="label">{t('Email')}</label>
         <div className="input-icon">
           <span className="input-icon-mark"><Mail size={16} /></span>
           <input className="input" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="ish@doikon.uz" autoComplete="email" />
@@ -185,7 +190,7 @@ function LoginForm() {
       </div>
       <PasswordField value={password} onChange={setPassword} />
       <button className="btn btn-primary btn-lg btn-block" disabled={busy || !email || !password}>
-        {busy ? <Spinner size={18} label="Kirilmoqda..." /> : <><ArrowRight size={18} /> Kassaga kirish</>}
+        {busy ? <Spinner size={18} label={t('Kirilmoqda...')} /> : <><ArrowRight size={18} /> {t('Kassaga kirish')}</>}
       </button>
     </form>
   );
@@ -209,8 +214,8 @@ function VenueForm() {
   return (
     <form onSubmit={submit}>
       <p className="auth-sub mb-2">
-        Do‘kon turini tanlang — interfeys, menyu va hisobotlar shunga mos sozlanadi.
-        {auth.profileName ? ` Siz „${auth.profileName}“ sifatida egasi bo‘lasiz.` : ''}
+        {t('Do‘kon turini tanlang — interfeys, menyu va hisobotlar shunga mos sozlanadi.')}
+        {auth.profileName ? t(' Siz „{name}“ sifatida egasi bo‘lasiz.', { name: auth.profileName }) : ''}
       </p>
       <div className="kind-grid mb-2">
         {KINDS.map((k) => (
@@ -221,15 +226,15 @@ function VenueForm() {
             onClick={() => setKind(k.id)}
           >
             <span className="kind-icon"><k.icon size={26} /></span>
-            {k.label}
-            <span className="kind-hint">{k.hint}</span>
+            {t(k.label)}
+            <span className="kind-hint">{t(k.hint)}</span>
           </button>
         ))}
       </div>
 
       <div className="field">
-        <label className="label">Do‘kon nomi</label>
-        <input className="input" value={name} onChange={(e) => setName(e.target.value)} placeholder="Masalan: KetaFood" />
+        <label className="label">{t('Do‘kon nomi')}</label>
+        <input className="input" value={name} onChange={(e) => setName(e.target.value)} placeholder={t('Masalan: KetaFood')} />
       </div>
 
       <div className="form-row">
@@ -238,13 +243,13 @@ function VenueForm() {
           <input className="input" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+998 90 123 45 67" />
         </div>
         <div className="field">
-          <label className="label">Manzil</label>
+          <label className="label">{t('Manzil')}</label>
           <input className="input" value={address} onChange={(e) => setAddress(e.target.value)} placeholder="Chilonzor 12" />
         </div>
       </div>
 
       <button className="btn btn-primary btn-lg btn-block" disabled={busy || !kind || !name.trim()}>
-        {busy ? <Spinner size={18} label="Do‘kon ochilmoqda..." /> : <><Store size={18} /> Do‘konni ochish</>}
+        {busy ? <Spinner size={18} label={t('Do‘kon ochilmoqda...')} /> : <><Store size={18} /> {t('Do‘konni ochish')}</>}
       </button>
     </form>
   );
@@ -266,10 +271,10 @@ function JoinForm() {
   return (
     <form onSubmit={submit}>
       <p className="auth-sub mb-2">
-        Do‘kon egasi bergan kodni kiriting. Kod rolingizni belgilaydi: ofitsant, kassir yoki oshxona.
+        {t('Do‘kon egasi bergan kodni kiriting. Kod rolingizni belgilaydi: ofitsant, kassir yoki oshxona.')}
       </p>
       <div className="field">
-        <label className="label">Taklif kodi</label>
+        <label className="label">{t('Taklif kodi')}</label>
         <input
           className="input code-input"
           value={code}
@@ -280,11 +285,11 @@ function JoinForm() {
         />
       </div>
       <div className="field">
-        <label className="label">Ism (stolda shu nom chiqadi)</label>
-        <input className="input" value={name} onChange={(e) => setName(e.target.value)} placeholder="Masalan: Sardor" />
+        <label className="label">{t('Ism (stolda shu nom chiqadi)')}</label>
+        <input className="input" value={name} onChange={(e) => setName(e.target.value)} placeholder={t('Masalan: Sardor')} />
       </div>
       <button className="btn btn-primary btn-lg btn-block" disabled={busy || code.trim().length < 6}>
-        {busy ? <Spinner size={18} label="Tekshirilmoqda..." /> : <><KeyRound size={18} /> Do‘konga qo‘shilish</>}
+        {busy ? <Spinner size={18} label={t('Tekshirilmoqda...')} /> : <><KeyRound size={18} /> {t('Do‘konga qo‘shilish')}</>}
       </button>
     </form>
   );
@@ -293,7 +298,7 @@ function JoinForm() {
 function PasswordField({ value, onChange }) {
   return (
     <div className="field">
-      <label className="label">Parol (kamida 6 belgi)</label>
+      <label className="label">{t('Parol (kamida 6 belgi)')}</label>
       <input
         className="input"
         type="password"
@@ -314,16 +319,16 @@ function SetupNotice() {
           <span className="auth-logo"><img src="./brand/ketapos-mark.png" alt="KetaPOS" /></span>
           <div>
             <div className="auth-brand-title">KetaPOS</div>
-            <div className="auth-brand-sub">Serverga ulanish kerak</div>
+            <div className="auth-brand-sub">{t('Serverga ulanish kerak')}</div>
           </div>
         </div>
         <div className="auth-note">
-          <b>Supabase kalitlari kiritilmagan.</b><br />
-          Loyiha papkasidagi <code>.env</code> fayliga ikki qatorni to‘ldiring:<br />
-          <code>VITE_SUPABASE_URL</code> va <code>VITE_SUPABASE_ANON_KEY</code>.<br />
-          Keynalarni Supabase → Project Settings → API bo‘limidan olish mumkin.
+          <b>{t('Supabase kalitlari kiritilmagan.')}</b><br />
+          {t('Loyiha papkasidagi')} <code>.env</code> {t('fayliga ikki qatorni to‘ldiring:')}<br />
+          <code>VITE_SUPABASE_URL</code> {t('va')} <code>VITE_SUPABASE_ANON_KEY</code>.<br />
+          {t('Keynalarni Supabase → Project Settings → API bo‘limidan olish mumkin.')}
         </div>
-        <p className="auth-sub">Saqlagandan so‘ng sahifani yangilang (F5).</p>
+        <p className="auth-sub">{t('Saqlagandan so‘ng sahifani yangilang (F5).')}</p>
       </div>
     </div>
   );

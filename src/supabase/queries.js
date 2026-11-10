@@ -5,6 +5,7 @@ import {
   pendingQtyByProduct, queueAdd,
   rememberId, reportNetworkFailure, shadowOrder, shotSet, stamp,
 } from '../lib/offline.js';
+import { t } from '../lib/i18n.js';
 
 // Ma'lumot qatlami: eski src/db/store.js funksiyalari bilan bir xil nom va bir xil qator
 // shakli, lekin ma'lumot Supabase Postgres'da (har do'konga alohida venue_id).
@@ -82,9 +83,9 @@ const MESSAGES = {
 };
 
 function translate(message) {
-  if (!message) return 'Noma’lum xatolik';
+  if (!message) return t('Noma’lum xatolik');
   for (const [code, text] of Object.entries(MESSAGES)) {
-    if (message.includes(code)) return text;
+    if (message.includes(code)) return t(text);
   }
   return message;
 }
@@ -153,17 +154,17 @@ async function read(fn, args = {}) {
     reportNetworkFailure();
   }
   const hit = await cacheRead(key);
-  if (!hit) throw new Error(OFFLINE_NONE);
+  if (!hit) throw new Error(t(OFFLINE_NONE));
   return decorate(fn, args, hit.data);
 }
 
 async function write(fn, args = {}) {
-  if (isOffline()) throw new Error(OFFLINE_OP);
+  if (isOffline()) throw new Error(t(OFFLINE_OP));
   const { data, error } = await tryRpc(fn, args);
   if (error) {
     if (isNetworkError(error)) {
       reportNetworkFailure();
-      throw new Error(OFFLINE_OP);
+      throw new Error(t(OFFLINE_OP));
     }
     fail(error);
   }
@@ -361,7 +362,7 @@ function applyState(o, kind, args) {
 
 async function queueOrderOp(kind, orderId, args) {
   const base = (await pendingOrder(orderId)) || (await cachedOrder(orderId));
-  if (!base) throw new Error(OFFLINE_NONE);
+  if (!base) throw new Error(t(OFFLINE_NONE));
   const next = kind === 'update' ? shadowOrder(base, args.p) : applyState(base, kind, args);
   const local = Boolean(next.client_id);
   await shotSet(next, !local);
@@ -557,7 +558,7 @@ async function adminRead(fn, args = {}) {
   if (error) {
     if (isNetworkError(error)) {
       reportNetworkFailure();
-      throw new Error(OFFLINE_OP);
+      throw new Error(t(OFFLINE_OP));
     }
     fail(error);
   }

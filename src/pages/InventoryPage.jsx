@@ -4,12 +4,14 @@ import { useApp } from '../state/AppContext.jsx';
 import { useData } from '../state/useData.js';
 import { getProducts, getMovements, getLowStock, stockIn, stockOut } from '../supabase/queries.js';
 import { fmtMoney, fmtQty, fmtDateTime } from '../lib/format.js';
+import { t } from '../lib/i18n.js';
 import Modal from '../components/Modal.jsx';
 import DataState from '../components/DataState.jsx';
 import ProductThumb from '../components/ProductThumb.jsx';
 import { Sk, SkRows, SkStats } from '../components/Skeleton.jsx';
 
 const REASONS = {
+  // Sabab DB enum qiymati — o'zbekcha qaladi, label render paytida tarjima qilinadi.
   sale: { label: 'Savdo', cls: 'badge-blue' },
   kirim: { label: 'Kirim', cls: 'badge-green' },
   chiqim: { label: 'Chiqim', cls: 'badge-red' },
@@ -51,8 +53,8 @@ export default function InventoryPage() {
     <div className="page">
       <div className="page-head">
         <div>
-          <h1 className="page-title"><Package size={22} /> Ombor</h1>
-          <div className="page-sub">Mahsulot qoldig'i va harakatlari</div>
+          <h1 className="page-title"><Package size={22} /> {t('Ombor')}</h1>
+          <div className="page-sub">{t("Mahsulot qoldig'i va harakatlari")}</div>
         </div>
       </div>
 
@@ -78,18 +80,18 @@ export default function InventoryPage() {
           <>
             <div className="stat-cards">
               <div className="stat-card">
-                <div className="stat-label"><Package size={14} /> Hisobdagi mahsulotlar</div>
+                <div className="stat-label"><Package size={14} /> {t('Hisobdagi mahsulotlar')}</div>
                 <div className="stat-value">{tracked.length}</div>
               </div>
               <div className="stat-card">
-                <div className="stat-label"><TriangleAlert size={14} /> Kam qoldiq</div>
+                <div className="stat-label"><TriangleAlert size={14} /> {t('Kam qoldiq')}</div>
                 <div className={`stat-value ${lowCount ? 'red' : ''}`}>{lowCount}</div>
-                <div className="stat-sub">chegaradan past</div>
+                <div className="stat-sub">{t('chegaradan past')}</div>
               </div>
               <div className="stat-card">
-                <div className="stat-label"><Wallet size={14} /> Qoldiq qiymati</div>
+                <div className="stat-label"><Wallet size={14} /> {t('Qoldiq qiymati')}</div>
                 <div className="stat-value orange">{fmtMoney(stockValue)}</div>
-                <div className="stat-sub">so'm (sotuv narxida)</div>
+                <div className="stat-sub">{t("so'm (sotuv narxida)")}</div>
               </div>
             </div>
 
@@ -97,21 +99,21 @@ export default function InventoryPage() {
               <div className="row-between" style={{ padding: '14px 18px' }}>
                 <div className="search-wrap" style={{ maxWidth: 300 }}>
                   <span className="search-icon"><Search size={16} /></span>
-                  <input className="input" placeholder="Qidirish..." value={search} onChange={(e) => setSearch(e.target.value)} />
+                  <input className="input" placeholder={t('Qidirish...')} value={search} onChange={(e) => setSearch(e.target.value)} />
                 </div>
                 <button className={`chip ${onlyLow ? 'active' : ''}`} onClick={() => setOnlyLow(!onlyLow)}>
-                  <TriangleAlert size={14} /> Faqat kam qoldiq
+                  <TriangleAlert size={14} /> {t('Faqat kam qoldiq')}
                 </button>
               </div>
               <table className="data-table stack-sm">
                 <thead>
                   <tr>
-                    <th>Mahsulot</th>
-                    <th className="text-center">Qoldiq</th>
-                    <th className="text-center">Chegara</th>
-                    <th className="text-center">Holat</th>
-                    <th className="text-right">Qiymat</th>
-                    <th className="text-right">Amallar</th>
+                    <th>{t('Mahsulot')}</th>
+                    <th className="text-center">{t('Qoldiq')}</th>
+                    <th className="text-center">{t('Chegara')}</th>
+                    <th className="text-center">{t('Holat')}</th>
+                    <th className="text-right">{t('Qiymat')}</th>
+                    <th className="text-right">{t('Amallar')}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -125,17 +127,17 @@ export default function InventoryPage() {
                             {p.name}
                           </div>
                         </td>
-                        <td className="text-center bold" data-label="Qoldiq">{fmtQty(p.stock_qty)} {p.unit}</td>
-                        <td className="text-center muted" data-label="Chegara">{fmtQty(p.low_stock)} {p.unit}</td>
-                        <td className="text-center" data-label="Holat">
-                          {state === 'out' && <span className="badge badge-red">Tugagan</span>}
-                          {state === 'low' && <span className="badge badge-yellow">Kam</span>}
-                          {state === 'ok' && <span className="badge badge-green">Yetarli</span>}
+                        <td className="text-center bold" data-label={t('Qoldiq')}>{fmtQty(p.stock_qty)} {t(p.unit)}</td>
+                        <td className="text-center muted" data-label={t('Chegara')}>{fmtQty(p.low_stock)} {t(p.unit)}</td>
+                        <td className="text-center" data-label={t('Holat')}>
+                          {state === 'out' && <span className="badge badge-red">{t('Tugagan')}</span>}
+                          {state === 'low' && <span className="badge badge-yellow">{t('Kam')}</span>}
+                          {state === 'ok' && <span className="badge badge-green">{t('Yetarli')}</span>}
                         </td>
-                        <td className="text-right nowrap" data-label="Qiymat">{fmtMoney(p.stock_qty * p.price)}</td>
+                        <td className="text-right nowrap" data-label={t('Qiymat')}>{fmtMoney(p.stock_qty * p.price)}</td>
                         <td className="text-right nowrap cell-actions">
-                          <button className="btn btn-success btn-sm" onClick={() => setStockModal({ product: p, mode: 'in' })}><Plus size={14} /> Kirim</button>{' '}
-                          <button className="btn btn-outline btn-sm" onClick={() => setStockModal({ product: p, mode: 'out' })}><Minus size={14} /> Chiqim</button>
+                          <button className="btn btn-success btn-sm" onClick={() => setStockModal({ product: p, mode: 'in' })}><Plus size={14} /> {t('Kirim')}</button>{' '}
+                          <button className="btn btn-outline btn-sm" onClick={() => setStockModal({ product: p, mode: 'out' })}><Minus size={14} /> {t('Chiqim')}</button>
                         </td>
                       </tr>
                     );
@@ -146,34 +148,34 @@ export default function InventoryPage() {
                 <div className="empty-state">
                   <span className="empty-icon"><Package size={22} /></span>
                   {tracked.length === 0
-                    ? "Ombor hisobi yoqilgan mahsulotlar yo'q. Menyu bo'limida mahsulotga \"Ombor hisobini yuritish\" belgisini qo'ying."
-                    : 'Mahsulot topilmadi'}
+                    ? t(`Ombor hisobi yoqilgan mahsulotlar yo'q. Menyu bo'limida mahsulotga "Ombor hisobini yuritish" belgisini qo'ying.`)
+                    : t('Mahsulot topilmadi')}
                 </div>
               )}
             </div>
 
-            <div className="section-title"><span className="ti"><History size={18} /> So'nggi harakatlar</span></div>
+            <div className="section-title"><span className="ti"><History size={18} /> {t("So'nggi harakatlar")}</span></div>
             <div className="card">
               <table className="data-table stack-sm">
                 <thead>
                   <tr>
-                    <th>Sana</th>
-                    <th>Mahsulot</th>
-                    <th className="text-center">Miqdor</th>
-                    <th className="text-center">Tur</th>
-                    <th>Izoh</th>
+                    <th>{t('Sana')}</th>
+                    <th>{t('Mahsulot')}</th>
+                    <th className="text-center">{t('Miqdor')}</th>
+                    <th className="text-center">{t('Tur')}</th>
+                    <th>{t('Izoh')}</th>
                   </tr>
                 </thead>
                 <tbody>
                   {movements.map((m) => (
                     <tr key={m.id}>
-                      <td className="muted nowrap" data-label="Sana">{fmtDateTime(m.created_at)}</td>
+                      <td className="muted nowrap" data-label={t('Sana')}>{fmtDateTime(m.created_at)}</td>
                       <td className="bold cell-main">{m.product_name}</td>
-                      <td className={`text-center ${m.delta > 0 ? 'delta-plus' : 'delta-minus'}`} data-label="Miqdor">
-                        {m.delta > 0 ? '+' : ''}{fmtQty(m.delta)} {m.unit}
+                      <td className={`text-center ${m.delta > 0 ? 'delta-plus' : 'delta-minus'}`} data-label={t('Miqdor')}>
+                        {m.delta > 0 ? '+' : ''}{fmtQty(m.delta)} {t(m.unit)}
                       </td>
-                      <td className="text-center" data-label="Tur">
-                        <span className={`badge ${REASONS[m.reason]?.cls || 'badge-gray'}`}>{REASONS[m.reason]?.label || m.reason}</span>
+                      <td className="text-center" data-label={t('Tur')}>
+                        <span className={`badge ${REASONS[m.reason]?.cls || 'badge-gray'}`}>{REASONS[m.reason] ? t(REASONS[m.reason].label) : m.reason}</span>
                       </td>
                       <td className="muted">{m.note}</td>
                     </tr>
@@ -183,7 +185,7 @@ export default function InventoryPage() {
               {movements.length === 0 && (
                 <div className="empty-state">
                   <span className="empty-icon"><History size={22} /></span>
-                  Harakatlar tarixi bo'sh
+                  {t("Harakatlar tarixi bo'sh")}
                 </div>
               )}
             </div>
@@ -198,7 +200,7 @@ export default function InventoryPage() {
           mode={stockModal.mode}
           onClose={() => setStockModal(null)}
           onSaved={() => {
-            toast(stockModal.mode === 'in' ? 'Kirim saqlandi' : 'Chiqim saqlandi');
+            toast(stockModal.mode === 'in' ? t('Kirim saqlandi') : t('Chiqim saqlandi'));
             setStockModal(null);
           }}
         />
@@ -216,7 +218,7 @@ function StockModal({ product, mode, onClose, onSaved }) {
   async function save() {
     const n = Number(qty);
     if (!(n > 0)) {
-      toast("Miqdor 0 dan katta bo'lishi kerak", 'error');
+      toast(t("Miqdor 0 dan katta bo'lishi kerak"), 'error');
       return;
     }
     setBusy(true);
@@ -232,39 +234,39 @@ function StockModal({ product, mode, onClose, onSaved }) {
 
   return (
     <Modal
-      title={mode === 'in' ? `Kirim — ${product.name}` : `Chiqim — ${product.name}`}
+      title={mode === 'in' ? t('Kirim — {name}', { name: product.name }) : t('Chiqim — {name}', { name: product.name })}
       onClose={onClose}
       width={440}
       footer={
         <>
-          <button className="btn btn-secondary" onClick={onClose}>Bekor qilish</button>
+          <button className="btn btn-secondary" onClick={onClose}>{t('Bekor qilish')}</button>
           <button className={`btn ${mode === 'in' ? 'btn-success' : 'btn-danger'}`} disabled={busy} onClick={save}>
-            {busy ? 'Saqlanmoqda...' : 'Saqlash'}
+            {busy ? t('Saqlanmoqda...') : t('Saqlash')}
           </button>
         </>
       }
     >
       <p className="muted mb-2">
-        Joriy qoldiq: <b>{fmtQty(product.stock_qty)} {product.unit}</b>
+        {t('Joriy qoldiq:')} <b>{fmtQty(product.stock_qty)} {t(product.unit)}</b>
       </p>
       <div className="field">
-        <label className="label">Miqdor ({product.unit})</label>
+        <label className="label">{t('Miqdor ({unit})', { unit: product.unit })}</label>
         <input className="input" type="number" min="0" step="any" value={qty} onChange={(e) => setQty(e.target.value)} autoFocus />
       </div>
       <div className="field">
-        <label className="label">Izoh</label>
+        <label className="label">{t('Izoh')}</label>
         <input
           className="input"
           value={note}
           onChange={(e) => setNote(e.target.value)}
-          placeholder={mode === 'in' ? 'Masalan: Yetkazib beruvchi ABC' : 'Masalan: Yaroqsiz mahsulot'}
+          placeholder={mode === 'in' ? t('Masalan: Yetkazib beruvchi ABC') : t('Masalan: Yaroqsiz mahsulot')}
         />
       </div>
       {mode === 'in' && Number(qty) > 0 && (
-        <p className="muted">Yangi qoldiq: <b>{fmtQty(product.stock_qty + Number(qty))} {product.unit}</b></p>
+        <p className="muted">{t('Yangi qoldiq:')} <b>{fmtQty(product.stock_qty + Number(qty))} {t(product.unit)}</b></p>
       )}
       {mode === 'out' && Number(qty) > 0 && (
-        <p className="muted">Yangi qoldiq: <b>{fmtQty(product.stock_qty - Number(qty))} {product.unit}</b></p>
+        <p className="muted">{t('Yangi qoldiq:')} <b>{fmtQty(product.stock_qty - Number(qty))} {t(product.unit)}</b></p>
       )}
     </Modal>
   );

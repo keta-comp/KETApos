@@ -4,6 +4,7 @@ import Modal from './Modal.jsx';
 import { useApp } from '../state/AppContext.jsx';
 import { payOrder } from '../supabase/queries.js';
 import { fmtMoney, fmtSum, PAY_METHODS } from '../lib/format.js';
+import { t } from '../lib/i18n.js';
 import { printReceipt } from '../lib/receipt.js';
 
 export default function PaymentModal({ order, onClose, onPaid }) {
@@ -29,7 +30,7 @@ export default function PaymentModal({ order, onClose, onPaid }) {
         method,
         received: method === 'cash' ? receivedNum : total,
       });
-      toast(`Buyurtma №${paid.number} to'landi`);
+      toast(t('Buyurtma №{n} to\'landi', { n: paid.number }));
       onPaid(paid);
       if (settings.auto_print === '1') {
         try {
@@ -44,20 +45,20 @@ export default function PaymentModal({ order, onClose, onPaid }) {
 
   return (
     <Modal
-      title={`To'lov — Buyurtma №${order.number}`}
+      title={t('To\'lov — Buyurtma №{n}', { n: order.number })}
       onClose={onClose}
       width={480}
       footer={
         <>
-          <button className="btn btn-secondary" onClick={onClose}>Bekor qilish</button>
+          <button className="btn btn-secondary" onClick={onClose}>{t('Bekor qilish')}</button>
           <button className="btn btn-success btn-lg" disabled={!canPay || busy} onClick={confirm}>
-            {busy ? <><Loader2 size={18} className="spin" /> To&apos;lanmoqda...</> : <><Check size={18} /> To&apos;lovni tasdiqlash</>}
+            {busy ? <><Loader2 size={18} className="spin" /> {t("To'lanmoqda...")}</> : <><Check size={18} /> {t("To'lovni tasdiqlash")}</>}
           </button>
         </>
       }
     >
       <div className="pay-total-box">
-        <div className="pay-total-label">TO'LOV SUMMASI</div>
+        <div className="pay-total-label">{t("TO'LOV SUMMASI")}</div>
         <div className="pay-total-value">{fmtSum(total)}</div>
       </div>
 
@@ -69,7 +70,7 @@ export default function PaymentModal({ order, onClose, onPaid }) {
             onClick={() => setMethod(key)}
           >
             <span className="pm-icon">{m.icon ? <m.icon size={24} /> : null}</span>
-            {m.label}
+            {t(m.label)}
           </button>
         ))}
       </div>
@@ -77,7 +78,7 @@ export default function PaymentModal({ order, onClose, onPaid }) {
       {method === 'cash' && (
         <>
           <div className="field">
-            <label className="label">Mijozdan qabul qilindi (so'm)</label>
+            <label className="label">{t("Mijozdan qabul qilindi (so'm)")}</label>
             <input
               className="input"
               type="number"
@@ -92,12 +93,12 @@ export default function PaymentModal({ order, onClose, onPaid }) {
           <div className="cash-quick">
             {quickAmounts.map((v) => (
               <button key={v} className="btn btn-outline btn-sm" onClick={() => setReceived(String(v))}>
-                {v === total ? 'Aniq' : fmtMoney(v)}
+                {v === total ? t('Aniq') : fmtMoney(v)}
               </button>
             ))}
           </div>
           <div className={`change-display ${change < 0 ? 'negative' : ''}`}>
-            <span>{change < 0 ? 'Yetishmayapti' : 'Qaytim'}</span>
+            <span>{change < 0 ? t('Yetishmayapti') : t('Qaytim')}</span>
             <span>{fmtSum(Math.abs(change))}</span>
           </div>
         </>
@@ -105,7 +106,7 @@ export default function PaymentModal({ order, onClose, onPaid }) {
 
       {method !== 'cash' && (
         <p className="muted text-center mt-2">
-          {method === 'card' ? 'Terminal orqali to\'lovni amalga oshiring' : 'Click / Payme orqali to\'lovni amalga oshiring'}
+          {method === 'card' ? t("Terminal orqali to'lovni amalga oshiring") : t("Click / Payme orqali to'lovni amalga oshiring")}
         </p>
       )}
     </Modal>

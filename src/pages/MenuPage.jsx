@@ -11,6 +11,7 @@ import {
 } from '../supabase/queries.js';
 import { fmtMoney, fmtQty } from '../lib/format.js';
 import { toProductPhoto } from '../lib/photo.js';
+import { t } from '../lib/i18n.js';
 import Modal, { ConfirmModal } from '../components/Modal.jsx';
 import PageSkeleton from '../components/PageSkeleton.jsx';
 import ProductThumb from '../components/ProductThumb.jsx';
@@ -38,7 +39,7 @@ export default function MenuPage() {
 
   if (!data) {
     return (
-      <PageSkeleton icon={ClipboardList} title="Menyu" error={error} onRetry={reload}>
+      <PageSkeleton icon={ClipboardList} title={t('Menyu')} error={error} onRetry={reload}>
         <div className="menu-layout">
           <div className="card card-pad">
             <div className="sk-list">
@@ -56,12 +57,12 @@ export default function MenuPage() {
     <div className="page">
       <div className="page-head">
         <div>
-          <h1 className="page-title"><ClipboardList size={22} /> Menyu</h1>
-          <div className="page-sub">{categories.length} kategoriya · {products.length} mahsulot</div>
+          <h1 className="page-title"><ClipboardList size={22} /> {t('Menyu')}</h1>
+          <div className="page-sub">{t('{n} kategoriya · {m} mahsulot', { n: categories.length, m: products.length })}</div>
         </div>
         <div className="head-actions">
           <button className="btn btn-primary" onClick={() => setProdForm({ category_id: activeCat || categories[0]?.id })}>
-            <Plus size={18} /> Mahsulot qo'shish
+            <Plus size={18} /> {t("Mahsulot qo'shish")}
           </button>
         </div>
       </div>
@@ -70,13 +71,13 @@ export default function MenuPage() {
         <div className="menu-layout">
           <div className="card card-pad">
             <div className="row-between mb-2">
-              <span className="bold">Kategoriyalar</span>
-              <button className="btn btn-secondary btn-sm" onClick={() => setCatForm({ name: '', emoji: '🍽️', color: COLORS[0] })}><Plus size={14} /> Qo'shish</button>
+              <span className="bold">{t('Kategoriyalar')}</span>
+              <button className="btn btn-secondary btn-sm" onClick={() => setCatForm({ name: '', emoji: '🍽️', color: COLORS[0] })}><Plus size={14} /> {t("Qo'shish")}</button>
             </div>
             <div className="cat-list">
               <div className={`cat-row ${!activeCat ? 'active' : ''}`} onClick={() => setActiveCat(null)}>
                 <span className="cat-icon"><LayoutGrid size={18} /></span>
-                <span className="cat-name">Barchasi</span>
+                <span className="cat-name">{t('Barchasi')}</span>
                 <span className="cat-count">{products.length}</span>
               </div>
               {categories.map((c) => (
@@ -98,12 +99,12 @@ export default function MenuPage() {
             <table className="data-table stack-sm">
               <thead>
                 <tr>
-                  <th>Mahsulot</th>
-                  <th>Kategoriya</th>
-                  <th className="text-right">Narx</th>
-                  <th className="text-center">Qoldiq</th>
-                  <th className="text-center hide-sm">Holat</th>
-                  <th className="text-right">Amallar</th>
+                  <th>{t('Mahsulot')}</th>
+                  <th>{t('Kategoriya')}</th>
+                  <th className="text-right">{t('Narx')}</th>
+                  <th className="text-center">{t('Qoldiq')}</th>
+                  <th className="text-center hide-sm">{t('Holat')}</th>
+                  <th className="text-right">{t('Amallar')}</th>
                 </tr>
               </thead>
               <tbody>
@@ -115,19 +116,19 @@ export default function MenuPage() {
                         {p.name}
                       </div>
                     </td>
-                    <td className="muted" data-label="Kategoriya">{p.category_name}</td>
-                    <td className="text-right bold nowrap" data-label="Narx">{fmtMoney(p.price)}</td>
-                    <td className="text-center" data-label="Qoldiq">
+                    <td className="muted" data-label={t('Kategoriya')}>{p.category_name}</td>
+                    <td className="text-right bold nowrap" data-label={t('Narx')}>{fmtMoney(p.price)}</td>
+                    <td className="text-center" data-label={t('Qoldiq')}>
                       {p.track_stock ? (
                         <span className={p.stock_qty <= 0 ? 'stock-out' : p.stock_qty <= p.low_stock ? 'stock-low' : 'stock-ok'}>
-                          {fmtQty(p.stock_qty)} {p.unit}
+                          {fmtQty(p.stock_qty)} {t(p.unit)}
                         </span>
                       ) : (
                         <span className="muted">—</span>
                       )}
                     </td>
                     <td className="text-center hide-sm">
-                      {p.active ? <span className="badge badge-green">Faol</span> : <span className="badge badge-gray">Nofaol</span>}
+                      {p.active ? <span className="badge badge-green">{t('Faol')}</span> : <span className="badge badge-gray">{t('Nofaol')}</span>}
                     </td>
                     <td className="text-right nowrap cell-actions">
                       <button className="btn btn-ghost btn-sm" onClick={() => setProdForm(p)}><Pencil size={15} /></button>
@@ -140,7 +141,7 @@ export default function MenuPage() {
             {filtered.length === 0 && (
               <div className="empty-state">
                 <span className="empty-icon"><ClipboardList size={22} /></span>
-                Mahsulotlar yo'q
+                {t("Mahsulotlar yo'q")}
               </div>
             )}
           </div>
@@ -151,22 +152,22 @@ export default function MenuPage() {
         <CategoryFormModal
           category={catForm}
           onClose={() => setCatForm(null)}
-          onSaved={() => { setCatForm(null); toast('Kategoriya saqlandi'); }}
+          onSaved={() => { setCatForm(null); toast(t('Kategoriya saqlandi')); }}
         />
       )}
 
       {catDelete && (
         <ConfirmModal
-          title="Kategoriyani o'chirish"
-          message={`"${catDelete.name}" kategoriyasi o'chirilsinmi?`}
-          confirmLabel="O'chirish"
+          title={t("Kategoriyani o'chirish")}
+          message={t('"{name}" kategoriyasi o\'chirilsinmi?', { name: catDelete.name })}
+          confirmLabel={t("O'chirish")}
           danger
           onClose={() => setCatDelete(null)}
           onConfirm={async () => {
             try {
               await deleteCategory(catDelete.id);
               if (activeCat === catDelete.id) setActiveCat(null);
-              toast("Kategoriya o'chirildi", 'info');
+              toast(t("Kategoriya o'chirildi"), 'info');
             } catch (e) {
               toast(e.message, 'error');
             }
@@ -179,21 +180,21 @@ export default function MenuPage() {
           product={prodForm}
           categories={categories}
           onClose={() => setProdForm(null)}
-          onSaved={() => { setProdForm(null); toast('Mahsulot saqlandi'); }}
+          onSaved={() => { setProdForm(null); toast(t('Mahsulot saqlandi')); }}
         />
       )}
 
       {prodDelete && (
         <ConfirmModal
-          title="Mahsulotni o'chirish"
-          message={`"${prodDelete.name}" o'chirilsinmi? Sotuv tarixi bo'lsa, mahsulot arxivlanadi (nofaol).`}
-          confirmLabel="O'chirish"
+          title={t("Mahsulotni o'chirish")}
+          message={t('"{name}" o\'chirilsinmi? Sotuv tarixi bo\'lsa, mahsulot arxivlanadi (nofaol).', { name: prodDelete.name })}
+          confirmLabel={t("O'chirish")}
           danger
           onClose={() => setProdDelete(null)}
           onConfirm={async () => {
             try {
               const res = await deleteProduct(prodDelete.id);
-              toast(res === 'archived' ? 'Sotuv tarixi bo\'lgani uchun nofaol qilindi' : 'Mahsulot o\'chirildi', 'info');
+              toast(res === 'archived' ? t("Sotuv tarixi bo'lgani uchun nofaol qilindi") : t("Mahsulot o'chirildi"), 'info');
             } catch (e) {
               toast(e.message, 'error');
             }
@@ -213,7 +214,7 @@ function CategoryFormModal({ category, onClose, onSaved }) {
 
   async function save() {
     if (!name.trim()) {
-      toast('Kategoriya nomini kiriting', 'error');
+      toast(t('Kategoriya nomini kiriting'), 'error');
       return;
     }
     setBusy(true);
@@ -229,24 +230,24 @@ function CategoryFormModal({ category, onClose, onSaved }) {
 
   return (
     <Modal
-      title={category.id ? 'Kategoriyani tahrirlash' : 'Yangi kategoriya'}
+      title={category.id ? t('Kategoriyani tahrirlash') : t('Yangi kategoriya')}
       onClose={onClose}
       width={460}
       footer={
         <>
-          <button className="btn btn-secondary" onClick={onClose}>Bekor qilish</button>
+          <button className="btn btn-secondary" onClick={onClose}>{t('Bekor qilish')}</button>
           <button className="btn btn-primary" disabled={busy} onClick={save}>
-            {busy ? 'Saqlanmoqda...' : 'Saqlash'}
+            {busy ? t('Saqlanmoqda...') : t('Saqlash')}
           </button>
         </>
       }
     >
       <div className="field">
-        <label className="label">Nomi</label>
+        <label className="label">{t('Nomi')}</label>
         <input className="input" value={name} onChange={(e) => setName(e.target.value)} autoFocus />
       </div>
       <div className="field">
-        <label className="label">Belgi (emoji)</label>
+        <label className="label">{t('Belgi (emoji)')}</label>
         <div className="emoji-picker">
           {EMOJIS.map((e) => (
             <button key={e} className={`emoji-opt ${emoji === e ? 'active' : ''}`} onClick={() => setEmoji(e)}>{e}</button>
@@ -254,7 +255,7 @@ function CategoryFormModal({ category, onClose, onSaved }) {
         </div>
       </div>
       <div className="field">
-        <label className="label">Rang</label>
+        <label className="label">{t('Rang')}</label>
         <div className="color-picker">
           {COLORS.map((c) => (
             <button key={c} className={`color-opt ${color === c ? 'active' : ''}`} style={{ background: c }} onClick={() => setColor(c)} />
@@ -316,9 +317,9 @@ function ProductFormModal({ product, categories, onClose, onSaved }) {
   }
 
   async function save() {
-    if (!name.trim()) return toast('Mahsulot nomini kiriting', 'error');
-    if (!(Number(price) > 0)) return toast("Narx 0 dan katta bo'lishi kerak", 'error');
-    if (!categoryId) return toast('Kategoriya tanlang', 'error');
+    if (!name.trim()) return toast(t('Mahsulot nomini kiriting'), 'error');
+    if (!(Number(price) > 0)) return toast(t("Narx 0 dan katta bo'lishi kerak"), 'error');
+    if (!categoryId) return toast(t('Kategoriya tanlang'), 'error');
     const payload = {
       category_id: String(categoryId),
       name: name.trim(),
@@ -352,36 +353,36 @@ function ProductFormModal({ product, categories, onClose, onSaved }) {
 
   return (
     <Modal
-      title={product.id ? 'Mahsulotni tahrirlash' : 'Yangi mahsulot'}
+      title={product.id ? t('Mahsulotni tahrirlash') : t('Yangi mahsulot')}
       onClose={onClose}
       width={560}
       footer={
         <>
-          <button className="btn btn-secondary" onClick={onClose}>Bekor qilish</button>
+          <button className="btn btn-secondary" onClick={onClose}>{t('Bekor qilish')}</button>
           <button className="btn btn-primary" disabled={busy} onClick={save}>
-            {busy ? 'Saqlanmoqda...' : 'Saqlash'}
+            {busy ? t('Saqlanmoqda...') : t('Saqlash')}
           </button>
         </>
       }
     >
       <div className="field">
-        <label className="label">Nomi</label>
+        <label className="label">{t('Nomi')}</label>
         <input className="input" value={name} onChange={(e) => setName(e.target.value)} autoFocus />
       </div>
       <div className="form-row">
         <div className="field">
-          <label className="label">Kategoriya</label>
+          <label className="label">{t('Kategoriya')}</label>
           <select className="select" value={categoryId} onChange={(e) => setCategoryId(e.target.value)}>
             {categories.map((c) => <option key={c.id} value={c.id}>{c.emoji} {c.name}</option>)}
           </select>
         </div>
         <div className="field">
-          <label className="label">Narx (so'm)</label>
+          <label className="label">{t("Narx (so'm)")}</label>
           <input className="input" type="number" min="0" step="500" value={price} onChange={(e) => setPrice(e.target.value)} />
         </div>
       </div>
       <div className="field">
-        <label className="label">Belgi (emoji)</label>
+        <label className="label">{t('Belgi (emoji)')}</label>
         <div className="emoji-picker">
           {EMOJIS.map((e) => (
             <button key={e} className={`emoji-opt ${emoji === e ? 'active' : ''}`} onClick={() => setEmoji(e)}>{e}</button>
@@ -389,19 +390,19 @@ function ProductFormModal({ product, categories, onClose, onSaved }) {
         </div>
       </div>
       <div className="field">
-        <label className="label">Rasm (telefon kamerasi yoki galereya)</label>
+        <label className="label">{t('Rasm (telefon kamerasi yoki galereya)')}</label>
         <div className="photo-row">
           <div className="photo-box">
             {preview ? <img src={preview} alt="" /> : <Camera size={26} />}
           </div>
           <div className="photo-actions">
             <button className="btn btn-outline btn-sm" disabled={busy} onClick={() => fileRef.current.click()}>
-              {preview ? <><RefreshCw size={14} /> Almashtirish</> : <><Camera size={14} /> Rasm tanlash</>}
+              {preview ? <><RefreshCw size={14} /> {t('Almashtirish')}</> : <><Camera size={14} /> {t('Rasm tanlash')}</>}
             </button>
             {preview && (photo ? (
-              <button className="btn btn-ghost btn-sm" onClick={keepExistingPhoto}>Bekor qilish</button>
+              <button className="btn btn-ghost btn-sm" onClick={keepExistingPhoto}>{t('Bekor qilish')}</button>
             ) : (
-              <button className="btn btn-ghost btn-sm" onClick={() => setRemovePhoto(true)}><X size={14} /> Ochirish</button>
+              <button className="btn btn-ghost btn-sm" onClick={() => setRemovePhoto(true)}><X size={14} /> {t('Ochirish')}</button>
             ))}
           </div>
           <input
@@ -412,43 +413,43 @@ function ProductFormModal({ product, categories, onClose, onSaved }) {
             onChange={(e) => { onPick(e.target.files?.[0]); e.target.value = ''; }}
           />
         </div>
-        <p className="muted mt-1">Rasm avtomatik kvadrat qilib kesiladi va siqiladi (telefon uchun yengil).</p>
+        <p className="muted mt-1">{t('Rasm avtomatik kvadrat qilib kesiladi va siqiladi (telefon uchun yengil).')}</p>
       </div>
       <div className="col">
         <label className="check-row">
           <input type="checkbox" checked={!!active} onChange={(e) => setActive(e.target.checked ? 1 : 0)} />
-          Faol (kassada ko'rinadi)
+          {t("Faol (kassada ko'rinadi)")}
         </label>
         <label className="check-row">
           <input type="checkbox" checked={!!trackStock} onChange={(e) => setTrackStock(e.target.checked ? 1 : 0)} />
-          Ombor hisobini yuritish
+          {t('Ombor hisobini yuritish')}
         </label>
       </div>
       {!!trackStock && (
         <div className="form-row-3 mt-2">
           {!product.id && (
             <div className="field">
-              <label className="label">Boshlang'ich qoldiq</label>
+              <label className="label">{t("Boshlang'ich qoldiq")}</label>
               <input className="input" type="number" min="0" value={stockQty} onChange={(e) => setStockQty(e.target.value)} />
             </div>
           )}
           <div className="field">
-            <label className="label">Kam qoldiq chegarasi</label>
+            <label className="label">{t('Kam qoldiq chegarasi')}</label>
             <input className="input" type="number" min="0" value={lowStock} onChange={(e) => setLowStock(e.target.value)} />
           </div>
           <div className="field">
-            <label className="label">O'lchov birligi</label>
+            <label className="label">{t("O'lchov birligi")}</label>
             <select className="select" value={unit} onChange={(e) => setUnit(e.target.value)}>
-              <option value="dona">dona</option>
-              <option value="kg">kg</option>
-              <option value="litr">litr</option>
-              <option value="porsiya">porsiya</option>
+              <option value="dona">{t('dona')}</option>
+              <option value="kg">{t('kg')}</option>
+              <option value="litr">{t('litr')}</option>
+              <option value="porsiya">{t('porsiya')}</option>
             </select>
           </div>
         </div>
       )}
       {product.id && !!trackStock && (
-        <p className="muted mt-1">Joriy qoldiq: <b>{fmtQty(product.stock_qty)} {product.unit}</b>. Qoldiqni Ombor bo'limida o'zgartiring.</p>
+        <p className="muted mt-1">{t('Joriy qoldiq:')} <b>{fmtQty(product.stock_qty)} {t(product.unit)}</b>. {t("Qoldiqni Ombor bo'limida o'zgartiring.")}</p>
       )}
     </Modal>
   );

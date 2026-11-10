@@ -11,6 +11,7 @@ import {
   isNetworkError, isOffline, queueDelete, queueMine, queuePut,
   rememberId, reportNetworkFailure, reportOnline, serverId, shotDrop,
 } from './offline.js';
+import { t } from './i18n.js';
 
 const CALL = {
   create: (rec) => ['create_order', { p: { ...rec.args.p, client_id: rec.local } }],
@@ -37,7 +38,7 @@ async function alreadyDone(rec, id) {
 async function runOne(rec) {
   const build = CALL[rec.kind];
   if (!build) {
-    await markFailed(rec, 'Navbatdagi noma’lum amal');
+    await markFailed(rec, t('Navbatdagi noma’lum amal'));
     return 'fail';
   }
 
@@ -45,7 +46,7 @@ async function runOne(rec) {
   if (rec.kind !== 'create') {
     id = rec.local ? await serverId(rec.local) : rec.order_id;
     if (!id) {
-      await markFailed(rec, 'Buyurtma serverga yuborilmagan — avval uni yuborish kerak');
+      await markFailed(rec, t('Buyurtma serverga yuborilmagan — avval uni yuborish kerak'));
       return 'fail';
     }
   }
@@ -56,7 +57,7 @@ async function runOne(rec) {
     result = await supabase.rpc(fn, args);
   } catch (err) {
     if (isNetworkError(err)) return 'net';
-    await markFailed(rec, err?.message || String(err));
+    await markFailed(rec, t(err?.message || String(err)));
     return 'fail';
   }
 
@@ -66,7 +67,7 @@ async function runOne(rec) {
       await finish(rec);
       return 'ok';
     }
-    await markFailed(rec, result.error.message);
+    await markFailed(rec, t(result.error.message));
     return 'fail';
   }
 

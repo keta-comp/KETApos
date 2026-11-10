@@ -9,6 +9,7 @@
 // printer o'z shriftini ishlatmaydi, kelgan rasmni bosadi.
 
 import { buildReceiptJob, paperWidthDots, receiptPreviewUrl } from './thermal.js';
+import { t } from './i18n.js';
 
 // USB drayveriga tushishi mushkul bo'lgan eng ko'p uchraydigan termal printerlar.
 const USB_FALLBACK_FILTERS = [
@@ -34,12 +35,13 @@ export const CUT_LABELS = {
   full: 'To\'liq kesish',
 };
 
-const NO_USB = 'WebUSB bu brauzerda yo\'q. Chrome yoki Edge\'da oching, COM port / .bin fayl usuliga o\'ting.';
-const NO_SERIAL = 'COM portga chiqish ushbu muhitda mavjud emas (Electron yoki Chrome kerak).';
-const NO_DEVICE = 'USB printer topilmadi. Uni "Sinov" tugmasi oldidan "Qurilmani tanlash" orqali ruxsatlang.';
+// Xatolik xabarlari — ko'rsatilgan payta tarjima qilinadi.
+const NO_USB = () => t('WebUSB bu brauzerda yo\'q. Chrome yoki Edge\'da oching, COM port / .bin fayl usuliga o\'ting.');
+const NO_SERIAL = () => t('COM portga chiqish ushbu muhitda mavjud emas (Electron yoki Chrome kerak).');
+const NO_DEVICE = () => t('USB printer topilmadi. Uni "Sinov" tugmasi oldidan "Qurilmani tanlash" orqali ruxsatlang.');
 
 function requireUsb() {
-  if (!navigator.usb) throw new Error(NO_USB);
+  if (!navigator.usb) throw new Error(NO_USB());
 }
 
 // ---------- Sozlamalar ----------
@@ -84,7 +86,7 @@ async function findPrinterEndpoint(device) {
       }
     }
   }
-  if (!candidates.length) throw new Error('Printer USB yo\'g\'onasi (bulk OUT) topilmadi.');
+  if (!candidates.length) throw new Error(t('Printer USB yo\'g\'onasi (bulk OUT) topilmadi.'));
   const printerClass = candidates.find((c) => c.classCode === 7);
   return printerClass || candidates[0];
 }
@@ -96,7 +98,7 @@ async function openUsb(preferred) {
   const match = (dev) => !preferred?.usbVendorId
     || (dev.vendorId === preferred.usbVendorId && dev.productId === preferred.usbProductId);
   const known = (await navigator.usb.getDevices()).find(match);
-  if (!known) throw new Error(NO_DEVICE);
+  if (!known) throw new Error(NO_DEVICE());
   const endpoint = await findPrinterEndpoint(known);
   if (known.opened) await known.close();
   await known.open();
@@ -116,7 +118,7 @@ async function usbWrite(bytes, options) {
   // Katta tasma bo'laklarga bo'linadi: ba'zi printerlar bitta yozuvda cheklangan.
   for (let offset = 0; offset < bytes.length; offset += 8192) {
     const result = await device.transferOut(endpoint.endpointNumber, bytes.subarray(offset, offset + 8192));
-    if (result.status === 'error') throw new Error('USB yozuvi xato bilan tugadi.');
+    if (result.status === 'error') throw new Error(t('USB yozuvi xato bilan tugadi.'));
   }
   return { transport: 'usb', device: `${device.productName || 'USB'} (${hex(device.vendorId)}:${hex(device.productId)})` };
 }
@@ -132,9 +134,9 @@ export async function pickUsbDevice(options = {}) {
     device = await navigator.usb.requestDevice({ filters });
   } catch (e) {
     if (e.name === 'NotFoundError') {
-      throw new Error('Ro\'yxatda printer ko\'rinmadi. Drayver WinUSB bo\'lishi kerak (yoki COM port usulini ishlating).');
+      throw new Error(t('Ro\'yxatda printer ko\'rinmadi. Drayver WinUSB bo\'lishi kerak (yoki COM port usulini ishlating).'));
     }
-    if (e.name === 'SecurityError') throw new Error(NO_USB);
+    if (e.name === 'SecurityError') throw new Error(NO_USB());
     throw e;
   }
   usbSession = null;
@@ -174,7 +176,7 @@ export async function listComPorts({ refresh = false } = {}) {
 let webSerialPort = null;
 
 export async function pickSerialPort() {
-  if (!navigator.serial) throw new Error(NO_SERIAL);
+  if (!navigator.serial) throw new Error(NO_SERIAL());
   const port = await navigator.serial.requestPort();
   const info = port.getInfo() || {};
   webSerialPort = port;
@@ -186,12 +188,12 @@ export async function pickSerialPort() {
 }
 
 async function serialWriteWeb(bytes, { baud }) {
-  if (!navigator.serial) throw new Error(NO_SERIAL);
+  if (!navigator.serial) throw new Error(NO_SERIAL());
   let port = webSerialPort;
   if (!port) {
     const granted = await navigator.serial.getPorts();
     port = granted[0];
-    if (!port) throw new Error('COM portga ruxsat berilmadi — "Portni tanlash" tugmasini bosing.');
+    if (!port) throw new Error(t('COM portga ruxsat berilmadi — "Portni tanlash" tugmasini bosing.'));
     webSerialPort = port;
   }
   await port.open({ baudRate: baud });
@@ -205,10 +207,10 @@ async function serialWriteWeb(bytes, { baud }) {
 }
 
 async function serialWriteElectron(bytes, { comPort, baud }) {
-  if (!window.api?.serialWrite) throw new Error(NO_SERIAL);
-  if (!comPort) throw new Error('COM port tanlanmagan.');
+  if (!window.api?.serialWrite) throw new Error(NO_SERIAL());
+  if (!comPort) throw new Error(t('COM port tanlanmagan.'));
   const res = await window.api.serialWrite({ port: comPort, baudRate: baud, bytes });
-  if (!res?.ok) throw new Error(res?.error || `Kompyuter ${comPort} orqali yozib bo'lmadi.`);
+  if (!res?.ok) throw new Error(res?.error || t('Kompyuter {port} orqali yozib bo\'lmadi.', { port: comPort }));
   return { transport: 'serial', device: `${comPort} (${baud})` };
 }
 
@@ -222,8 +224,8 @@ async function writeFile(bytes, name) {
   if (window.api?.saveFile) {
     const res = await window.api.saveFile({ name, bytes });
     if (!res?.ok) {
-      if (res?.cancelled) return { transport: 'file', device: 'Bekor qilindi', cancelled: true };
-      throw new Error(res?.error || 'Fayl saqlanmadi.');
+      if (res?.cancelled) return { transport: 'file', device: t('Bekor qilindi'), cancelled: true };
+      throw new Error(res?.error || t('Fayl saqlanmadi.'));
     }
     return { transport: 'file', device: res.path };
   }
@@ -273,14 +275,14 @@ export function sampleTicketOrder() {
     type: 'dine_in',
     payment_method: 'cash',
     table_name: 'Stol 3',
-    staff_name: 'Sinov',
+    staff_name: t('Sinov'),
     created_at: stamp,
     paid_at: stamp,
     items: [
-      { name: 'Lavash mol go\'sht', qty: 1, price: 24000, total: 24000, note: 'Achchiq qo\'shilmasin' },
-      { name: 'Burger tovuq', qty: 2, price: 16000, total: 32000 },
-      { name: "Ko'k choy", qty: 3, price: 8000, total: 24000 },
-      { name: 'Somsa', qty: 1.5, price: 12000, total: 18000 },
+      { name: t('Lavash mol go\'sht'), qty: 1, price: 24000, total: 24000, note: t('Achchiq qo\'shilmasin') },
+      { name: t('Burger tovuq'), qty: 2, price: 16000, total: 32000 },
+      { name: t("Ko'k choy"), qty: 3, price: 8000, total: 24000 },
+      { name: t('Somsa'), qty: 1.5, price: 12000, total: 18000 },
     ],
     subtotal: 98000,
     discount_percent: 10,

@@ -1,6 +1,8 @@
 // Rasmni mos ruxsat va hajmdagi JPEG'ga aylantiradi: markazdan kvadrat kesib,
 // tomoni eng ko'pi 512 px. Storage limitidan (2 MB) ancha past qoladi.
 
+import { t } from './i18n.js';
+
 const MAX_SIDE = 512;
 
 async function decode(file) {
@@ -15,7 +17,7 @@ async function decode(file) {
     const url = URL.createObjectURL(file);
     const img = new Image();
     img.onload = () => resolve(img);
-    img.onerror = () => reject(new Error('Rasmni o‘qib bo‘lmadi. JPEG, PNG yoki WebP fayl tanlang.'));
+    img.onerror = () => reject(new Error(t('Rasmni o‘qib bo‘lmadi. JPEG, PNG yoki WebP fayl tanlang.')));
     img.src = url;
   });
 }
@@ -24,7 +26,7 @@ export async function toProductPhoto(file) {
   const src = await decode(file);
   const w = src.width || src.naturalWidth;
   const h = src.height || src.naturalHeight;
-  if (!w || !h) throw new Error('Rasm o‘lchami aniq emas.');
+  if (!w || !h) throw new Error(t('Rasm o‘lchami aniq emas.'));
   const side = Math.max(1, Math.min(w, h, MAX_SIDE));
   const canvas = document.createElement('canvas');
   canvas.width = side;
@@ -32,7 +34,7 @@ export async function toProductPhoto(file) {
   canvas.getContext('2d').drawImage(src, Math.round((w - side) / 2), Math.round((h - side) / 2), side, side, 0, 0, side, side);
   src.close?.();
   const blob = await new Promise((resolve) => canvas.toBlob(resolve, 'image/jpeg', 0.82));
-  if (!blob) throw new Error('Rasmni tayyorlab bo‘lmadi.');
+  if (!blob) throw new Error(t('Rasmni tayyorlab bo‘lmadi.'));
   return blob;
 }
 

@@ -7,13 +7,14 @@ import { useApp } from '../state/AppContext.jsx';
 import { useData } from '../state/useData.js';
 import { getReport, addExpense, deleteExpense } from '../supabase/queries.js';
 import { fmtMoney, fmtSum, fmtQty, fmtDate, todayStr, addDays, PAY_METHODS } from '../lib/format.js';
+import { t } from '../lib/i18n.js';
 import Modal, { ConfirmModal } from '../components/Modal.jsx';
 import MapIcon from '../components/MapIcon.jsx';
 import PageSkeleton from '../components/PageSkeleton.jsx';
 import Spinner from '../components/Spinner.jsx';
 import { Sk, SkStats } from '../components/Skeleton.jsx';
 
-const EXPENSE_CATEGORIES = ['Masalliqlar', 'Kommunal', 'Ish haqi', 'Ijara', 'Transport', 'Boshqa'];
+const EXPENSE_CATEGORIES = ['Masalliqlar', 'Kommunal', 'Ish haqi', 'Ijara', 'Transport', 'Boshqa']; // DB category qiymati — o'zbekcha qaladi, render paytida t(c)
 
 const EMPTY_REPORT = {
   order_count: 0, revenue: 0, discount_total: 0, avg_check: 0,
@@ -52,7 +53,7 @@ export default function ReportsPage() {
 
   if (!reportData) {
     return (
-      <PageSkeleton icon={ChartNoAxesCombined} title="Hisobot" error={error} onRetry={reload}>
+      <PageSkeleton icon={ChartNoAxesCombined} title={t('Hisobot')} error={error} onRetry={reload}>
         <SkStats n={5} />
         <div className="report-grid">
           <div className="card card-pad">
@@ -76,13 +77,13 @@ export default function ReportsPage() {
     <div className="page">
       <div className="page-head">
         <div>
-          <h1 className="page-title"><ChartNoAxesCombined size={22} /> Hisobot</h1>
+          <h1 className="page-title"><ChartNoAxesCombined size={22} /> {t('Hisobot')}</h1>
           <div className="page-sub">{fmtDate(from)} — {fmtDate(to)}</div>
         </div>
         <div className="head-actions">
-          {loading && <Spinner size={18} label="Yangilanmoqda" />}
+          {loading && <Spinner size={18} label={t('Yangilanmoqda')} />}
           {mayExpense && (
-            <button className="btn btn-primary" onClick={() => setExpenseForm(true)}><Plus size={16} /> Xarajat qo'shish</button>
+            <button className="btn btn-primary" onClick={() => setExpenseForm(true)}><Plus size={16} /> {t("Xarajat qo'shish")}</button>
           )}
         </div>
       </div>
@@ -97,7 +98,7 @@ export default function ReportsPage() {
             ['custom', 'Boshqa davr'],
           ].map(([key, label]) => (
             <button key={key} className={`chip ${period === key ? 'active' : ''}`} onClick={() => setPeriod(key)}>
-              {label}
+              {t(label)}
             </button>
           ))}
           {period === 'custom' && (
@@ -111,44 +112,44 @@ export default function ReportsPage() {
 
         <div className="stat-cards">
           <div className="stat-card">
-            <div className="stat-label"><Wallet size={14} /> Tushum</div>
+            <div className="stat-label"><Wallet size={14} /> {t('Tushum')}</div>
             <div className="stat-value green">{fmtMoney(report.revenue)}</div>
             <div className="stat-sub">so'm</div>
           </div>
           <div className="stat-card">
-            <div className="stat-label"><ReceiptText size={14} /> Buyurtmalar</div>
+            <div className="stat-label"><ReceiptText size={14} /> {t('Buyurtmalar')}</div>
             <div className="stat-value">{report.order_count}</div>
-            <div className="stat-sub">to'langan</div>
+            <div className="stat-sub">{t("to'langan")}</div>
           </div>
           <div className="stat-card">
-            <div className="stat-label"><ChartColumnIncreasing size={14} /> O'rtacha chek</div>
+            <div className="stat-label"><ChartColumnIncreasing size={14} /> {t("O'rtacha chek")}</div>
             <div className="stat-value blue">{fmtMoney(report.avg_check)}</div>
             <div className="stat-sub">so'm</div>
           </div>
           <div className="stat-card">
-            <div className="stat-label"><CreditCard size={14} /> Xarajatlar</div>
+            <div className="stat-label"><CreditCard size={14} /> {t('Xarajatlar')}</div>
             <div className="stat-value red">{fmtMoney(report.expenseTotal)}</div>
             <div className="stat-sub">so'm</div>
           </div>
           <div className="stat-card">
-            <div className="stat-label"><TrendingUp size={14} /> Sof foyda</div>
+            <div className="stat-label"><TrendingUp size={14} /> {t('Sof foyda')}</div>
             <div className={`stat-value ${report.profit >= 0 ? 'green' : 'red'}`}>{fmtMoney(report.profit)}</div>
-            <div className="stat-sub">tushum − xarajat</div>
+            <div className="stat-sub">{t('tushum − xarajat')}</div>
           </div>
         </div>
 
         <div className="report-grid">
           <div className="card card-pad">
-            <div className="bold mb-2 ti"><ChartNoAxesCombined size={16} /> Kunlik savdo</div>
+            <div className="bold mb-2 ti"><ChartNoAxesCombined size={16} /> {t('Kunlik savdo')}</div>
             {report.byDay.length === 0 ? (
               <div className="empty-state">
                 <span className="empty-icon"><CalendarDays size={22} /></span>
-                Bu davrda savdo yo'q
+                {t("Bu davrda savdo yo'q")}
               </div>
             ) : (
               <div className="bar-chart">
                 {report.byDay.map((d) => (
-                  <div key={d.day} className="bar-col" title={`${fmtDate(d.day)}: ${fmtSum(d.revenue)} (${d.order_count} buyurtma)`}>
+                  <div key={d.day} className="bar-col" title={t('{date}: {sum} ({n} buyurtma)', { date: fmtDate(d.day), sum: fmtSum(d.revenue), n: d.order_count })}>
                     <span className="bar-value">{compact(d.revenue)}</span>
                     <div className="bar" style={{ height: `${Math.max(2, (d.revenue / maxDay) * 100)}%` }} />
                     <span className="bar-label">{d.day.slice(8, 10)}.{d.day.slice(5, 7)}</span>
@@ -159,19 +160,19 @@ export default function ReportsPage() {
           </div>
 
           <div className="card card-pad">
-            <div className="bold mb-2 ti"><CreditCard size={16} /> To'lov turlari</div>
+            <div className="bold mb-2 ti"><CreditCard size={16} /> {t("To'lov turlari")}</div>
             {report.byMethod.length === 0 ? (
               <div className="empty-state">
                 <span className="empty-icon"><CreditCard size={22} /></span>
-                Ma'lumot yo'q
+                {t("Ma'lumot yo'q")}
               </div>
             ) : (
               report.byMethod.map((m) => (
                 <div key={m.payment_method} className="method-row">
                   <span className="method-icon"><MapIcon map={PAY_METHODS} name={m.payment_method} size={20} fallback={Wallet} /></span>
                   <div className="method-info">
-                    <div className="method-name">{PAY_METHODS[m.payment_method]?.label || m.payment_method}</div>
-                    <div className="method-count">{m.order_count} ta buyurtma</div>
+                    <div className="method-name">{PAY_METHODS[m.payment_method] ? t(PAY_METHODS[m.payment_method].label) : m.payment_method}</div>
+                    <div className="method-count">{t('{n} ta buyurtma', { n: m.order_count })}</div>
                   </div>
                   <span className="method-sum">{fmtMoney(m.revenue)}</span>
                 </div>
@@ -182,18 +183,18 @@ export default function ReportsPage() {
 
         <div className="report-grid mt-3">
           <div className="card card-pad">
-            <div className="bold mb-2 ti"><Trophy size={16} /> Top mahsulotlar</div>
+            <div className="bold mb-2 ti"><Trophy size={16} /> {t('Top mahsulotlar')}</div>
             {report.topProducts.length === 0 ? (
               <div className="empty-state">
                 <span className="empty-icon"><Trophy size={22} /></span>
-                Ma'lumot yo'q
+                {t("Ma'lumot yo'q")}
               </div>
             ) : (
               report.topProducts.map((p, i) => (
                 <div key={p.name} className="top-row">
                   <span className={`rank ${i < 3 ? `r${i + 1}` : ''}`}>{i + 1}</span>
                   <span className="top-name">{p.name}</span>
-                  <span className="top-qty">{fmtQty(p.qty)} dona</span>
+                  <span className="top-qty">{fmtQty(p.qty)} {t('dona')}</span>
                   <span className="top-sum">{fmtMoney(p.revenue)}</span>
                 </div>
               ))
@@ -202,22 +203,22 @@ export default function ReportsPage() {
 
           <div className="card card-pad">
             <div className="row-between mb-2">
-              <span className="bold ti"><CreditCard size={16} /> Xarajatlar</span>
+              <span className="bold ti"><CreditCard size={16} /> {t('Xarajatlar')}</span>
               {mayExpense && (
-                <button className="btn btn-secondary btn-sm" onClick={() => setExpenseForm(true)}><Plus size={14} /> Qo'shish</button>
+                <button className="btn btn-secondary btn-sm" onClick={() => setExpenseForm(true)}><Plus size={14} /> {t("Qo'shish")}</button>
               )}
             </div>
             {report.expenses.length === 0 ? (
               <div className="empty-state">
                 <span className="empty-icon"><CreditCard size={22} /></span>
-                Xarajatlar yo'q
+                {t("Xarajatlar yo'q")}
               </div>
             ) : (
               report.expenses.map((e) => (
                 <div key={e.id} className="method-row">
                   <div className="method-info">
                     <div className="method-name">{e.title}</div>
-                    <div className="method-count">{fmtDate(e.created_at)} · {e.category}</div>
+                    <div className="method-count">{fmtDate(e.created_at)} · {t(e.category)}</div>
                   </div>
                   <span className="method-sum" style={{ color: 'var(--red)' }}>{fmtMoney(e.amount)}</span>
                   {mayExpense && (
@@ -233,21 +234,21 @@ export default function ReportsPage() {
       {expenseForm && (
         <ExpenseModal
           onClose={() => setExpenseForm(false)}
-          onSaved={() => { setExpenseForm(false); toast("Xarajat qo'shildi"); }}
+          onSaved={() => { setExpenseForm(false); toast(t("Xarajat qo'shildi")); }}
         />
       )}
 
       {expenseDelete && (
         <ConfirmModal
-          title="Xarajatni o'chirish"
-          message={`"${expenseDelete.title}" (${fmtSum(expenseDelete.amount)}) o'chirilsinmi?`}
-          confirmLabel="O'chirish"
+          title={t("Xarajatni o'chirish")}
+          message={t('"{title}" ({sum}) o\'chirilsinmi?', { title: expenseDelete.title, sum: fmtSum(expenseDelete.amount) })}
+          confirmLabel={t("O'chirish")}
           danger
           onClose={() => setExpenseDelete(null)}
           onConfirm={async () => {
             try {
               await deleteExpense(expenseDelete.id);
-              toast("Xarajat o'chirildi", 'info');
+              toast(t("Xarajat o'chirildi"), 'info');
             } catch (e) {
               toast(e.message, 'error');
             }
@@ -265,8 +266,8 @@ function ExpenseModal({ onClose, onSaved }) {
   const [category, setCategory] = useState(EXPENSE_CATEGORIES[0]);
 
   async function save() {
-    if (!title.trim()) return toast('Xarajat nomini kiriting', 'error');
-    if (!(Number(amount) > 0)) return toast("Summa 0 dan katta bo'lishi kerak", 'error');
+    if (!title.trim()) return toast(t('Xarajat nomini kiriting'), 'error');
+    if (!(Number(amount) > 0)) return toast(t("Summa 0 dan katta bo'lishi kerak"), 'error');
     try {
       await addExpense({ title: title.trim(), amount: Math.round(Number(amount)), category });
       onSaved();
@@ -277,29 +278,29 @@ function ExpenseModal({ onClose, onSaved }) {
 
   return (
     <Modal
-      title="Yangi xarajat"
+      title={t('Yangi xarajat')}
       onClose={onClose}
       width={440}
       footer={
         <>
-          <button className="btn btn-secondary" onClick={onClose}>Bekor qilish</button>
-          <button className="btn btn-primary" onClick={save}>Saqlash</button>
+          <button className="btn btn-secondary" onClick={onClose}>{t('Bekor qilish')}</button>
+          <button className="btn btn-primary" onClick={save}>{t('Saqlash')}</button>
         </>
       }
     >
       <div className="field">
-        <label className="label">Nomi</label>
-        <input className="input" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Masalan: Sabzavotlar xaridi" autoFocus />
+        <label className="label">{t('Nomi')}</label>
+        <input className="input" value={title} onChange={(e) => setTitle(e.target.value)} placeholder={t('Masalan: Sabzavotlar xaridi')} autoFocus />
       </div>
       <div className="form-row">
         <div className="field">
-          <label className="label">Summa (so'm)</label>
+          <label className="label">{t("Summa (so'm)")}</label>
           <input className="input" type="number" min="0" step="1000" value={amount} onChange={(e) => setAmount(e.target.value)} />
         </div>
         <div className="field">
-          <label className="label">Kategoriya</label>
+          <label className="label">{t('Kategoriya')}</label>
           <select className="select" value={category} onChange={(e) => setCategory(e.target.value)}>
-            {EXPENSE_CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
+            {EXPENSE_CATEGORIES.map((c) => <option key={c} value={c}>{t(c)}</option>)}
           </select>
         </div>
       </div>

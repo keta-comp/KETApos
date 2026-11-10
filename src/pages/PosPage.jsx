@@ -10,6 +10,7 @@ import {
   createOrder, updateOrder, sendToKitchen, cancelOrder,
 } from '../supabase/queries.js';
 import { fmtMoney, fmtSum, fmtQty, fmtTime, ORDER_TYPES, KITCHEN_STATES } from '../lib/format.js';
+import { t } from '../lib/i18n.js';
 import Modal, { ConfirmModal } from '../components/Modal.jsx';
 import DataState from '../components/DataState.jsx';
 import PaymentModal from '../components/PaymentModal.jsx';
@@ -104,7 +105,7 @@ export default function PosPage() {
       const idx = prev.findIndex((it) => it.product_id === p.id);
       const currentQty = idx >= 0 ? prev[idx].qty : 0;
       if (p.track_stock && currentQty + 1 > p.stock_qty) {
-        toast(`Qoldiq yetarli emas: ${p.name} (${fmtQty(p.stock_qty)} ${p.unit})`, 'error');
+        toast(t('Qoldiq yetarli emas: {name} ({qty} {unit})', { name: p.name, qty: fmtQty(p.stock_qty), unit: p.unit }), 'error');
         return prev;
       }
       if (idx >= 0) {
@@ -128,7 +129,7 @@ export default function PosPage() {
       if (delta > 0) {
         const p = products.find((x) => x.id === it.product_id);
         if (p?.track_stock && newQty > p.stock_qty) {
-          toast(`Qoldiq yetarli emas: ${p.name}`, 'error');
+          toast(t('Qoldiq yetarli emas: {name}', { name: p.name }), 'error');
           return prev;
         }
       }
@@ -150,11 +151,11 @@ export default function PosPage() {
 
   function validate() {
     if (!cart.length) {
-      toast("Savat bo'sh", 'error');
+      toast(t("Savat bo'sh"), 'error');
       return false;
     }
     if (orderType === 'dine_in' && !tableId) {
-      toast('Stol tanlang', 'error');
+      toast(t('Stol tanlang'), 'error');
       setShowTables(true);
       return false;
     }
@@ -185,7 +186,7 @@ export default function PosPage() {
     setBusy(true);
     try {
       const o = await persistOrder(sendKitchen);
-      toast(sendKitchen ? `Buyurtma №${o.number} oshxonaga yuborildi` : `Buyurtma №${o.number} saqlandi`);
+      toast(sendKitchen ? t('Buyurtma №{n} oshxonaga yuborildi', { n: o.number }) : t('Buyurtma №{n} saqlandi', { n: o.number }));
       resetCart();
     } catch (e) {
       toast(e.message, 'error');
@@ -213,7 +214,7 @@ export default function PosPage() {
     try {
       const full = await getOrder(o.id);
       if (!full) {
-        toast(`№${o.number} buyurtma allaqachon yopilgan`, 'error');
+        toast(t('№{n} buyurtma allaqachon yopilgan', { n: o.number }), 'error');
         setShowOpen(false);
         reload();
         return;
@@ -236,7 +237,7 @@ export default function PosPage() {
     try {
       const full = await getOrder(o.id);
       if (!full) {
-        toast(`№${o.number} buyurtma allaqachon yopilgan`, 'error');
+        toast(t('№{n} buyurtma allaqachon yopilgan', { n: o.number }), 'error');
         setShowOpen(false);
         reload();
         return;
@@ -260,8 +261,8 @@ export default function PosPage() {
         <div className="page">
           <div className="page-head">
             <div>
-              <h1 className="page-title"><ShoppingCart size={22} /> Kassa</h1>
-              <div className="page-sub">Menyu</div>
+              <h1 className="page-title"><ShoppingCart size={22} /> {t('Kassa')}</h1>
+              <div className="page-sub">{t('Menyu')}</div>
             </div>
           </div>
           <div className="page-body">
@@ -276,7 +277,7 @@ export default function PosPage() {
           <div className="pos-toolbar">
             <div className="search-wrap">
               <span className="search-icon"><Search size={16} /></span>
-              <input className="input" placeholder="Mahsulot qidirish..." value="" readOnly />
+              <input className="input" placeholder={t('Mahsulot qidirish...')} value="" readOnly />
             </div>
             <Sk w={172} h={46} r={14} />
           </div>
@@ -315,7 +316,7 @@ export default function PosPage() {
     return (
       <div className="page">
         <div className="page-body">
-          <Spinner label="Buyurtma yuklanmoqda..." center />
+          <Spinner label={t('Buyurtma yuklanmoqda...')} center />
         </div>
       </div>
     );
@@ -329,20 +330,20 @@ export default function PosPage() {
             <span className="search-icon"><Search size={16} /></span>
             <input
               className="input"
-              placeholder="Mahsulot qidirish..."
+              placeholder={t('Mahsulot qidirish...')}
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
           </div>
           <button className="btn btn-outline" onClick={() => setShowOpen(true)}>
-            <FolderOpen size={18} /> <span className="hide-sm">Ochiq buyurtmalar</span>
+            <FolderOpen size={18} /> <span className="hide-sm">{t('Ochiq buyurtmalar')}</span>
             {openOrders.length > 0 && <span className="badge badge-orange">{openOrders.length}</span>}
           </button>
         </div>
 
         <div className="cat-bar">
           <button className={`chip ${!activeCat ? 'active' : ''}`} onClick={() => setActiveCat(null)}>
-            <LayoutGrid size={16} /> Barchasi
+            <LayoutGrid size={16} /> {t('Barchasi')}
           </button>
           {categories.map((c) => (
             <button
@@ -359,7 +360,7 @@ export default function PosPage() {
           {filtered.length === 0 ? (
             <div className="empty-state">
               <span className="empty-icon"><Search size={22} /></span>
-              Mahsulot topilmadi
+              {t('Mahsulot topilmadi')}
             </div>
           ) : (
             <div className="product-grid">
@@ -374,7 +375,7 @@ export default function PosPage() {
                     <span className="product-price">{fmtMoney(p.price)}</span>
                     {p.track_stock ? (
                       <span className={`product-stock ${low ? 'low' : ''}`}>
-                        {p.stock_qty <= 0 ? 'Tugagan' : `Qoldiq: ${fmtQty(p.stock_qty)}`}
+                        {p.stock_qty <= 0 ? t('Tugagan') : t('Qoldiq: {qty}', { qty: fmtQty(p.stock_qty) })}
                       </span>
                     ) : null}
                   </button>
@@ -388,13 +389,13 @@ export default function PosPage() {
       <div className={`cart-panel ${cartOpen && cart.length ? '' : 'cart-collapsed'}`}>
         <div className="cart-head">
           <div className="cart-title-row">
-            <span className="cart-title"><ReceiptText size={18} /> Buyurtma {editingId ? `(tahrir)` : ''}</span>
-            <span className="badge badge-gray">{fmtQty(cartCount)} ta</span>
+            <span className="cart-title"><ReceiptText size={18} /> {t('Buyurtma')} {editingId ? t('(tahrir)') : ''}</span>
+            <span className="badge badge-gray">{t('{n} ta', { n: fmtQty(cartCount) })}</span>
             {cart.length > 0 && (
               <button
                 className="cart-sheet-toggle"
                 onClick={() => setCartOpen((v) => !v)}
-                aria-label={cartOpen ? 'Savatni yopish' : "Savatni ochish"}
+                aria-label={cartOpen ? t('Savatni yopish') : t("Savatni ochish")}
               >
                 {cartOpen ? <ChevronDown size={17} /> : <ChevronUp size={17} />}
               </button>
@@ -402,7 +403,7 @@ export default function PosPage() {
           </div>
           <div className="cart-type-row">
             <div className="seg">
-              {Object.entries(ORDER_TYPES).map(([key, t]) => (
+              {Object.entries(ORDER_TYPES).map(([key, type]) => (
                 <button
                   key={key}
                   className={`seg-item ${orderType === key ? 'active' : ''}`}
@@ -411,7 +412,7 @@ export default function PosPage() {
                     if (key !== 'dine_in') setTableId(null);
                   }}
                 >
-                  <t.icon size={16} /> {t.label}
+                  <type.icon size={16} /> {t(type.label)}
                 </button>
               ))}
             </div>
@@ -423,8 +424,8 @@ export default function PosPage() {
 
         {editingId && (
           <div className="editing-banner">
-            <span>Buyurtma №{editingNumber} tahrirlanmoqda</span>
-            <button onClick={resetCart}><Plus size={13} /> Yangi buyurtma</button>
+            <span>{t('Buyurtma №{n} tahrirlanmoqda', { n: editingNumber })}</span>
+            <button onClick={resetCart}><Plus size={13} /> {t('Yangi buyurtma')}</button>
           </div>
         )}
 
@@ -432,7 +433,7 @@ export default function PosPage() {
           {cart.length === 0 ? (
             <div className="cart-empty">
               <span className="empty-icon"><ShoppingCart size={20} /></span>
-              Savat bo'sh.<br />Mahsulot tanlang.
+              {t("Savat bo'sh.")}<br />{t('Mahsulot tanlang.')}
             </div>
           ) : (
             cart.map((it, idx) => (
@@ -442,12 +443,12 @@ export default function PosPage() {
                   <div className="cart-item-price">{fmtMoney(it.price)} so'm</div>
                 </div>
                 <div className="qty-ctrl">
-                  <button className="qty-btn" onClick={() => changeQty(idx, -1)} aria-label="Kamaytirish"><Minus size={15} /></button>
+                  <button className="qty-btn" onClick={() => changeQty(idx, -1)} aria-label={t('Kamaytirish')}><Minus size={15} /></button>
                   <span className="qty-val">{fmtQty(it.qty)}</span>
-                  <button className="qty-btn" onClick={() => changeQty(idx, 1)} aria-label="Ko'paytirish"><Plus size={15} /></button>
+                  <button className="qty-btn" onClick={() => changeQty(idx, 1)} aria-label={t("Ko'paytirish")}><Plus size={15} /></button>
                 </div>
                 <span className="cart-item-total">{fmtMoney(it.price * it.qty)}</span>
-                <button className="cart-item-remove" onClick={() => setCart((prev) => prev.filter((_, i) => i !== idx))} aria-label="O'chirish"><Trash2 size={15} /></button>
+                <button className="cart-item-remove" onClick={() => setCart((prev) => prev.filter((_, i) => i !== idx))} aria-label={t("O'chirish")}><Trash2 size={15} /></button>
               </div>
             ))
           )}
@@ -455,11 +456,11 @@ export default function PosPage() {
 
         <div className="cart-summary">
           <div className="summary-row">
-            <span>Jami</span>
+            <span>{t('Jami')}</span>
             <span>{fmtSum(subtotal)}</span>
           </div>
           <div className="discount-row">
-            <span className="label">Chegirma</span>
+            <span className="label">{t('Chegirma')}</span>
             <input
               className="input discount-input"
               type="number"
@@ -472,7 +473,7 @@ export default function PosPage() {
             <span className="flex-1 text-right muted">{discount > 0 ? `−${fmtMoney(discount)}` : ''}</span>
           </div>
           <div className="summary-total">
-            <span>To'lovga</span>
+            <span>{t("To'lovga")}</span>
             <span>{fmtSum(total)}</span>
           </div>
         </div>
@@ -480,20 +481,20 @@ export default function PosPage() {
         <div className="cart-actions">
           {mayPay ? (
             <>
-              <button className="btn btn-secondary btn-block" disabled={!cart.length || busy} onClick={() => handleSave(true)} title="Oshxonaga yuborish">
-                {busy ? <><Loader2 size={18} className="spin" /> <span className="hide-sm">Saqlanmoqda...</span></> : <><ChefHat size={18} /> <span className="hide-sm">Oshxonaga yuborish</span></>}
+              <button className="btn btn-secondary btn-block" disabled={!cart.length || busy} onClick={() => handleSave(true)} title={t('Oshxonaga yuborish')}>
+                {busy ? <><Loader2 size={18} className="spin" /> <span className="hide-sm">{t('Saqlanmoqda...')}</span></> : <><ChefHat size={18} /> <span className="hide-sm">{t('Oshxonaga yuborish')}</span></>}
               </button>
-              <button className="btn btn-primary btn-lg btn-block" disabled={!cart.length || busy} onClick={handlePay} title="To'lov qilish">
-                <CreditCard size={18} /> <span className="hide-sm">To'lov qilish · </span>{fmtMoney(total)}
+              <button className="btn btn-primary btn-lg btn-block" disabled={!cart.length || busy} onClick={handlePay} title={t("To'lov qilish")}>
+                <CreditCard size={18} /> <span className="hide-sm">{t("To'lov qilish")} · </span>{fmtMoney(total)}
               </button>
             </>
           ) : (
             <>
-              <button className="btn btn-secondary btn-block" disabled={!cart.length || busy} onClick={() => handleSave(false)} title="Buyurtmani saqlash">
-                <ReceiptText size={18} /> Saqlash
+              <button className="btn btn-secondary btn-block" disabled={!cart.length || busy} onClick={() => handleSave(false)} title={t('Buyurtmani saqlash')}>
+                <ReceiptText size={18} /> {t('Saqlash')}
               </button>
-              <button className="btn btn-primary btn-lg btn-block" disabled={!cart.length || busy} onClick={() => handleSave(true)} title="Oshxonaga yuborish">
-                {busy ? <><Loader2 size={18} className="spin" /> <span className="hide-sm">Saqlanmoqda...</span></> : <><ChefHat size={18} /> <span className="hide-sm">Oshxonaga yuborish</span></>}
+              <button className="btn btn-primary btn-lg btn-block" disabled={!cart.length || busy} onClick={() => handleSave(true)} title={t('Oshxonaga yuborish')}>
+                {busy ? <><Loader2 size={18} className="spin" /> <span className="hide-sm">{t('Saqlanmoqda...')}</span></> : <><ChefHat size={18} /> <span className="hide-sm">{t('Oshxonaga yuborish')}</span></>}
               </button>
             </>
           )}
@@ -512,11 +513,11 @@ export default function PosPage() {
       )}
 
       {showOpen && (
-        <Modal title={`Ochiq buyurtmalar (${openOrders.length})`} onClose={() => setShowOpen(false)} width={620}>
+        <Modal title={t('Ochiq buyurtmalar ({n})', { n: openOrders.length })} onClose={() => setShowOpen(false)} width={620}>
           {openOrders.length === 0 ? (
             <div className="empty-state">
               <span className="empty-icon"><FolderOpen size={22} /></span>
-              Ochiq buyurtmalar yo'q
+              {t("Ochiq buyurtmalar yo'q")}
             </div>
           ) : (
             openOrders.map((o) => (
@@ -525,27 +526,27 @@ export default function PosPage() {
                   <div className="open-order-num">
                     №{o.number}{' '}
                     <span className="badge badge-gray">
-                      <MapIcon map={ORDER_TYPES} name={o.type} size={14} /> {o.table_name || ORDER_TYPES[o.type]?.label}
+                      <MapIcon map={ORDER_TYPES} name={o.type} size={14} /> {o.table_name || t(ORDER_TYPES[o.type]?.label)}
                     </span>
                     {o.kitchen_status !== 'none' && (
                       <span className="badge badge-blue">
-                        <MapIcon map={KITCHEN_STATES} name={o.kitchen_status} size={14} /> {KITCHEN_STATES[o.kitchen_status]?.label}
+                        <MapIcon map={KITCHEN_STATES} name={o.kitchen_status} size={14} /> {t(KITCHEN_STATES[o.kitchen_status]?.label)}
                       </span>
                     )}
                   </div>
                   <div className="open-order-meta">
-                    {fmtTime(o.created_at)} · {fmtQty(o.item_count)} mahsulot{o.staff_name ? ` · ${o.staff_name}` : ''}
+                    {fmtTime(o.created_at)} · {t('{n} mahsulot', { n: fmtQty(o.item_count) })}{o.staff_name ? ` · ${o.staff_name}` : ''}
                   </div>
                 </div>
                 <span className="open-order-total">{fmtSum(o.total)}</span>
                 {can('orderCreate') && (
-                  <button className="btn btn-secondary btn-sm" onClick={() => resumeOrder(o)}>Ochish</button>
+                  <button className="btn btn-secondary btn-sm" onClick={() => resumeOrder(o)}>{t('Ochish')}</button>
                 )}
                 {mayPay && (
-                  <button className="btn btn-primary btn-sm" onClick={() => payExisting(o)}>To'lov</button>
+                  <button className="btn btn-primary btn-sm" onClick={() => payExisting(o)}>{t("To'lov")}</button>
                 )}
                 {can('cancel') && (
-                  <button className="btn btn-ghost btn-sm" onClick={() => setCancelTarget(o)} aria-label="Bekor qilish"><X size={14} /></button>
+                  <button className="btn btn-ghost btn-sm" onClick={() => setCancelTarget(o)} aria-label={t('Bekor qilish')}><X size={14} /></button>
                 )}
               </div>
             ))
@@ -561,16 +562,16 @@ export default function PosPage() {
 
       {cancelTarget && (
         <ConfirmModal
-          title="Buyurtmani bekor qilish"
-          message={`№${cancelTarget.number} buyurtma bekor qilinsinmi?`}
-          confirmLabel="Bekor qilish"
+          title={t('Buyurtmani bekor qilish')}
+          message={t('№{n} buyurtma bekor qilinsinmi?', { n: cancelTarget.number })}
+          confirmLabel={t('Bekor qilish')}
           danger
           onClose={() => setCancelTarget(null)}
           onConfirm={async () => {
             try {
               await cancelOrder(cancelTarget.id);
               if (editingId === cancelTarget.id) resetCart();
-              toast('Buyurtma bekor qilindi', 'info');
+              toast(t('Buyurtma bekor qilindi'), 'info');
             } catch (e) {
               toast(e.message, 'error');
             }
@@ -584,7 +585,7 @@ export default function PosPage() {
 function TableButton({ table, onClick }) {
   return (
     <button className={`table-select-btn ${table ? 'selected' : ''}`} onClick={onClick}>
-      <Armchair size={16} /> {table ? `${table.name} (${table.zone})` : 'Stol tanlang...'}
+      <Armchair size={16} /> {table ? `${table.name} (${table.zone})` : t('Stol tanlang...')}
     </button>
   );
 }

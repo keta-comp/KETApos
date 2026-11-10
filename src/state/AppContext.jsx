@@ -5,6 +5,7 @@ import { useAuth } from './AuthContext.jsx';
 import { can as roleCan, homeFor, pagesFor, roleLabel } from '../lib/roles.js';
 import { isOffline, onStatus, queueStats, setIdentity } from '../lib/offline.js';
 import { drain, onSynced, watchSync } from '../lib/sync.js';
+import { t } from '../lib/i18n.js';
 
 const AppCtx = createContext(null);
 
@@ -63,8 +64,8 @@ export function AppProvider({ children }) {
   useEffect(() => {
     if (!connected) return undefined;
     const unSynced = onSynced(({ synced, failed }) => {
-      if (synced) toastRef.current?.(`Navbat yuborildi: ${synced} amal serverga ketdi`);
-      if (failed) toastRef.current?.(`${failed} amal yuborilmadi — „Navbat“ oynasini oching`, 'error');
+      if (synced) toastRef.current?.(t('Navbat yuborildi: {synced} amal serverga ketdi', { synced }));
+      if (failed) toastRef.current?.(t('{failed} amal yuborilmadi — „Navbat“ oynasini oching', { failed }), 'error');
     });
     const stop = watchSync();
     return () => {
@@ -79,7 +80,7 @@ export function AppProvider({ children }) {
     return startLive({
       venueId,
       self: { id: userId, name: displayName, role },
-      onNewOrder: (o) => toastRef.current?.(`Yangi buyurtma №${o.number}`, 'info'),
+      onNewOrder: (o) => toastRef.current?.(t('Yangi buyurtma №{number}', { number: o.number }), 'info'),
       onPeers: (list) => setPeers(list.filter((p) => p.id !== userId)),
     });
   }, [connected, venueId, userId, role, displayName]);

@@ -10,6 +10,8 @@
 // (venue_id, client_id) unikal — shuning uchun navbat ikki marta yuborilsa ham
 // takror buyurtma tug'maydi va raqam ikkinchi marta olinmaydi.
 
+import { t } from './i18n.js';
+
 const DB_NAME = 'pos-offline';
 const DB_VERSION = 1;
 
@@ -243,7 +245,7 @@ export function localOrder({ clientId, p, tableName }) {
     created_at: p.created_at || stamp(),
     paid_at: paid ? paid.at : null,
     created_by: identity.id,
-    staff_name: identity.name || 'Xodim',
+    staff_name: identity.name || t('Xodim'),
     item_count: items.reduce((s, it) => s + it.qty, 0),
     items,
   };

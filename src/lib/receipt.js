@@ -1,5 +1,6 @@
 import { fmtMoney, fmtDateTime, ORDER_TYPES, PAY_METHODS, fmtQty } from './format.js';
 import { isThermalMode, printThermal } from './printer.js';
+import { t } from './i18n.js';
 
 function esc(s) {
   return String(s ?? '').replace(/[&<>"']/g, (c) => ({
@@ -8,8 +9,8 @@ function esc(s) {
 }
 
 export function buildReceiptHtml(order, settings) {
-  const type = ORDER_TYPES[order.type]?.label || order.type;
-  const method = PAY_METHODS[order.payment_method]?.label || '';
+  const type = t(ORDER_TYPES[order.type]?.label) || order.type;
+  const method = t(PAY_METHODS[order.payment_method]?.label) || '';
   const items = (order.items || [])
     .map(
       (it) => `
@@ -25,7 +26,7 @@ export function buildReceiptHtml(order, settings) {
     .join('');
 
   return `<!doctype html>
-<html><head><meta charset="utf-8"><title>Chek №${order.number}</title>
+<html><head><meta charset="utf-8"><title>${t('Chek №{n}', { n: order.number })}</title>
 <style>
   @page { size: 80mm auto; margin: 0; }
   * { box-sizing: border-box; }
@@ -50,21 +51,21 @@ export function buildReceiptHtml(order, settings) {
   ${settings.store_address ? `<div class="center small">${esc(settings.store_address)}</div>` : ''}
   ${settings.store_phone ? `<div class="center small">Tel: ${esc(settings.store_phone)}</div>` : ''}
   <div class="divider"></div>
-  <div class="row"><span>Chek №${order.number}</span><span>${esc(type)}</span></div>
+  <div class="row"><span>${t('Chek №{n}', { n: order.number })}</span><span>${esc(type)}</span></div>
   <div class="row small"><span>${fmtDateTime(order.paid_at || order.created_at)}</span>
-  ${order.table_name ? `<span>Stol: ${esc(order.table_name)}</span>` : ''}</div>
+  ${order.table_name ? `<span>${t('Stol')}: ${esc(order.table_name)}</span>` : ''}</div>
   <div class="divider"></div>
   ${items}
   <div class="divider"></div>
-  <div class="row"><span>Jami:</span><span>${fmtMoney(order.subtotal)}</span></div>
-  ${order.discount > 0 ? `<div class="row"><span>Chegirma (${order.discount_percent}%):</span><span>-${fmtMoney(order.discount)}</span></div>` : ''}
-  <div class="row total"><span>TO'LOV:</span><span>${fmtMoney(order.total)} so'm</span></div>
-  ${method ? `<div class="row"><span>To'lov turi:</span><span>${esc(method)}</span></div>` : ''}
+  <div class="row"><span>${t('Jami')}:</span><span>${fmtMoney(order.subtotal)}</span></div>
+  ${order.discount > 0 ? `<div class="row"><span>${t('Chegirma ({pct}%)', { pct: order.discount_percent })}:</span><span>-${fmtMoney(order.discount)}</span></div>` : ''}
+  <div class="row total"><span>${t("TO'LOV")}</span><span>${fmtMoney(order.total)} so'm</span></div>
+  ${method ? `<div class="row"><span>${t("To'lov turi")}:</span><span>${esc(method)}</span></div>` : ''}
   ${order.payment_method === 'cash' ? `
-    <div class="row"><span>Qabul qilindi:</span><span>${fmtMoney(order.received)}</span></div>
-    <div class="row"><span>Qaytim:</span><span>${fmtMoney(order.change_amount)}</span></div>` : ''}
+    <div class="row"><span>${t('Qabul qilindi')}:</span><span>${fmtMoney(order.received)}</span></div>
+    <div class="row"><span>${t('Qaytim')}:</span><span>${fmtMoney(order.change_amount)}</span></div>` : ''}
   <div class="divider"></div>
-  <div class="footer">${esc(settings.receipt_footer || 'Xaridingiz uchun rahmat!')}</div>
+  <div class="footer">${esc(t(settings.receipt_footer || 'Xaridingiz uchun rahmat!'))}</div>
 </body></html>`;
 }
 

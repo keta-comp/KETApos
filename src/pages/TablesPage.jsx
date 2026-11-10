@@ -12,6 +12,7 @@ import MapIcon from '../components/MapIcon.jsx';
 import { Sk, SkCards } from '../components/Skeleton.jsx';
 import PaymentModal from '../components/PaymentModal.jsx';
 import ReceiptModal from '../components/ReceiptModal.jsx';
+import { t } from '../lib/i18n.js';
 
 export default function TablesPage() {
   const { navigate, toast, can } = useApp();
@@ -31,7 +32,7 @@ export default function TablesPage() {
 
   const tables = data?.tables || [];
   const zones = data?.zones || [];
-  const busyCount = tables.filter((t) => t.order_id).length;
+  const busyCount = tables.filter((tb) => tb.order_id).length;
 
   useEffect(() => {
     if (!mayEdit) setEditMode(false);
@@ -50,15 +51,15 @@ export default function TablesPage() {
   useEffect(() => {
     if (!orderTarget || orderLoading || currentOrder) return;
     setOrderTarget(null);
-    toast('Bu stolning buyurtmasi allaqachon yopilgan', 'error');
+    toast(t('Bu stolning buyurtmasi allaqachon yopilgan'), 'error');
   }, [orderTarget, orderLoading, currentOrder, toast]);
 
-  function onTableClick(t) {
+  function onTableClick(tb) {
     if (editMode) return;
-    if (t.order_id) {
-      setOrderTarget(t);
+    if (tb.order_id) {
+      setOrderTarget(tb);
     } else {
-      navigate('pos', { tableId: t.id });
+      navigate('pos', { tableId: tb.id });
     }
   }
 
@@ -66,19 +67,23 @@ export default function TablesPage() {
     <div className="page">
       <div className="page-head">
         <div>
-          <h1 className="page-title"><Users size={22} /> Stollar</h1>
+          <h1 className="page-title"><Users size={22} /> {t('Stollar')}</h1>
           <div className="page-sub">
-            {tables.length} ta stol · {busyCount} band · {tables.length - busyCount} bo'sh
+            {t("{n} ta stol · {b} band · {f} bo'sh", {
+              n: tables.length,
+              b: busyCount,
+              f: tables.length - busyCount,
+            })}
           </div>
         </div>
         <div className="head-actions">
           {mayEdit && (
             <>
               <button className={`btn ${editMode ? 'btn-primary' : 'btn-outline'}`} onClick={() => setEditMode(!editMode)}>
-                <Pencil size={16} /> {editMode ? 'Tahrirni yakunlash' : 'Tahrirlash'}
+                <Pencil size={16} /> {editMode ? t('Tahrirni yakunlash') : t('Tahrirlash')}
               </button>
-              <button className="btn btn-primary" onClick={() => setFormTarget({ name: '', zone: zones[0] || 'Asosiy zal', seats: 4 })}>
-                <Plus size={16} /> Stol qo'shish
+              <button className="btn btn-primary" onClick={() => setFormTarget({ name: '', zone: zones[0] || t('Asosiy zal'), seats: 4 })}>
+                <Plus size={16} /> {t("Stol qo'shish")}
               </button>
             </>
           )}
@@ -101,34 +106,34 @@ export default function TablesPage() {
               <div key={zone} className="zone-section">
                 <div className="zone-title">{zone}</div>
                 <div className="table-grid">
-                  {tables.filter((t) => t.zone === zone).map((t) => (
+                  {tables.filter((tb) => tb.zone === zone).map((tb) => (
                     <div
-                      key={t.id}
-                      className={`table-card ${t.order_id ? 'busy' : 'free'}`}
-                      onClick={() => onTableClick(t)}
+                      key={tb.id}
+                      className={`table-card ${tb.order_id ? 'busy' : 'free'}`}
+                      onClick={() => onTableClick(tb)}
                       role="button"
                       tabIndex={0}
-                      onKeyDown={(e) => e.key === 'Enter' && onTableClick(t)}
+                      onKeyDown={(e) => e.key === 'Enter' && onTableClick(tb)}
                     >
                       {editMode && (
                         <div className="table-edit-btns">
-                          <button onClick={(e) => { e.stopPropagation(); setFormTarget(t); }}><Pencil size={13} /></button>
-                          <button onClick={(e) => { e.stopPropagation(); setDeleteTarget(t); }}><Trash2 size={13} /></button>
+                          <button onClick={(e) => { e.stopPropagation(); setFormTarget(tb); }}><Pencil size={13} /></button>
+                          <button onClick={(e) => { e.stopPropagation(); setDeleteTarget(tb); }}><Trash2 size={13} /></button>
                         </div>
                       )}
-                      <span className="table-icon">{t.order_id ? <Users size={26} /> : <Armchair size={26} />}</span>
-                      <span className="table-name">{t.name}</span>
-                      <span className="table-seats">{t.seats} o'rin</span>
-                      {t.order_id ? (
+                      <span className="table-icon">{tb.order_id ? <Users size={26} /> : <Armchair size={26} />}</span>
+                      <span className="table-name">{tb.name}</span>
+                      <span className="table-seats">{t("{n} o'rin", { n: tb.seats })}</span>
+                      {tb.order_id ? (
                         <>
-                          <span className="table-status">№{t.order_number}</span>
-                          <span className="table-total">{fmtSum(t.order_total)}</span>
+                          <span className="table-status">№{tb.order_number}</span>
+                          <span className="table-total">{fmtSum(tb.order_total)}</span>
                           <span className="table-time">
-                            {fmtTime(t.order_since)} · {minutesSince(t.order_since)} daqiqa · {fmtQty(t.item_count)} ta
+                            {fmtTime(tb.order_since)} · {t('{n} daqiqa', { n: minutesSince(tb.order_since) })} · {t('{n} ta', { n: fmtQty(tb.item_count) })}
                           </span>
                         </>
                       ) : (
-                        <span className="table-status">Bo'sh</span>
+                        <span className="table-status">{t("Bo'sh")}</span>
                       )}
                     </div>
                   ))}
@@ -138,7 +143,7 @@ export default function TablesPage() {
             {tables.length === 0 && (
               <div className="empty-state">
                 <span className="empty-icon"><Armchair size={22} /></span>
-                {mayEdit ? 'Stollar yo\'q. "Stol qo\'shish" tugmasi bilan qo\'shing.' : 'Hali stol qo\'shilmagan — egasidan so\'rang.'}
+                {mayEdit ? t('Stollar yo\'q. "Stol qo\'shish" tugmasi bilan qo\'shing.') : t('Hali stol qo\'shilmagan — egasidan so\'rang.')}
               </div>
             )}
           </>
@@ -152,22 +157,22 @@ export default function TablesPage() {
           onClose={() => setFormTarget(null)}
           onSaved={() => {
             setFormTarget(null);
-            toast('Stol saqlandi');
+            toast(t('Stol saqlandi'));
           }}
         />
       )}
 
       {deleteTarget && (
         <ConfirmModal
-          title="Stolni o'chirish"
-          message={`"${deleteTarget.name}" stoli o'chirilsinmi?`}
-          confirmLabel="O'chirish"
+          title={t("Stolni o'chirish")}
+          message={t('"{name}" stoli o\'chirilsinmi?', { name: deleteTarget.name })}
+          confirmLabel={t("O'chirish")}
           danger
           onClose={() => setDeleteTarget(null)}
           onConfirm={async () => {
             try {
               await deleteTable(deleteTarget.id);
-              toast("Stol o'chirildi", 'info');
+              toast(t("Stol o'chirildi"), 'info');
             } catch (e) {
               toast(e.message, 'error');
             }
@@ -177,22 +182,22 @@ export default function TablesPage() {
 
       {currentOrder && (
         <Modal
-          title={`Stol ${orderTarget.name} — Buyurtma №${currentOrder.number}`}
+          title={t('Stol {name} — Buyurtma №{n}', { name: orderTarget.name, n: currentOrder.number })}
           onClose={() => setOrderTarget(null)}
           width={520}
           footer={
             <>
               {can('cancel') && (
-                <button className="btn btn-danger" onClick={() => setCancelTarget(currentOrder)}>Bekor qilish</button>
+                <button className="btn btn-danger" onClick={() => setCancelTarget(currentOrder)}>{t('Bekor qilish')}</button>
               )}
               {can('orderCreate') && (
                 <button className="btn btn-secondary" onClick={() => navigate('pos', { resumeOrderId: currentOrder.id })}>
-                  <Pencil size={16} /> Kassada ochish
+                  <Pencil size={16} /> {t('Kassada ochish')}
                 </button>
               )}
               {can('pay') && (
                 <button className="btn btn-success" onClick={() => { setPayTarget(currentOrder); setOrderTarget(null); }}>
-                  <CreditCard size={16} /> To'lov · {fmtSum(currentOrder.total)}
+                  <CreditCard size={16} /> {t("To'lov")} · {fmtSum(currentOrder.total)}
                 </button>
               )}
             </>
@@ -200,12 +205,12 @@ export default function TablesPage() {
         >
           <div className="row-between mb-2">
             <span className="badge badge-gray">
-              <MapIcon map={ORDER_TYPES} name={currentOrder.type} size={14} /> {ORDER_TYPES[currentOrder.type]?.label}
+              <MapIcon map={ORDER_TYPES} name={currentOrder.type} size={14} /> {t(ORDER_TYPES[currentOrder.type]?.label)}
             </span>
-            <span className="muted">{fmtTime(currentOrder.created_at)} · {minutesSince(currentOrder.created_at)} daqiqa</span>
+            <span className="muted">{fmtTime(currentOrder.created_at)} · {t('{n} daqiqa', { n: minutesSince(currentOrder.created_at) })}</span>
             {currentOrder.kitchen_status !== 'none' && (
               <span className="badge badge-blue">
-                <MapIcon map={KITCHEN_STATES} name={currentOrder.kitchen_status} size={14} /> {KITCHEN_STATES[currentOrder.kitchen_status]?.label}
+                <MapIcon map={KITCHEN_STATES} name={currentOrder.kitchen_status} size={14} /> {t(KITCHEN_STATES[currentOrder.kitchen_status]?.label)}
               </span>
             )}
           </div>
@@ -220,13 +225,13 @@ export default function TablesPage() {
               ))}
               {currentOrder.discount > 0 && (
                 <tr>
-                  <td className="muted">Chegirma ({currentOrder.discount_percent}%)</td>
+                  <td className="muted">{t('Chegirma ({pct}%)', { pct: currentOrder.discount_percent })}</td>
                   <td></td>
                   <td className="text-right muted">−{fmtMoney(currentOrder.discount)}</td>
                 </tr>
               )}
               <tr>
-                <td className="bold">Jami</td>
+                <td className="bold">{t('Jami')}</td>
                 <td></td>
                 <td className="text-right bold" style={{ fontSize: 17 }}>{fmtSum(currentOrder.total)}</td>
               </tr>
@@ -251,16 +256,16 @@ export default function TablesPage() {
 
       {cancelTarget && (
         <ConfirmModal
-          title="Buyurtmani bekor qilish"
-          message={`№${cancelTarget.number} buyurtma bekor qilinsinmi? Stol bo'shatiladi.`}
-          confirmLabel="Bekor qilish"
+          title={t('Buyurtmani bekor qilish')}
+          message={t('№{n} buyurtma bekor qilinsinmi? Stol bo\'shatiladi.', { n: cancelTarget.number })}
+          confirmLabel={t('Bekor qilish')}
           danger
           onClose={() => setCancelTarget(null)}
           onConfirm={async () => {
             try {
               await cancelOrder(cancelTarget.id);
               setOrderTarget(null);
-              toast('Buyurtma bekor qilindi', 'info');
+              toast(t('Buyurtma bekor qilindi'), 'info');
             } catch (e) {
               toast(e.message, 'error');
             }
@@ -274,19 +279,19 @@ export default function TablesPage() {
 function TableFormModal({ table, zones, onClose, onSaved }) {
   const { toast } = useApp();
   const [name, setName] = useState(table.name || '');
-  const [zone, setZone] = useState(table.zone || zones[0] || 'Asosiy zal');
+  const [zone, setZone] = useState(table.zone || zones[0] || t('Asosiy zal'));
   const [seats, setSeats] = useState(table.seats || 4);
   const [busy, setBusy] = useState(false);
 
   async function save() {
     if (busy) return;
     if (!name.trim()) {
-      toast('Stol nomini kiriting', 'error');
+      toast(t('Stol nomini kiriting'), 'error');
       return;
     }
     setBusy(true);
     try {
-      const payload = { name: name.trim(), zone: zone.trim() || 'Asosiy zal', seats: Number(seats) || 4 };
+      const payload = { name: name.trim(), zone: zone.trim() || t('Asosiy zal'), seats: Number(seats) || 4 };
       if (table.id) await updateTable(table.id, payload);
       else await addTable(payload);
       onSaved();
@@ -298,32 +303,32 @@ function TableFormModal({ table, zones, onClose, onSaved }) {
 
   return (
     <Modal
-      title={table.id ? 'Stolni tahrirlash' : 'Yangi stol'}
+      title={table.id ? t('Stolni tahrirlash') : t('Yangi stol')}
       onClose={onClose}
       width={440}
       footer={
         <>
-          <button className="btn btn-secondary" onClick={onClose}>Bekor qilish</button>
+          <button className="btn btn-secondary" onClick={onClose}>{t('Bekor qilish')}</button>
           <button className="btn btn-primary" disabled={busy} onClick={save}>
-            {busy ? 'Saqlanmoqda...' : 'Saqlash'}
+            {busy ? t('Saqlanmoqda...') : t('Saqlash')}
           </button>
         </>
       }
     >
       <div className="field">
-        <label className="label">Stol nomi</label>
-        <input className="input" value={name} onChange={(e) => setName(e.target.value)} placeholder="Masalan: 11-stol" autoFocus />
+        <label className="label">{t('Stol nomi')}</label>
+        <input className="input" value={name} onChange={(e) => setName(e.target.value)} placeholder={t('Masalan: 11-stol')} autoFocus />
       </div>
       <div className="form-row">
         <div className="field">
-          <label className="label">Zona</label>
+          <label className="label">{t('Zona')}</label>
           <input className="input" list="zones-list" value={zone} onChange={(e) => setZone(e.target.value)} />
           <datalist id="zones-list">
             {zones.map((z) => <option key={z} value={z} />)}
           </datalist>
         </div>
         <div className="field">
-          <label className="label">O'rinlar soni</label>
+          <label className="label">{t("O'rinlar soni")}</label>
           <input className="input" type="number" min="1" value={seats} onChange={(e) => setSeats(e.target.value)} />
         </div>
       </div>

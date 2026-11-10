@@ -11,6 +11,7 @@ import { useApp } from '../state/AppContext.jsx';
 import { useAuth } from '../state/AuthContext.jsx';
 import { useData } from '../state/useData.js';
 import { fmtSum } from '../lib/format.js';
+import { t } from '../lib/i18n.js';
 import { ROLE_META, ROLES } from '../lib/roles.js';
 import {
   getStaff, getInvites, issueInvite, revokeInvite, updateStaff, removeStaff,
@@ -37,14 +38,14 @@ export default function StaffPage() {
       <div className="page">
         <div className="page-head">
           <div>
-            <h1 className="page-title"><UserCog size={22} /> Xodimlar</h1>
-            <div className="page-sub">Bu sahifani faqat do‘kon egasi ochadi</div>
+            <h1 className="page-title"><UserCog size={22} /> {t('Xodimlar')}</h1>
+            <div className="page-sub">{t('Bu sahifani faqat do‘kon egasi ochadi')}</div>
           </div>
         </div>
         <div className="page-body">
           <div className="empty-state">
             <span className="empty-icon"><BadgeCheck size={22} /></span>
-            Xodim qo‘shish uchun egasidan taklif kod so‘rang.
+            {t('Xodim qo‘shish uchun egasidan taklif kod so‘rang.')}
           </div>
         </div>
       </div>
@@ -55,7 +56,7 @@ export default function StaffPage() {
     setInviteBusy(staffRole);
     try {
       const code = await issueInvite(staffRole);
-      toast(`Kod tayyor: ${code}`, 'success');
+      toast(t('Kod tayyor: {code}', { code }), 'success');
       reload();
     } catch (e) {
       toast(e.message, 'error');
@@ -70,14 +71,14 @@ export default function StaffPage() {
       setCopied(code);
       setTimeout(() => setCopied(''), 1800);
     } catch {
-      toast('Kodni nusxalab bo‘lmadi — qo‘lda yozib oling', 'error');
+      toast(t('Kodni nusxalab bo‘lmadi — qo‘lda yozib oling'), 'error');
     }
   }
 
   async function saveEdit(fields) {
     try {
       await updateStaff(edit.id, fields);
-      toast('Xodim yangilandi');
+      toast(t('Xodim yangilandi'));
       setEdit(null);
       refresh();
     } catch (e) {
@@ -88,7 +89,7 @@ export default function StaffPage() {
   async function drop(row) {
     try {
       await removeStaff(row.id);
-      toast(`${row.display_name} ishdan chiqarildi`);
+      toast(t('{name} ishdan chiqarildi', { name: row.display_name }));
       refresh();
     } catch (e) {
       toast(e.message, 'error');
@@ -104,11 +105,11 @@ export default function StaffPage() {
     <div className="page">
       <div className="page-head">
         <div>
-          <h1 className="page-title"><UserCog size={22} /> Xodimlar</h1>
+          <h1 className="page-title"><UserCog size={22} /> {t('Xodimlar')}</h1>
           <div className="page-sub">
             {loading && !data
-              ? 'Jamoani yuklayapmiz...'
-              : `${staff.length} kishi · ${active.length} ta faol kod · ro'yxat jonli yangilanadi`}
+              ? t('Jamoani yuklayapmiz...')
+              : t("{n} kishi · {a} ta faol kod · ro'yxat jonli yangilanadi", { n: staff.length, a: active.length })}
           </div>
         </div>
       </div>
@@ -127,13 +128,13 @@ export default function StaffPage() {
         ) : (
           <>
             <div className="stat-cards">
-              <StatCard icon={Users} label="Jamoa" value={`${staff.length} kishi`} />
-              <StatCard icon={Radio} label="Onlayn" value={`${online.size + 1} kishi`} />
-              <StatCard icon={KeyRound} label="Faol kodlar" value={`${active.length} ta`} />
-              <StatCard icon={BadgeCheck} label="Ishlatilgan" value={`${used.length} ta`} />
+              <StatCard icon={Users} label={t('Jamoa')} value={t('{n} kishi', { n: staff.length })} />
+              <StatCard icon={Radio} label={t('Onlayn')} value={t('{n} kishi', { n: online.size + 1 })} />
+              <StatCard icon={KeyRound} label={t('Faol kodlar')} value={t('{n} ta', { n: active.length })} />
+              <StatCard icon={BadgeCheck} label={t('Ishlatilgan')} value={t('{n} ta', { n: used.length })} />
             </div>
 
-            <div className="section-title"><Users size={16} /> Jamoa tarkibi</div>
+            <div className="section-title"><Users size={16} /> {t('Jamoa tarkibi')}</div>
             <div className="card staff-list">
               {staff.map((s) => {
                 const Icon = ROLE_ICONS[s.role] || User;
@@ -141,7 +142,7 @@ export default function StaffPage() {
                   <div key={s.id} className="staff-row">
                     <span
                       className={online.has(s.user_id) || s.is_self ? 'online-dot' : 'online-dot off'}
-                      title={online.has(s.user_id) || s.is_self ? 'Hozir qurilmaga ulangan' : 'Hozir qurilmaga ulanmagan'}
+                      title={online.has(s.user_id) || s.is_self ? t('Hozir qurilmaga ulangan') : t('Hozir qurilmaga ulanmagan')}
                     />
                     <span className={`role-avatar role-${s.role}`}>
                       <Icon size={17} />
@@ -149,21 +150,21 @@ export default function StaffPage() {
                     <div className="staff-meta">
                       <div className="staff-title">
                         {s.display_name}
-                        {s.is_self && <span className="me-chip">siz</span>}
+                        {s.is_self && <span className="me-chip">{t('siz')}</span>}
                       </div>
                       <div className="staff-sub">
-                        {s.email || 'email ko‘rsatilmagan'}
-                        {s.orders_today > 0 && ` · bugun ${s.orders_today} buyurtma · ${fmtSum(s.total_today)}`}
+                        {s.email || t('email ko‘rsatilmagan')}
+                        {s.orders_today > 0 && t(' · bugun {n} buyurtma · {sum}', { n: s.orders_today, sum: fmtSum(s.total_today) })}
                       </div>
                     </div>
-                    <span className={`role-chip role-${s.role}`}>{ROLE_META[s.role]?.label || s.role}</span>
+                    <span className={`role-chip role-${s.role}`}>{t(ROLE_META[s.role]?.label || s.role)}</span>
                     {s.role !== 'owner' && (
                       <div className="row gap-sm">
-                        <button className="btn btn-ghost btn-sm" onClick={() => setEdit(s)} title="Ism yoki rol"><Pencil size={15} /></button>
+                        <button className="btn btn-ghost btn-sm" onClick={() => setEdit(s)} title={t('Ism yoki rol')}><Pencil size={15} /></button>
                         <button
                           className="btn btn-ghost btn-sm btn-danger-ghost"
                           onClick={() => setConfirm(s)}
-                          title="Ishdan chiqarish"
+                          title={t('Ishdan chiqarish')}
                         >
                           <Trash2 size={15} />
                         </button>
@@ -174,7 +175,7 @@ export default function StaffPage() {
               })}
             </div>
 
-            <div className="section-title"><KeyRound size={16} /> Xodimni qo'shish</div>
+            <div className="section-title"><KeyRound size={16} /> {t("Xodimni qo'shish")}</div>
             <div className="card invite-create">
               {STAFF_ROLES.map((r) => (
                 <button
@@ -184,50 +185,50 @@ export default function StaffPage() {
                   disabled={Boolean(inviteBusy)}
                 >
                   {inviteBusy === r ? <Spinner size={16} /> : <Plus size={16} />}
-                  {ROLE_META[r].label} uchun kod
+                  {t('{role} uchun kod', { role: t(ROLE_META[r].label) })}
                 </button>
               ))}
             </div>
 
             <div className="how-card">
-              <div className="how-head"><Info size={16} /> Xodim qanday qo'shiladi</div>
+              <div className="how-head"><Info size={16} /> {t("Xodim qanday qo'shiladi")}</div>
               <ol className="how-list">
-                <li>Yuqoridagi tugma bilan rolga mos <b>12 belgili kod</b> oling va xodimga bering.</li>
-                <li>Xodim o'z telefonida ilovani ochib, <b>Yangi akkaunt</b> bo'limida email va parol yozadi.</li>
-                <li>So'ng <b>Kod bilan qo'shilish</b> bo'limiga kodni kiritadi — roli va ismi avtomatik tanlanadi.</li>
+                <li>{t('Yuqoridagi tugma bilan rolga mos')} <b>{t('12 belgili kod')}</b> {t('oling va xodimga bering.')}</li>
+                <li>{t("Xodim o'z telefonida ilovani ochib,")} <b>{t('Yangi akkaunt')}</b> {t("bo'limida email va parol yozadi.")}</li>
+                <li>{t("So'ng")} <b>{t("Kod bilan qo'shilish")}</b> {t("bo'limiga kodni kiritadi — roli va ismi avtomatik tanlanadi.")}</li>
               </ol>
-              <div className="how-note">Kod bir marta ishlatiladi va 7 kundan keyin o‘z-o‘zidan yopiladi. Eski kodni bekor qilib, yangisini olishingiz mumkin.</div>
+              <div className="how-note">{t('Kod bir marta ishlatiladi va 7 kundan keyin o‘z-o‘zidan yopiladi. Eski kodni bekor qilib, yangisini olishingiz mumkin.')}</div>
             </div>
 
             {active.length > 0 && (
               <>
-                <div className="section-title">Faol kodlar</div>
+                <div className="section-title">{t('Faol kodlar')}</div>
                 <div className="card staff-list">
                   {active.map((i) => (
                     <div key={i.id} className="staff-row">
                       <span className="staff-code">{i.code}</span>
                       <div className="staff-meta">
-                        <div className="staff-title">{ROLE_META[i.role]?.label || i.role}</div>
-                        <div className="staff-sub">{i.created_at} · ishlatilmagan · muddati {i.expires_at || 'cheksiz'}</div>
+                        <div className="staff-title">{t(ROLE_META[i.role]?.label || i.role)}</div>
+                        <div className="staff-sub">{t('{created} · ishlatilmagan · muddati {expires}', { created: i.created_at, expires: i.expires_at || t('cheksiz') })}</div>
                       </div>
                       <div className="row gap-sm">
                         <button className="btn btn-ghost btn-sm" onClick={() => copyCode(i.code)}>
                           {copied === i.code ? <BadgeCheck size={15} /> : <Copy size={15} />}
-                          {copied === i.code ? 'Nusxalandi' : 'Nusxalash'}
+                          {copied === i.code ? t('Nusxalandi') : t('Nusxalash')}
                         </button>
                         <button
                           className="btn btn-ghost btn-sm btn-danger-ghost"
                           onClick={async () => {
                             try {
                               await revokeInvite(i.id);
-                              toast('Kod bekor qilindi');
+                              toast(t('Kod bekor qilindi'));
                               refresh();
                             } catch (e) {
                               toast(e.message, 'error');
                             }
                           }}
                         >
-                          <Ban size={15} /> Bekor qilish
+                          <Ban size={15} /> {t('Bekor qilish')}
                         </button>
                       </div>
                     </div>
@@ -238,13 +239,13 @@ export default function StaffPage() {
 
             {used.length > 0 && (
               <>
-                <div className="section-title">Ishlatilgan kodlar</div>
+                <div className="section-title">{t('Ishlatilgan kodlar')}</div>
                 <div className="card staff-list">
                   {used.map((i) => (
                     <div key={i.id} className="staff-row used">
                       <span className="staff-code dim">{i.code}</span>
                       <div className="staff-meta">
-                        <div className="staff-title">{ROLE_META[i.role]?.label || i.role}</div>
+                        <div className="staff-title">{t(ROLE_META[i.role]?.label || i.role)}</div>
                         <div className="staff-sub">
                           <Mail size={12} /> {i.used_by} · {i.used_at}
                         </div>
@@ -260,9 +261,9 @@ export default function StaffPage() {
         {edit && <EditModal row={edit} onClose={() => setEdit(null)} onSave={saveEdit} />}
         {confirm && (
           <ConfirmModal
-            title="Ishdan chiqarish"
-            message={`${confirm.display_name} do‘kondan chiqarilsinmi? Akkaunti o‘chmaydi, lekin endi kirolmaydi.`}
-            confirmLabel="Chiqarish"
+            title={t('Ishdan chiqarish')}
+            message={t("{name} do‘kondan chiqarilsinmi? Akkaunti o‘chmaydi, lekin endi kirolmaydi.", { name: confirm.display_name })}
+            confirmLabel={t('Chiqarish')}
             danger
             onConfirm={() => drop(confirm)}
             onClose={() => setConfirm(null)}
@@ -288,27 +289,27 @@ function EditModal({ row, onClose, onSave }) {
 
   return (
     <Modal
-      title={`Xodim: ${row.display_name}`}
+      title={t('Xodim: {name}', { name: row.display_name })}
       onClose={onClose}
       footer={
         <>
-          <button className="btn btn-secondary" onClick={onClose}>Bekor qilish</button>
+          <button className="btn btn-secondary" onClick={onClose}>{t('Bekor qilish')}</button>
           <button
             className="btn btn-primary"
             disabled={!name.trim() || (name === row.display_name && role === row.role)}
             onClick={() => onSave({ display_name: name.trim(), role })}
           >
-            Saqlash
+            {t('Saqlash')}
           </button>
         </>
       }
     >
       <div className="field">
-        <label className="label">Ism (buyurtmada ko‘rinadi)</label>
+        <label className="label">{t('Ism (buyurtmada ko‘rinadi)')}</label>
         <input className="input" value={name} onChange={(e) => setName(e.target.value)} />
       </div>
       <div className="field">
-        <label className="label">Rol</label>
+        <label className="label">{t('Rol')}</label>
         <div className="role-picker">
           {STAFF_ROLES.map((r) => (
             <button
@@ -317,12 +318,12 @@ function EditModal({ row, onClose, onSave }) {
               className={`role-chip-btn ${role === r ? 'active' : ''}`}
               onClick={() => setRole(r)}
             >
-              {ROLE_META[r].label}
+              {t(ROLE_META[r].label)}
             </button>
           ))}
         </div>
       </div>
-      <div className="auth-note">Rol o‘zgarsa, xodim keyingi qayta kirishda yangi ekranlarni ko‘radi.</div>
+      <div className="auth-note">{t('Rol o‘zgarsa, xodim keyingi qayta kirishda yangi ekranlarni ko‘radi.')}</div>
     </Modal>
   );
 }

@@ -1,5 +1,6 @@
 import initSqlJs from 'sql.js';
 import { importLegacyDump } from '../supabase/queries.js';
+import { t } from './i18n.js';
 
 // Eski versiya (Electron/lokal) SQLite bazasini o'qib, Supabase'ga bir marta o'tkazib beradi.
 // Bu fayl ma'lumotni o'chirmaydi va ochmaydi: faqat o'qib nusxa oladi.
@@ -85,6 +86,6 @@ export async function getLegacySummary() {
 
 export async function runLegacyImport() {
   const dump = await readLegacyDump();
-  if (!dump) throw new Error("Kompyuterda eski (lokal) ma'lumot topilmadi.");
+  if (!dump) throw new Error(t("Kompyuterda eski (lokal) ma'lumot topilmadi."));
   return importLegacyDump(dump);
 }

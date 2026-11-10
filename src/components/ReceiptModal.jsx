@@ -3,6 +3,7 @@ import { Printer } from 'lucide-react';
 import Modal from './Modal.jsx';
 import Spinner from './Spinner.jsx';
 import { useApp } from '../state/AppContext.jsx';
+import { t } from '../lib/i18n.js';
 import { buildReceiptHtml, printReceipt } from '../lib/receipt.js';
 import { isThermalMode, thermalOptions, thermalPreview } from '../lib/printer.js';
 
@@ -33,11 +34,11 @@ export default function ReceiptModal({ order, onClose }) {
     try {
       const result = await printReceipt(order, settings);
       toast(
-        result?.device ? `Chek yuborildi: ${result.device}` : 'Chek chop etilmoqda',
+        result?.device ? t('Chek yuborildi: {device}', { device: result.device }) : t('Chek chop etilmoqda'),
         'success',
       );
     } catch (e) {
-      toast('Printer xatoligi: ' + e.message, 'error');
+      toast(t('Printer xatoligi: {msg}', { msg: e.message }), 'error');
     } finally {
       setBusy(false);
     }
@@ -45,14 +46,14 @@ export default function ReceiptModal({ order, onClose }) {
 
   return (
     <Modal
-      title={`Chek №${order.number}`}
+      title={t('Chek №{n}', { n: order.number })}
       onClose={onClose}
       width={440}
       footer={
         <>
-          <button className="btn btn-secondary" onClick={onClose}>Yopish</button>
+          <button className="btn btn-secondary" onClick={onClose}>{t('Yopish')}</button>
           <button className="btn btn-primary" disabled={busy} onClick={doPrint}>
-            <Printer size={18} /> Chop etish
+            <Printer size={18} /> {t('Chop etish')}
           </button>
         </>
       }
@@ -60,14 +61,14 @@ export default function ReceiptModal({ order, onClose }) {
       {thermal ? (
         <div className="thermal-preview">
           {preview
-            ? <img src={preview} width={mm === 58 ? 384 : 576} alt="Chek rastr ko'rinishi" />
-            : <div className="thermal-preview-empty"><Spinner size={18} /> Tayyorlanmoqda...</div>}
+            ? <img src={preview} width={mm === 58 ? 384 : 576} alt={t("Chek rastr ko'rinishi")} />
+            : <div className="thermal-preview-empty"><Spinner size={18} /> {t('Tayyorlanmoqda...')}</div>}
           <p className="muted mt-1">
-            Bu — termal printerdan chiqadigan haqiqiy ko'rinish ({mm} mm qog'oz).
+            {t("Bu — termal printerdan chiqadigan haqiqiy ko'rinish ({mm} mm qog'oz).", { mm })}
           </p>
         </div>
       ) : (
-        <iframe className="receipt-frame" srcDoc={html} title="Chek ko'rinishi" />
+        <iframe className="receipt-frame" srcDoc={html} title={t("Chek ko'rinishi")} />
       )}
     </Modal>
   );

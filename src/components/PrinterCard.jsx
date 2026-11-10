@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Printer, Save, Usb, PlugZap, RefreshCw, CircleAlert } from 'lucide-react';
 import Spinner from './Spinner.jsx';
 import { useApp } from '../state/AppContext.jsx';
+import { t } from '../lib/i18n.js';
 import { saveSettings } from '../supabase/queries.js';
 import {
   CUT_LABELS, TRANSPORT_LABELS, listComPorts, pickSerialPort, pickUsbDevice,
@@ -83,7 +84,7 @@ export default function PrinterCard() {
       await saveSettings(patch);
       setSaved(patch);
       refresh();
-      toast('Printer sozlamalari saqlandi');
+      toast(t('Printer sozlamalari saqlandi'));
     } catch (e) {
       toast(e.message, 'error');
     } finally {
@@ -102,7 +103,7 @@ export default function PrinterCard() {
       } : {});
       set('thermal_usb_vid', hex4(device.vendorId));
       set('thermal_usb_pid', hex4(device.productId));
-      toast(`Qurilma tanlandi: ${device.name} — „Saqlash“ tugmasini bosing`);
+      toast(t('Qurilma tanlandi: {name} — „Saqlash“ tugmasini bosing', { name: device.name }));
     } catch (e) {
       setNote(e.message);
       toast(e.message, 'error');
@@ -117,7 +118,7 @@ export default function PrinterCard() {
     setNote('');
     try {
       const device = await pickSerialPort();
-      toast(`Port tanlandi: ${device.name} — „Saqlash“ tugmasini bosing`);
+      toast(t('Port tanlandi: {name} — „Saqlash“ tugmasini bosing', { name: device.name }));
     } catch (e) {
       setNote(e.message);
       toast(e.message, 'error');
@@ -133,9 +134,9 @@ export default function PrinterCard() {
     try {
       const res = await printThermal(sampleTicketOrder(), merged);
       if (res.cancelled) {
-        setNote('Fayl saqlash bekor qilindi.');
+        setNote(t('Fayl saqlash bekor qilindi.'));
       } else {
-        toast(`Sinov cheki yuborildi: ${res.device} (${res.bytes} bayt)`);
+        toast(t('Sinov cheki yuborildi: {device} ({bytes} bayt)', { device: res.device, bytes: res.bytes }));
       }
     } catch (e) {
       setNote(e.message);
@@ -149,36 +150,35 @@ export default function PrinterCard() {
 
   return (
     <div className="card card-pad">
-      <div className="settings-section-title"><Printer size={18} /> Termal printer (ESC/POS)</div>
+      <div className="settings-section-title"><Printer size={18} /> {t('Termal printer (ESC/POS)')}</div>
       <div className="field">
-        <label className="label">Chop etish usuli</label>
+        <label className="label">{t('Chop etish usuli')}</label>
         <div className="seg">
           <button
             type="button"
             className={`seg-item ${!thermal ? 'active' : ''}`}
             onClick={() => set('print_mode', 'driver')}
           >
-            Oddiy drayver
+            {t('Oddiy drayver')}
           </button>
           <button
             type="button"
             className={`seg-item ${thermal ? 'active' : ''}`}
             onClick={() => set('print_mode', 'thermal')}
           >
-            Termal ESC/POS
+            {t('Termal ESC/POS')}
           </button>
         </div>
       </div>
 
       <p className="muted mb-2">
-        Termal rejimda chek rasm (1-bit rastr) ko'rinishida yuboriladi — o'zbekcha
-        belgilar (ʼ, ǵ) ham to'g'ri chiqadi, printer shriftiga bog'liq bo'lmaydi.
+        {t('Termal rejimda chek rasm (1-bit rastr) ko\'rinishida yuboriladi — o\'zbekcha belgilar (ʼ, ǵ) ham to\'g\'ri chiqadi, printer shriftiga bog\'liq bo\'lmaydi.')}
       </p>
 
       {thermal && (
         <>
           <div className="field">
-            <label className="label">Qog'oz kengligi</label>
+            <label className="label">{t('Qog\'oz kengligi')}</label>
             <div className="seg">
               {['58', '80'].map((mm) => (
                 <button
@@ -194,38 +194,36 @@ export default function PrinterCard() {
           </div>
 
           <div className="field">
-            <label className="label">Uzash kanali</label>
+            <label className="label">{t('Uzash kanali')}</label>
             <select
               className="select"
               value={form.thermal_transport}
               onChange={(e) => set('thermal_transport', e.target.value)}
             >
               {Object.entries(TRANSPORT_LABELS).map(([value, label]) => (
-                <option key={value} value={value}>{label}</option>
+                <option key={value} value={value}>{t(label)}</option>
               ))}
             </select>
           </div>
 
           {form.thermal_transport === 'usb' && (
             <div className="field">
-              <label className="label">USB printer</label>
+              <label className="label">{t('USB printer')}</label>
               <div className="row">
                 <button className="btn btn-outline" type="button" disabled={busy} onClick={chooseUsb}>
-                  <Usb size={16} /> Qurilmani tanlash
+                  <Usb size={16} /> {t('Qurilmani tanlash')}
                 </button>
                 {usbLabel && <span className="device-chip">{usbLabel}</span>}
               </div>
               <p className="muted mt-1">
-                Chrome/Edge ruxsat so'raydigan oynani ochadi. Ro'yxat bo'sh bo'lsa
-                Windows'da printer drayveri WinUSB bo'lishi kerak yoki COM port / .bin
-                kanaliga o'ting.
+                {t('Chrome/Edge ruxsat so\'raydigan oynani ochadi. Ro\'yxat bo\'sh bo\'lsa Windows\'da printer drayveri WinUSB bo\'lishi kerak yoki COM port / .bin kanaliga o\'ting.')}
               </p>
             </div>
           )}
 
           {form.thermal_transport === 'serial' && (
             <div className="field">
-              <label className="label">COM port</label>
+              <label className="label">{t('COM port')}</label>
               {isDesktop ? (
                 <div className="row">
                   <select
@@ -233,13 +231,13 @@ export default function PrinterCard() {
                     value={form.thermal_com}
                     onChange={(e) => set('thermal_com', e.target.value)}
                   >
-                    <option value="">— tanlanmagan —</option>
+                    <option value="">{t('— tanlanmagan —')}</option>
                     {ports.map((p) => <option key={p.path} value={p.path}>{p.label || p.path}</option>)}
                   </select>
                   <button
                     className="btn btn-outline"
                     type="button"
-                    title="Port ro'yxatini yangilash"
+                    title={t('Port ro\'yxatini yangilash')}
                     onClick={() => listComPorts({ refresh: true }).then(setPorts).catch(() => setPorts([]))}
                   >
                     <RefreshCw size={16} />
@@ -247,11 +245,11 @@ export default function PrinterCard() {
                 </div>
               ) : (
                 <button className="btn btn-outline" type="button" disabled={busy} onClick={chooseSerial}>
-                  <PlugZap size={16} /> Portni brauzerda tanlash
+                  <PlugZap size={16} /> {t('Portni brauzerda tanlash')}
                 </button>
               )}
               <div className="field mt-1">
-                <label className="label">Tezlik (baud)</label>
+                <label className="label">{t('Tezlik (baud)')}</label>
                 <select className="select" value={form.thermal_baud} onChange={(e) => set('thermal_baud', e.target.value)}>
                   {['9600', '19200', '38400', '57600', '115200'].map((b) => <option key={b} value={b}>{b}</option>)}
                 </select>
@@ -261,22 +259,22 @@ export default function PrinterCard() {
 
           {form.thermal_transport === 'file' && (
             <p className="muted mb-2">
-              Chek .bin faylga yoziladi (ESC/POS baytlari). Uni termal printerning
-              papkasiga tashish yoki <code>copy /b chek.bin \\.\\COM5</code> bilan uzatish mumkin.
+              {t('Chek .bin faylga yoziladi (ESC/POS baytlari). Uni termal printerning papkasiga tashish yoki')}{' '}
+              <code>copy /b chek.bin \\.\\COM5</code> {t('bilan uzatish mumkin.')}
             </p>
           )}
 
           <div className="grid-2">
             <div className="field">
-              <label className="label">Kesish</label>
+              <label className="label">{t('Kesish')}</label>
               <select className="select" value={form.thermal_cut} onChange={(e) => set('thermal_cut', e.target.value)}>
                 {Object.entries(CUT_LABELS).map(([value, label]) => (
-                  <option key={value} value={value}>{label}</option>
+                  <option key={value} value={value}>{t(label)}</option>
                 ))}
               </select>
             </div>
             <div className="field">
-              <label className="label">Kesishdan oldin surish (mm)</label>
+              <label className="label">{t('Kesishdan oldin surish (mm)')}</label>
               <input
                 className="input"
                 type="number"
@@ -294,29 +292,29 @@ export default function PrinterCard() {
               checked={form.thermal_drawer}
               onChange={(e) => set('thermal_drawer', e.target.checked)}
             />
-            Chek bilan birga pul qutisini ochish (ESC p)
+            {t('Chek bilan birga pul qutisini ochish (ESC p)')}
           </label>
 
           <div className="field">
-            <label className="label">Printer ko'radigan chek (sinov)</label>
+            <label className="label">{t('Printer ko\'radigan chek (sinov)')}</label>
             {preview
               ? (
                 <div className="printer-preview">
-                  <img src={preview} width={form.thermal_mm === '58' ? 384 : 576} alt="Termal chek ko'rinishi" />
+                  <img src={preview} width={form.thermal_mm === '58' ? 384 : 576} alt={t('Termal chek ko\'rinishi')} />
                 </div>
               )
-              : <div className="thermal-preview-empty"><Spinner size={16} /> Hisoblanmoqda...</div>}
+              : <div className="thermal-preview-empty"><Spinner size={16} /> {t('Hisoblanmoqda...')}</div>}
           </div>
 
           <div className="row">
             <button className="btn btn-primary" type="button" disabled={busy || !changed} onClick={save}>
-              {busy ? <><Spinner size={16} /> Saqlanmoqda...</> : <><Save size={16} /> Saqlash</>}
+              {busy ? <><Spinner size={16} /> {t('Saqlanmoqda...')}</> : <><Save size={16} /> {t('Saqlash')}</>}
             </button>
             <button className="btn btn-outline" type="button" disabled={busy} onClick={testPrint}>
-              <RefreshCw size={16} /> Sinov chop etish
+              <RefreshCw size={16} /> {t('Sinov chop etish')}
             </button>
           </div>
-          {changed && <p className="muted mt-1">O'zgartirilmagan sozlamalar sinovda ham ishlatiladi, lekin saqlansa barcha qurilmalarga yoziladi.</p>}
+          {changed && <p className="muted mt-1">{t('O\'zgartirilmagan sozlamalar sinovda ham ishlatiladi, lekin saqlansa barcha qurilmalarga yoziladi.')}</p>}
           {note && (
             <p className="mt-1 printer-note"><CircleAlert size={15} /> {note}</p>
           )}
@@ -325,8 +323,7 @@ export default function PrinterCard() {
 
       {!thermal && (
         <p className="muted">
-          Hozir chek oddiy bosma oynasi orqali chiqadi. Termal printer uchun yuqoridagi
-          rejimni tanlang.
+          {t('Hozir chek oddiy bosma oynasi orqali chiqadi. Termal printer uchun yuqoridagi rejimni tanlang.')}
         </p>
       )}
     </div>

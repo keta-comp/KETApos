@@ -8,8 +8,10 @@ import {
 import { getLegacySummary, runLegacyImport } from '../lib/importLegacy.js';
 import { todayStr } from '../lib/format.js';
 import { APP_VERSION } from '../lib/version.js';
+import { t } from '../lib/i18n.js';
 import { ConfirmModal } from '../components/Modal.jsx';
 import PrinterCard from '../components/PrinterCard.jsx';
+import LangToggle from '../components/LangToggle.jsx';
 
 export default function SettingsPage() {
   const { settings, toast } = useApp();
@@ -33,7 +35,7 @@ export default function SettingsPage() {
   async function save() {
     if (busy) return;
     if (!form.store_name.trim()) {
-      toast('Do\'kon nomini kiriting', 'error');
+      toast(t('Do\'kon nomini kiriting'), 'error');
       return;
     }
     setBusy(true);
@@ -45,7 +47,7 @@ export default function SettingsPage() {
         receipt_footer: form.receipt_footer.trim(),
         auto_print: form.auto_print ? '1' : '0',
       });
-      toast('Sozlamalar saqlandi');
+      toast(t('Sozlamalar saqlandi'));
     } catch (e) {
       toast(e.message, 'error');
     } finally {
@@ -82,7 +84,7 @@ export default function SettingsPage() {
       a.download = `pos-backup-${todayStr()}.json`;
       a.click();
       URL.revokeObjectURL(url);
-      toast('Zaxira nusxa yuklandi');
+      toast(t('Zaxira nusxa yuklandi'));
     } catch (e) {
       toast(e.message, 'error');
     } finally {
@@ -96,7 +98,7 @@ export default function SettingsPage() {
     setConfirmImport(false);
     try {
       const res = await runLegacyImport();
-      toast(`Import tugadi: ${res.products} mahsulot, ${res.orders} buyurtma`);
+      toast(t('Import tugadi: {products} mahsulot, {orders} buyurtma', { products: res.products, orders: res.orders }));
     } catch (e) {
       toast(e.message, 'error');
     } finally {
@@ -108,37 +110,41 @@ export default function SettingsPage() {
     <div className="page">
       <div className="page-head">
         <div>
-          <h1 className="page-title"><Settings size={22} /> Sozlamalar</h1>
-          <div className="page-sub">Do'kon ma'lumotlari va tizim</div>
+          <h1 className="page-title"><Settings size={22} /> {t('Sozlamalar')}</h1>
+          <div className="page-sub">{t('Do\'kon ma\'lumotlari va tizim')}</div>
         </div>
       </div>
 
       <div className="page-body">
         <div className="settings-grid">
           <div className="card card-pad">
-            <div className="settings-section-title"><Store size={18} /> Do'kon ma'lumotlari</div>
             <div className="field">
-              <label className="label">Do'kon nomi (chekda chiqadi)</label>
+              <label className="label">{t('Til')}</label>
+              <LangToggle />
+            </div>
+            <div className="settings-section-title"><Store size={18} /> {t('Do\'kon ma\'lumotlari')}</div>
+            <div className="field">
+              <label className="label">{t('Do\'kon nomi (chekda chiqadi)')}</label>
               <input className="input" value={form.store_name} onChange={(e) => set('store_name', e.target.value)} />
             </div>
             <div className="field">
-              <label className="label">Manzil</label>
+              <label className="label">{t('Manzil')}</label>
               <input className="input" value={form.store_address} onChange={(e) => set('store_address', e.target.value)} />
             </div>
             <div className="field">
-              <label className="label">Telefon</label>
+              <label className="label">{t('Telefon')}</label>
               <input className="input" value={form.store_phone} onChange={(e) => set('store_phone', e.target.value)} />
             </div>
             <div className="field">
-              <label className="label">Chek pastki matni</label>
+              <label className="label">{t('Chek pastki matni')}</label>
               <input className="input" value={form.receipt_footer} onChange={(e) => set('receipt_footer', e.target.value)} />
             </div>
             <label className="check-row mb-2">
               <input type="checkbox" checked={form.auto_print} onChange={(e) => set('auto_print', e.target.checked)} />
-              To'lovdan so'ng chekni avtomatik chop etish
+              {t('To\'lovdan so\'ng chekni avtomatik chop etish')}
             </label>
             <button className="btn btn-primary" disabled={busy} onClick={save}>
-              {busy ? <><Loader2 size={18} className="spin" /> Saqlanmoqda...</> : <><Save size={18} /> Saqlash</>}
+              {busy ? <><Loader2 size={18} className="spin" /> {t('Saqlanmoqda...')}</> : <><Save size={18} /> {t('Saqlash')}</>}
             </button>
           </div>
 
@@ -146,42 +152,44 @@ export default function SettingsPage() {
             <PrinterCard />
 
             <div className="card card-pad">
-              <div className="settings-section-title"><Database size={18} /> Ma'lumotlar</div>
+              <div className="settings-section-title"><Database size={18} /> {t('Ma\'lumotlar')}</div>
               <p className="muted mb-2">
-                Ma'lumotlar serverda (Supabase) saqlanadi: bir do'konga kassa, telefon va boshqa
-                qurilmalardan bir vaqtda kirish mumkin. Internet bo'lmasa sahifalar yangilanmaydi.
+                {t('Ma\'lumotlar serverda (Supabase) saqlanadi: bir do\'konga kassa, telefon va boshqa qurilmalardan bir vaqtda kirish mumkin. Internet bo\'lmasa sahifalar yangilanmaydi.')}
               </p>
               <div className="row">
-                <button className="btn btn-outline" disabled={busy} onClick={exportJson}><Download size={16} /> Zaxira nusxa (JSON)</button>
+                <button className="btn btn-outline" disabled={busy} onClick={exportJson}><Download size={16} /> {t('Zaxira nusxa (JSON)')}</button>
               </div>
-              <p className="muted mt-1">Zaxiraga oxirgi 500 buyurtma va 500 ombor harakati kiradi.</p>
+              <p className="muted mt-1">{t('Zaxiraga oxirgi 500 buyurtma va 500 ombor harakati kiradi.')}</p>
             </div>
 
             {legacy && !firstOrder && (
               <div className="card card-pad">
-                <div className="settings-section-title"><Upload size={18} /> Eski ma'lumotni ichga olish</div>
+                <div className="settings-section-title"><Upload size={18} /> {t('Eski ma\'lumotni ichga olish')}</div>
                 <p className="muted mb-2">
-                  Kompyuterda saqlangan eski (lokal) bazada {legacy.categories} kategoriya,{' '}
-                  {legacy.products} mahsulot, {legacy.tables} stol va {legacy.orders} buyurtma topildi.
-                  Import ularni shu do'konga o'tkazadi va tayyor menyu bilan almashtiradi.
+                  {t('Kompyuterda saqlangan eski (lokal) bazada {categories} kategoriya, {products} mahsulot, {tables} stol va {orders} buyurtma topildi. Import ularni shu do\'konga o\'tkazadi va tayyor menyu bilan almashtiradi.', {
+                    categories: legacy.categories,
+                    products: legacy.products,
+                    tables: legacy.tables,
+                    orders: legacy.orders,
+                  })}
                 </p>
                 <div className="row">
                   <button className="btn btn-outline" disabled={busy} onClick={() => setConfirmImport(true)}>
-                    <Upload size={16} /> Eski ma'lumotni import qilish
+                    <Upload size={16} /> {t('Eski ma\'lumotni import qilish')}
                   </button>
                 </div>
                 <p className="muted mt-1">
-                  Import bir marta ishlaydi: do'konda buyurtma paydo bo'lgach u yopiladi.
+                  {t('Import bir marta ishlaydi: do\'konda buyurtma paydo bo\'lgach u yopiladi.')}
                 </p>
               </div>
             )}
 
             <div className="card card-pad">
-              <div className="settings-section-title"><Info size={18} /> Tizim haqida</div>
-              <div className="about-row"><span className="muted">Versiya</span><b>{APP_VERSION}</b></div>
-              <div className="about-row"><span className="muted">Platforma</span><b>{window.api ? 'Electron (desktop)' : 'Brauzer (Chrome/PWA)'}</b></div>
-              <div className="about-row"><span className="muted">Ma'lumotlar bazasi</span><b>Supabase (server)</b></div>
-              <div className="about-row"><span className="muted">Valyuta</span><b>So'm (UZS)</b></div>
+              <div className="settings-section-title"><Info size={18} /> {t('Tizim haqida')}</div>
+              <div className="about-row"><span className="muted">{t('Versiya')}</span><b>{APP_VERSION}</b></div>
+              <div className="about-row"><span className="muted">{t('Platforma')}</span><b>{window.api ? 'Electron (desktop)' : t('Brauzer (Chrome/PWA)')}</b></div>
+              <div className="about-row"><span className="muted">{t('Ma\'lumotlar bazasi')}</span><b>Supabase (server)</b></div>
+              <div className="about-row"><span className="muted">{t('Valyuta')}</span><b>So'm (UZS)</b></div>
             </div>
           </div>
         </div>
@@ -189,9 +197,9 @@ export default function SettingsPage() {
 
       {confirmImport && (
         <ConfirmModal
-          title="Eski ma'lumotni import qilish"
-          message="DIQQAT: do'konning hozirgi menyusi va stollari o'chirilib, eski (lokal) ma'lumot yoziladi. Davom etilsinmi?"
-          confirmLabel="Import qilish"
+          title={t('Eski ma\'lumotni import qilish')}
+          message={t('DIQQAT: do\'konning hozirgi menyusi va stollari o\'chirilib, eski (lokal) ma\'lumot yoziladi. Davom etilsinmi?')}
+          confirmLabel={t('Import qilish')}
           danger
           onClose={() => setConfirmImport(false)}
           onConfirm={doImport}

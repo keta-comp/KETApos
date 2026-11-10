@@ -1,8 +1,6 @@
-// Qoraqalpoqcha (kaa) lug'at. Kalit — o'zbekcha asl nusxa, qiymat — qoraqalpoqcha.
-// Kalitlar kod ichidagi matn bilan belgisi-belgisine mos kelishi shart;
-// tekshiruv skripti (scripts/lang-coverage.mjs) mos kelmaganlarni chiqaradi.
-
-export const KAA = {
+// Sayt (landing) qoraqalpoqcha lug'ati. Kalit — o'zbekcha asl nusxa.
+// Qamov tekshiruvi: npm run lang:check
+export const LANDING = {
   // ---------- Brend va sahifa sarlavhalari ----------
   'Kassa va restoran boshqaruv tizimi': 'Kassa hám restoran basqarıw tizimi',
   'Biznes uchun zamonaviy raqamli yechimlar.': 'Biznes ushın zamanaǵoı raqamlı sheshimler.',

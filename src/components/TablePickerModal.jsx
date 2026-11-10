@@ -5,14 +5,15 @@ import { Sk, SkCards } from './Skeleton.jsx';
 import { useData } from '../state/useData.js';
 import { getTableStates } from '../supabase/queries.js';
 import { fmtSum, minutesSince } from '../lib/format.js';
+import { t } from '../lib/i18n.js';
 
 export default function TablePickerModal({ onSelect, onClose, currentId = null }) {
   const { data, error, reload } = useData(getTableStates);
   const tables = data || [];
-  const zones = [...new Set(tables.map((t) => t.zone))];
+  const zones = [...new Set(tables.map((tb) => tb.zone))];
 
   return (
-    <Modal title="Stol tanlang" onClose={onClose} width={640}>
+    <Modal title={t('Stol tanlang')} onClose={onClose} width={640}>
       {!data ? (
         error ? (
           <DataState error={error} onRetry={reload} />
@@ -28,27 +29,27 @@ export default function TablePickerModal({ onSelect, onClose, currentId = null }
         <div key={zone} className="zone-section">
           <div className="zone-title">{zone}</div>
           <div className="table-grid">
-            {tables.filter((t) => t.zone === zone).map((t) => {
-              const busy = t.order_id && t.order_id !== currentId;
+            {tables.filter((tb) => tb.zone === zone).map((tb) => {
+              const busy = tb.order_id && tb.order_id !== currentId;
               return (
                 <button
-                  key={t.id}
+                  key={tb.id}
                   className={`table-card ${busy ? 'busy' : 'free'}`}
                   disabled={busy}
                   style={busy ? { opacity: 0.55, cursor: 'not-allowed' } : {}}
-                  onClick={() => onSelect(t)}
+                  onClick={() => onSelect(tb)}
                 >
                   <span className="table-icon">{busy ? <Users size={26} /> : <Armchair size={26} />}</span>
-                  <span className="table-name">{t.name}</span>
-                  <span className="table-seats">{t.seats} o'rin</span>
+                  <span className="table-name">{tb.name}</span>
+                  <span className="table-seats">{t("{n} o'rin", { n: tb.seats })}</span>
                   {busy ? (
                     <>
-                      <span className="table-status">Band · №{t.order_number}</span>
-                      <span className="table-total">{fmtSum(t.order_total)}</span>
-                      <span className="table-time">{minutesSince(t.order_since)} daqiqa</span>
+                      <span className="table-status">{t('Band · №{n}', { n: tb.order_number })}</span>
+                      <span className="table-total">{fmtSum(tb.order_total)}</span>
+                      <span className="table-time">{t('{n} daqiqa', { n: minutesSince(tb.order_since) })}</span>
                     </>
                   ) : (
-                    <span className="table-status">Bo'sh</span>
+                    <span className="table-status">{t("Bo'sh")}</span>
                   )}
                 </button>
               );
