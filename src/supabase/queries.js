@@ -79,6 +79,15 @@ const MESSAGES = {
   EMAIL_NOTOGRI: 'Emailni to‘liq yozing.',
   OXIRGI_ADMIN: 'Bu platformaning oxirgi administratori — o‘chirib bo‘lmaydi.',
   ADMIN_TOPILMADI: 'Administrator topilmadi.',
+  DOKON_YOPIQ: 'Bu do‘kon hozir onlayn zakaz qabul qilmaydi.',
+  DOKON_YETKAZMAYDI: 'Bu do‘kon yetkazib bermaydi — „Olib ketish“ni tanlang.',
+  KOD_KERTILMADI: 'Sahifa ma’lumoti buzilgan — sahifani yangilab qayta urinib ko‘ring.',
+  TELEF_NOTOGRI: 'Telefon raqami noto‘g‘ri. Masalan: +998 77 763 02 16.',
+  MANZIL_KERTILMADI: 'Yetkazib berish manzilini yozing.',
+  MAHSULOT_KOP: 'Zakazda juda ko‘p mahsulot — kamaytirib qayta urinib ko‘ring.',
+  MINIMUM_YETISHMADI: 'Zakaz summasi do‘kon belgilagan minimal miqdordan kam.',
+  TEZ_ORQILA: 'Juda ko‘p zakaz yuborildi — birozdan so‘ng qayta urinib ko‘ring.',
+  RAD_ETILGAN: 'Bu zakaz avval rad qilingan.',
   'relation does not exist': "Baza tayyor emas — sxemani qo'llash kerak.",
 };
 
@@ -641,3 +650,35 @@ export async function removePlatformAdmin(userId) {
   await write('admin_remove_admin', { p_user_id: userId });
 }
 
+
+// ---------- Onlayn zakazlar (do'kon egasi va kassiri tomoni) ----------
+// Mijoz tomoni (anon) alohida: src/online/api.js — u yerda sessiya yo'q.
+
+export async function getOnlineShop() {
+  return (await read('online_get_shop')) || {};
+}
+
+export async function saveOnlineShop({ enabled, accepting, delivery, min_total } = {}) {
+  const p = {};
+  if (enabled !== undefined) p.enabled = Boolean(enabled);
+  if (accepting !== undefined) p.accepting = Boolean(accepting);
+  if (delivery !== undefined) p.delivery = Boolean(delivery);
+  if (min_total !== undefined) p.min_total = Math.max(0, Math.round(Number(min_total) || 0));
+  return (await write('online_set_shop', { p })) || {};
+}
+
+export async function getOnlineOrders() {
+  return (await read('online_list')) || [];
+}
+
+export async function getOnlinePending() {
+  return Number((await read('online_pending')) || 0);
+}
+
+export async function acceptOnlineOrder(orderId) {
+  return write('online_accept', { p_id: orderId });
+}
+
+export async function rejectOnlineOrder(orderId, reason) {
+  return write('online_reject', { p_id: orderId, p_reason: reason || null });
+}

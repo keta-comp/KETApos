@@ -667,6 +667,63 @@ button { font-family: inherit; cursor: pointer; -webkit-tap-highlight-color: tra
 .kitchen-paid { font-size: 11px; font-weight: 800; padding: 0 16px 8px; }
 .kitchen-actions { padding: 10px 16px 16px; }
 
+/* ---------- Onlayn zakazlar (jouyar + dúkan sazlamaları) ---------- */
+
+.online-tabs { width: max-content; max-width: 100%; margin-bottom: 16px; }
+.online-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(330px, 1fr)); gap: 16px; align-items: start; }
+
+.online-card { padding: 14px 16px 16px; display: flex; flex-direction: column; gap: 11px; border-left: 5px solid var(--metal-3); }
+.online-card.st-new { border-left-color: var(--blue); }
+.online-card.st-accepted { border-left-color: var(--green); }
+.online-card.st-rejected { border-left-color: var(--red); }
+.online-card-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
+.online-who { font-size: 15px; font-weight: 800; display: inline-flex; align-items: center; gap: 6px; }
+.online-phone {
+  font-size: 13px; font-weight: 700; color: var(--ink-2); text-decoration: none;
+  display: inline-flex; align-items: center; gap: 6px; margin-top: 3px;
+}
+.online-phone:hover { color: var(--blue); text-decoration: underline; }
+.online-when { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; flex-shrink: 0; }
+.online-tags { display: flex; flex-wrap: wrap; gap: 7px; }
+.online-chip {
+  display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 700;
+  color: var(--ink-2); background: var(--metal-1); border-radius: 11px; padding: 4px 10px; box-shadow: var(--sunk);
+}
+.online-chip.mono { font-family: var(--mono, ui-monospace, monospace); letter-spacing: 0.4px; }
+.online-addr { font-size: 13px; font-weight: 600; color: var(--ink-2); display: flex; align-items: flex-start; gap: 6px; }
+.online-items { display: flex; flex-direction: column; gap: 3px; padding: 10px 12px; background: var(--face-sunk); border-radius: var(--radius-s); box-shadow: var(--sunk); }
+.online-line { display: flex; align-items: baseline; gap: 9px; font-size: 13.5px; }
+.online-line .ol-qty { font-weight: 800; min-width: 30px; font-variant-numeric: tabular-nums; }
+.online-line .ol-name { flex: 1; font-weight: 600; color: var(--ink-2); }
+.online-line .ol-sum { font-weight: 700; color: var(--muted); font-variant-numeric: tabular-nums; }
+.online-note { font-size: 12.5px; font-weight: 600; color: var(--blue); display: flex; align-items: flex-start; gap: 6px; }
+.online-card-foot { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; border-top: 1px dashed var(--border); padding-top: 11px; }
+.online-total { font-size: 17px; font-weight: 800; }
+.online-handled { font-size: 12.5px; font-weight: 700; }
+.online-reject-who { font-size: 14px; font-weight: 700; color: var(--ink-2); }
+
+.online-shop { padding: 16px 18px 18px; display: flex; flex-direction: column; gap: 13px; margin-bottom: 18px; }
+.online-shop-head { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.online-shop-mark {
+  width: 40px; height: 40px; border-radius: 14px; display: grid; place-items: center; flex-shrink: 0;
+  background: var(--face-metal); color: var(--ink-2); box-shadow: var(--clay-sm);
+}
+.online-shop-title { font-size: 16px; font-weight: 800; }
+.online-shop-sub { font-size: 12.5px; font-weight: 600; color: var(--muted); }
+.online-shop-main { margin-left: auto; }
+.online-shop-grid { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 22px; }
+.online-shop-note {
+  display: flex; align-items: flex-start; gap: 8px; font-size: 12.5px; font-weight: 600;
+  color: var(--muted); background: var(--metal-1); border-radius: var(--radius-s); padding: 10px 12px;
+}
+.online-shop-note svg { flex-shrink: 0; margin-top: 1px; }
+.link-box { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; padding: 11px 13px; background: var(--face-sunk); border-radius: var(--radius-m); box-shadow: var(--sunk); }
+.link-text {
+  flex: 1 1 260px; min-width: 0; font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 13px; font-weight: 700; color: var(--ink); word-break: break-all;
+}
+.online-min { width: 130px; }
+
 /* ---------- Menyu ---------- */
 
 .menu-layout { display: grid; grid-template-columns: 290px 1fr; gap: 20px; align-items: start; }

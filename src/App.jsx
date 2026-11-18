@@ -1,9 +1,9 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import './styles.css';
 import {
   ShoppingCart, Users, ChefHat, ClipboardList, Package, ChartNoAxesCombined, Settings,
   Store, CircleCheck, CircleAlert, Info, LogOut, RefreshCw, TriangleAlert, UserCog, Eye,
-  CircleUser, Save, WifiOff, ShieldCheck,
+  CircleUser, Save, WifiOff, ShieldCheck, Inbox,
 } from 'lucide-react';
 import Spinner from './components/Spinner.jsx';
 import Modal from './components/Modal.jsx';
@@ -13,7 +13,7 @@ import { AuthProvider, useAuth } from './state/AuthContext.jsx';
 import { AppProvider, useApp } from './state/AppContext.jsx';
 import { useData } from './state/useData.js';
 import AuthScreen from './auth/AuthScreen.jsx';
-import { getOpenOrders, getKitchenOrders, getLowStock, setMyName } from './supabase/queries.js';
+import { getOpenOrders, getKitchenOrders, getLowStock, getOnlinePending, setMyName } from './supabase/queries.js';
 import { ROLES, ROLE_META, ROLE_PAGES } from './lib/roles.js';
 import { APP_VERSION } from './lib/version.js';
 import { t } from './lib/i18n.js';
@@ -21,6 +21,7 @@ import { useLang } from './lib/lang.js';
 import PosPage from './pages/PosPage.jsx';
 import TablesPage from './pages/TablesPage.jsx';
 import KitchenPage from './pages/KitchenPage.jsx';
+import OnlinePage from './pages/OnlinePage.jsx';
 import MenuPage from './pages/MenuPage.jsx';
 import InventoryPage from './pages/InventoryPage.jsx';
 import ReportsPage from './pages/ReportsPage.jsx';
@@ -34,6 +35,7 @@ const NAV = [
   { id: 'pos', label: 'Kassa', icon: ShoppingCart },
   { id: 'tables', label: 'Stollar', icon: Users },
   { id: 'kitchen', label: 'Oshxona', icon: ChefHat },
+  { id: 'online', label: 'Onlayn zakazlar', icon: Inbox },
   { id: 'menu', label: 'Menyu', icon: ClipboardList },
   { id: 'inventory', label: 'Ombor', icon: Package },
   { id: 'reports', label: 'Hisobot', icon: ChartNoAxesCombined },
@@ -46,16 +48,34 @@ function Sidebar({ onProfile, onQueue }) {
   const { page, navigate, allowedPages, peers, offline, queue } = useApp();
   const { venue, roleLabel, displayName } = useAuth();
 
-  const { data: counts } = useData(async () => {
-    const [open, kitchen] = await Promise.all([getOpenOrders(), getKitchenOrders()]);
-    const low = allowedPages.includes('inventory') ? await getLowStock() : [];
+  const maySeeOnline = allowedPages.includes('online');
+
+  const { data: counts, reload } = useData(async () => {
+    const [open, kitchen, low, online] = await Promise.all([
+      getOpenOrders(),
+      getKitchenOrders(),
+      allowedPages.includes('inventory') ? getLowStock() : [],
+      // Mijoz jouyari ishlamasa ham qolgan belgilar o'lmasin.
+      maySeeOnline ? getOnlinePending().catch(() => 0) : 0,
+    ]);
     return {
       pos: open.length,
       kitchen: kitchen.filter((o) => o.kitchen_status === 'new').length,
       inventory: low.length,
+      online,
     };
   }, [allowedPages]);
-  const badges = counts || { pos: 0, kitchen: 0, inventory: 0 };
+  const badges = counts || { pos: 0, kitchen: 0, inventory: 0, online: 0 };
+
+  // Onlayn zakazlar realtime orqali kelmaydi (mijoz jadvaliga xodimning
+  // to'g'ridan-to'g'ri kirishi yopiq) — belgi 30 soniyada bir yangilanadi.
+  const reloadRef = useRef(reload);
+  reloadRef.current = reload;
+  useEffect(() => {
+    if (!maySeeOnline) return undefined;
+    const timer = setInterval(() => reloadRef.current(), 30000);
+    return () => clearInterval(timer);
+  }, [maySeeOnline]);
 
   const items = NAV.filter((item) => allowedPages.includes(item.id));
   const who = displayName || venue?.name || '?';
@@ -251,6 +271,7 @@ function Shell() {
     pos: <PosPage />,
     tables: <TablesPage />,
     kitchen: <KitchenPage />,
+    online: <OnlinePage />,
     menu: <MenuPage />,
     inventory: <InventoryPage />,
     reports: <ReportsPage />,

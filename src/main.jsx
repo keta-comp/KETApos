@@ -1,9 +1,10 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 
-// Ikkita kirish manzil:
-//   /    — yanga mijoz uchun tanituv sahifasi (landing)
-//   /app — POS ilovasi
+// Uch kirish manzil:
+//   /      — yangi mijoz uchun tanituv sahifasi (landing)
+//   /app   — POS ilovasi
+//   /o/xyz — do'konning onlayn menyusi (Instagram/Telegram bio'sidagi link)
 // Desktop ilova (file://) va ?app=1 har doim POS'ga boradi. Kiritilgan foydalanuvchi
 // (sessiyasi bor) / manzilida ham darhol Kassaga tushadi — telefon va eski
 // yorliqlar uchun hech narsa o'zgarmaydi. ?landing=1 — saytni shu holda ko'rish.
@@ -15,6 +16,13 @@ function wantsApp() {
   if (query.has('landing')) return false;
   if (/^\/app(\/|$)/i.test(pathname)) return true;
   return hasSavedSession();
+}
+
+// Onlayn do'kon manzili: /o/<slug>. Sessiyasi bor do'kon egasi ham shu
+// manzilda mijoz menyusini ko'radi — bio'ga qo'yilgan link aynan shu.
+function onlineSlug() {
+  const m = /^\/o\/([a-z0-9][a-z0-9_-]{2,39})/i.exec(window.location.pathname);
+  return m ? m[1].toLowerCase() : null;
 }
 
 function hasSavedSession() {
@@ -32,6 +40,17 @@ function hasSavedSession() {
 const root = ReactDOM.createRoot(document.getElementById('root'));
 
 async function boot() {
+  const slug = onlineSlug();
+  if (slug) {
+    const { default: Shop } = await import('./online/OnlineShop.jsx');
+    root.render(
+      <React.StrictMode>
+        <Shop slug={slug} />
+      </React.StrictMode>,
+    );
+    return;
+  }
+
   const module = wantsApp() ? import('./App.jsx') : import('./landing/Landing.jsx');
   const { default: Screen } = await module;
   root.render(

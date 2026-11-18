@@ -23,6 +23,7 @@
     "smoke:import": "node scripts/smoke-import.mjs",
     "smoke:photos": "node scripts/smoke-photos.mjs",
     "smoke:team": "node scripts/smoke-team.mjs",
+    "smoke:online": "node scripts/smoke-online.mjs",
     "smoke:offline": "node scripts/smoke-offline.mjs"
   },
   "dependencies": {

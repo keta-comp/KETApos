@@ -11,6 +11,7 @@ import { TEAM } from './team.js';
 import { SETTINGS } from './settings.js';
 import { AUTH } from './auth.js';
 import { ERRORS } from './errors.js';
+import { ONLINE } from './online.js';
 
 export const KAA = {
   ...ERRORS,
@@ -21,5 +22,6 @@ export const KAA = {
   ...HALL,
   ...MENU,
   ...POS,
+  ...ONLINE,
   ...LANDING,
 };

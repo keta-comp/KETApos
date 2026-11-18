@@ -26,6 +26,10 @@ export const PERMS = {
   orderCreate: ['owner', 'waiter', 'cashier'],
   pay: ['owner', 'cashier'],
   cancel: ['owner', 'cashier'],
+  // Bazadagi guard_role ro'yxatlari bilan bir xil: online_accept/reject —
+  // owner+cashier, online_set_shop — faqat owner.
+  onlineHandle: ['owner', 'cashier'],
+  onlineShop: ['owner'],
   toKitchen: ['owner', 'waiter', 'cashier', 'kitchen'],
   kitchenStatus: ['owner', 'waiter', 'kitchen'],
   reports: ['owner', 'cashier'],
@@ -38,9 +42,9 @@ export function can(role, perm) {
 
 // Sidebar tartibi shu ro'yxat bo'yichasiga quriladi.
 export const ROLE_PAGES = {
-  owner: ['pos', 'tables', 'kitchen', 'menu', 'inventory', 'reports', 'staff', 'settings'],
+  owner: ['pos', 'tables', 'kitchen', 'online', 'menu', 'inventory', 'reports', 'staff', 'settings'],
   waiter: ['tables', 'pos', 'kitchen'],
-  cashier: ['pos', 'tables', 'reports'],
+  cashier: ['pos', 'online', 'tables', 'reports'],
   kitchen: ['kitchen'],
 };
 
