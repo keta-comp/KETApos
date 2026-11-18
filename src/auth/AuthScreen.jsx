@@ -153,7 +153,7 @@ function SignUpForm() {
         <label className="label">{t('Email')}</label>
         <div className="input-icon">
           <span className="input-icon-mark"><Mail size={16} /></span>
-          <input className="input" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="ish@doikon.uz" autoComplete="email" />
+          <input className="input" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="ish@dokon.uz" autoComplete="email" />
         </div>
       </div>
       <PasswordField value={password} onChange={setPassword} />
@@ -185,7 +185,7 @@ function LoginForm() {
         <label className="label">{t('Email')}</label>
         <div className="input-icon">
           <span className="input-icon-mark"><Mail size={16} /></span>
-          <input className="input" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="ish@doikon.uz" autoComplete="email" />
+          <input className="input" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="ish@dokon.uz" autoComplete="email" />
         </div>
       </div>
       <PasswordField value={password} onChange={setPassword} />
